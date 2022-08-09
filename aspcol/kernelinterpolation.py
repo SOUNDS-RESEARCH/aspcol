@@ -5,11 +5,10 @@ import scipy.signal as sig
 import numba as nb
 
 import ancsim.utilities as util
-import ancsim.signal.filterdesign as fd
-import ancsim.integration.montecarlo as mc
-import ancsim.integration.pointgenerator as gen
+import aspcol.filterdesign as fd
+import aspcol.montecarlo as mc
 import ancsim.signal.filterclasses as fc
-import ancsim.soundfield.roomimpulseresponse as rir
+import ancsim.room.roomimpulseresponse as rir
 
 
 def kernelHelmholtz2d(points1, points2, waveNum):

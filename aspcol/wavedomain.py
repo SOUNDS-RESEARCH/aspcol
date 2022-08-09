@@ -1,8 +1,8 @@
 import numpy as np
 
 import matplotlib.pyplot as plt
-import ancsim.signal.filterdesign as fd
-import ancsim.soundfield.roomimpulseresponse as rir
+import aspcol.filterdesign as fd
+import ancsim.room.roomimpulseresponse as rir
 
 
 def waveTransformCircularMicArray(micPos, numHarmonics):
