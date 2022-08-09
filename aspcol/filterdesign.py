@@ -1,13 +1,11 @@
 import numpy as np
 import scipy.signal as signal
-import ancsim.signal.freqdomainfiltering as fdf
 import itertools as it
 
 
 # =======================================================================
 
-
-def getFrequencyValues(numFreq, samplerate):
+def get_frequency_values(numFreq, samplerate):
     """Get the frequency values of all positive frequency bins in Hz
     numFreq is the number of frequency bins INCLUDING negative frequencies
     If numFreq is even, it will return (numFreq/2)+1 values
@@ -22,7 +20,7 @@ def getFrequencyValues(numFreq, samplerate):
         raise ValueError
 
 
-def insertNegativeFrequencies(freqSignal, even):
+def insert_negative_frequencies(freqSignal, even):
     """To be used in conjunction with getFrequencyValues
     Inserts all negative frequency values under the
     assumption of conjugate symmetry, i.e. a real impulse response.
@@ -38,7 +36,7 @@ def insertNegativeFrequencies(freqSignal, even):
     else:
         raise NotImplementedError
 
-def firFromFreqsWindow(freqFilter, irLen, twoSided=True):
+def fir_from_freqs_window(freq_filter, ir_len, two_sided=True):
     """Use this over the other window methods,
     as they might be wrong. freqFilter is with both positive
     and negative frequencies.
@@ -46,17 +44,21 @@ def firFromFreqsWindow(freqFilter, irLen, twoSided=True):
     Makes FIR filter from frequency values.
     Works only for odd impulse response lengths
     Uses hamming window"""
-    assert irLen % 1 == 0
-    assert freqFilter.shape[0] % 2 == 0
-    if twoSided:
+    assert ir_len % 1 == 0
+    assert freq_filter.shape[0] % 2 == 0
+    if two_sided:
         #halfLen = irLen // 2
-        midPoint = freqFilter.shape[0] // 2
-        timeFilter = np.real(fdf.ifftWithTranspose(freqFilter))
+        mid_point = freq_filter.shape[0] // 2
+
+        time_signal = np.fft.ifft(freq_filter, axis=0)
+        new_axis_order = np.concatenate((np.arange(1, freq_filter.ndim), [0]))
+        time_signal = np.real_if_close(np.transpose(time_signal, new_axis_order))
+
         #truncError = calcTruncationError(fullTimeFilter, irLen, twoSided)
-        timeFilter = np.concatenate((timeFilter[...,-midPoint:], timeFilter[...,:midPoint]), axis=-1)
+        time_filter = np.concatenate((time_filter[...,-mid_point:], time_filter[...,:mid_point]), axis=-1)
 
         #truncFilter = timeFilter[..., midPoint-halfLen:midPoint+halfLen+1]
-        truncFilter, truncError = truncateFilter(timeFilter, irLen, True)
+        trunc_filter, trunc_error = truncate_filter(time_filter, ir_len, True)
         
         # timeFilter = np.concatenate(
         #     (fullTimeFilter[..., -halfLen:], fullTimeFilter[..., : halfLen + 1]), axis=-1
@@ -72,22 +74,22 @@ def firFromFreqsWindow(freqFilter, irLen, twoSided=True):
     else:
         raise NotImplementedError
 
-    return truncFilter, truncError
+    return trunc_filter, trunc_error
 
-def truncateFilter(ir, irLen, twoSided):
-    if twoSided:
-        assert irLen % 2 == 1
+def truncate_filter(ir, ir_len, two_sided):
+    if two_sided:
+        assert ir_len % 2 == 1
         assert ir.shape[-1] % 2 == 0
-        halfLen = irLen // 2
-        midPoint = ir.shape[-1] // 2
-        truncFilter = ir[..., midPoint-halfLen:midPoint+halfLen+1]
+        half_len = ir_len // 2
+        mid_point = ir.shape[-1] // 2
+        trunc_filter = ir[..., mid_point-half_len:mid_point+half_len+1]
 
-        truncPower = np.sum(ir[...,:midPoint-halfLen]**2) + np.sum(ir[...,midPoint+halfLen+1:]**2)
-        totalPower = np.sum(ir**2)
-        relTruncError = 10 * np.log10(truncPower / totalPower)
+        trunc_power = np.sum(ir[...,:mid_point-half_len]**2) + np.sum(ir[...,mid_point+half_len+1:]**2)
+        total_power = np.sum(ir**2)
+        rel_trunc_error = 10 * np.log10(trunc_power / total_power)
     else:
         raise NotImplementedError
-    return truncFilter, relTruncError
+    return trunc_filter, rel_trunc_error
 
     
 
@@ -118,20 +120,20 @@ def truncateFilter(ir, irLen, twoSided):
 #     return timeFilter, truncError
 
 
-def calcTruncationError(ir, irLen, twoSided=True):
-    if twoSided:
-        assert irLen % 2 == 1
-        halfLen = irLen // 2
-        midPoint = ir.shape[-1]
-        truncPower = np.sum(ir[...,:midPoint-halfLen]**2) + np.sum(ir[...,midPoint+halfLen:]**2)
-        totalPower = np.sum(ir**2)
-        relTruncError = 10 * np.log10(truncPower / totalPower)
+def calc_truncation_error(ir, ir_len, two_sided=True):
+    if two_sided:
+        assert ir_len % 2 == 1
+        half_len = ir_len // 2
+        mid_point = ir.shape[-1]
+        trunc_power = np.sum(ir[...,:mid_point-half_len]**2) + np.sum(ir[...,mid_point+half_len:]**2)
+        total_power = np.sum(ir**2)
+        rel_trunc_error = 10 * np.log10(trunc_power / total_power)
     else:
         raise NotImplementedError
-    return relTruncError
+    return rel_trunc_error
     
 
-def minTruncatedLength(ir, twosided=True, maxRelTruncError=1e-3):
+def min_truncated_length(ir, two_sided=True, max_rel_trunc_error=1e-3):
     """Calculates the minimum length you can truncate a filter to.
     ir has shape (..., irLength)
     if twosided, the ir will be assumed centered in the middle.
@@ -139,32 +141,32 @@ def minTruncatedLength(ir, twosided=True, maxRelTruncError=1e-3):
     be calculated independently for all impulse responses, and
     the longest length chosen. The relative error is how much of the
     power of the impulse response that is lost by truncating."""
-    irLen = ir.shape[-1]
-    irShape = ir.shape[:-1]
+    ir_len = ir.shape[-1]
+    ir_shape = ir.shape[:-1]
 
-    totalEnergy = np.sum(ir ** 2, axis=-1)
-    energyNeeded = (1 - maxRelTruncError) * totalEnergy
+    total_energy = np.sum(ir ** 2, axis=-1)
+    energy_needed = (1 - max_rel_trunc_error) * total_energy
 
-    if twosided:
-        centerIdx = irLen // 2
-        casualSum = np.cumsum(ir[..., centerIdx:] ** 2, axis=-1)
-        noncausalSum = np.cumsum(np.flip(ir[..., :centerIdx] ** 2, axis=-1), axis=-1)
-        energySum = casualSum
-        energySum[..., 1:] += noncausalSum
+    if two_sided:
+        center_idx = ir_len // 2
+        casual_sum = np.cumsum(ir[..., center_idx:] ** 2, axis=-1)
+        noncausal_sum = np.cumsum(np.flip(ir[..., :center_idx] ** 2, axis=-1), axis=-1)
+        energy_sum = casual_sum
+        energy_sum[..., 1:] += noncausal_sum
     else:
-        energySum = np.cumsum(ir ** 2, axis=-1)
+        energy_sum = np.cumsum(ir ** 2, axis=-1)
 
-    enoughEnergy = energySum > energyNeeded[..., None]
-    truncIndices = np.zeros(irShape, dtype=int)
-    for indices in it.product(*[range(dimSize) for dimSize in irShape]):
-        truncIndices[indices] = np.min(
-            np.nonzero(enoughEnergy[indices + (slice(None),)])[0]
+    enough_energy = energy_sum > energy_needed[..., None]
+    trunc_indices = np.zeros(ir_shape, dtype=int)
+    for indices in it.product(*[range(dimSize) for dimSize in ir_shape]):
+        trunc_indices[indices] = np.min(
+            np.nonzero(enough_energy[indices + (slice(None),)])[0]
         )
 
-    reqFilterLength = np.max(truncIndices)
-    if twosided:
-        reqFilterLength = 2 * reqFilterLength + 1
-    return reqFilterLength
+    req_filter_length = np.max(trunc_indices)
+    if two_sided:
+        req_filter_length = 2 * req_filter_length + 1
+    return req_filter_length
 
 
 

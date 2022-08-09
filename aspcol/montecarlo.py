@@ -2,7 +2,7 @@ import numpy as np
 
 
 
-def integrateMp(
+def integrate_parallell(
     func, pointGenerator, totNumSamples, totalVolume, numPerIter=5, verbose=False
 ):
     """Uses mcIntegrate but paralellized"""

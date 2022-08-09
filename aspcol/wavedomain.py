@@ -28,7 +28,7 @@ def waveTransformSpeakerArray(speakerPos, micPos, numHarmonics, numFreq, sampler
     assert numFreq % 2 == 0
     numMics = micPos.shape[0]
 
-    freqs = fd.getFrequencyValues(numFreq, samplerate)
+    freqs = fd.get_frequency_values(numFreq, samplerate)
 
     G = rir.tfPointSource3d(speakerPos, micPos, freqs)
     T2, _ = waveTransformCircularMicArray(micPos, numHarmonics)

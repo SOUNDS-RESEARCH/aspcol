@@ -2,6 +2,7 @@ import numpy as np
 import numexpr as ne
 import scipy.signal as spsig
 import scipy.linalg as splin
+import pandas as pd
 
 import aspcol.matrices as mat
 import ancsim.signal.filterclasses as fc
@@ -59,7 +60,7 @@ def cov_est_qis(sample_cov, n):
     p = Y.shape[1]                                                 #num of rows
 
     #default setting
-    if (k is None or math.isnan(k)):
+    if (k is None or np.isnan(k)):
         Y = Y.sub(Y.mean(axis=0), axis=1)                               #demean
         k = 1
 

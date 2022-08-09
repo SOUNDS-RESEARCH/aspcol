@@ -21,4 +21,6 @@ multi_experiments/*
 multi_experiments/*/*
 multi_experiments/*/*/*
 
-ancsim_PVJesper.egg-info
+aspcol_PVJesper.egg-info
+
+.gitignore.bak

@@ -8,13 +8,21 @@ import ancsim.signal.filterclasses as fc
 
 
 def mse(var1, var2):
-    """Normalized with size of variable 2"""
+    """
+    The normalized mean square error
+
+    Normalized by the second variable
+    """
     return np.sum(np.abs(var1 - var2)**2) / np.sum(np.abs(var2)**2)
 
 
 
 #============== FOR VECTORS ======================
 def angular_distance(vec1, vec2):
+    """
+    A distance metric based on the cosine similary, that retains the
+        scale invariant property, but is also a proper distance metric
+    """
     return np.arccos(cos_similary(vec1, vec2)) / np.pi
 
 def cos_similary(vec1, vec2):

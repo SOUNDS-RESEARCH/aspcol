@@ -55,26 +55,26 @@ class MovingAverage:
 
 
 class SinglePoleLowPass:
-    def __init__(self, forgetFactor, dim, dtype=np.float64):
+    def __init__(self, forget_factor, dim, dtype=np.float64):
         self.state = np.zeros(dim, dtype=dtype)
-        self.forgetFactor = forgetFactor
-        self.invForgetFactor = 1 - forgetFactor
+        self.forget_factor = forget_factor
+        self.inv_forget_factor = 1 - forget_factor
         self.initialized = False
 
-    def setForgetFactor(self, cutoff, samplerate):
+    def set_forget_factor(self, cutoff, samplerate):
         """Set cutoff in in Hz"""
         wc = 2 * np.pi * cutoff / samplerate
         y = 1 - np.cos(wc)
-        self.forgetFactor = -y + np.sqrt(y ** 2 + 2 * y)
-        self.invForgetFactor = 1 - self.forgetFactor
+        self.forget_factor = -y + np.sqrt(y ** 2 + 2 * y)
+        self.inv_forget_factor = 1 - self.forget_factor
 
-    def update(self, newDataPoint):
-        assert newDataPoint.shape == self.state.shape
+    def update(self, new_data_point):
+        assert new_data_point.shape == self.state.shape
         if self.initialized:
-            self.state *= self.forgetFactor
-            self.state += newDataPoint * self.invForgetFactor
+            self.state *= self.forget_factor
+            self.state += new_data_point * self.inv_forget_factor
         else:
-            self.state = newDataPoint
+            self.state = new_data_point
             self.initialized = True
 
 
@@ -124,7 +124,7 @@ class IIRFilter:
 
 
 
-
+ 
 
 
 
