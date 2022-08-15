@@ -1,7 +1,5 @@
 import numpy as np
-import numexpr as ne
 import scipy.signal as spsig
-import scipy.linalg as splin
 import pandas as pd
 
 import aspcol.matrices as mat
@@ -56,24 +54,21 @@ def cov_est_qis(sample_cov, n):
     #Post-Condition: Sigmahat dataframe is returned
 
     #Set df dimensions
-    N = Y.shape[0]                                              #num of columns
-    p = Y.shape[1]                                                 #num of rows
-
-    #default setting
-    if (k is None or np.isnan(k)):
-        Y = Y.sub(Y.mean(axis=0), axis=1)                               #demean
-        k = 1
+    #N = Y.shape[0]                                              #num of columns
+    #p = Y.shape[1]                                                 #num of rows
+    p = sample_cov.shape[0]
+    assert sample_cov.shape == (p,p)
 
     #vars
-    n = N-k                                      # adjust effective sample size
+    #n = N-k                                      # adjust effective sample size
     c = p/n                                               # concentration ratio
 
     #Cov df: sample covariance matrix
-    sample = pd.DataFrame(np.matmul(Y.T.to_numpy(),Y.to_numpy()))/n     
-    sample = (sample+sample.T)/2                              #make symmetrical
+    #sample = pd.DataFrame(np.matmul(Y.T.to_numpy(),Y.to_numpy()))/n     
+    #sample = (sample+sample.T)/2                              #make symmetrical
 
     #Spectral decomp
-    lambda1, u = np.linalg.eigh(sample)            #use Cholesky factorisation 
+    lambda1, u = np.linalg.eigh(sample_cov)            #use Cholesky factorisation 
     #                                               based on hermitian matrix
     lambda1 = lambda1.real.clip(min=0)              #reset negative values to 0
     dfu = pd.DataFrame(u,columns=lambda1)   #create df with column names lambda
@@ -112,7 +107,7 @@ def cov_est_qis(sample_cov, n):
     temp2 = np.diag(deltaQIS)
     temp3 = dfu.T.to_numpy().conjugate()
     #reconstruct covariance matrix
-    sigmahat = pd.DataFrame(np.matmul(np.matmul(temp1,temp2),temp3))
+    sigmahat = np.matmul(np.matmul(temp1,temp2),temp3)
     return sigmahat
 
 
@@ -165,22 +160,25 @@ class SampleCorrelation:
             self.avg.update(self._preallocated_update)
         self.n += 1
 
-    def get_corr(self, autocorr=False, est_method="plain", pos_def=False):
+    def get_corr(self, autocorr=False, est_method="scm", pos_def=False):
         """Returns the correlation matrix and stores it in self.corr_mat
         
             Will ensure positive semi-definiteness and hermitian-ness if autocorr is True
             If pos_def=True it will even ensure that the matrix is positive definite. 
         
-            est_method can be 'oas' or 'plain'
+            est_method can be 'oas' or 'scm'
         """
         if not autocorr:
             self.corr_mat[...] = self.avg.state
             return self.corr_mat
 
-        if est_method == "plain":
+        if est_method == "scm":
             self.corr_mat[...] = self.avg.state
         elif est_method == "oas":
             self.corr_mat[...] = cov_est_oas(self.avg.state, self.n, verbose=True)
+        elif est_method == "qis":
+            print(self.n)
+            self.corr_mat[...] = cov_est_qis(self.avg.state, self.n)
         else:
             raise ValueError("Invalid est_method name")
         
@@ -281,7 +279,23 @@ def autocorr(sig, max_lag, normalize=True):
     return r
 
 
+def multichannel_acf_from_independent_acf(acf_2d):
+    """
+    Takes a (num_channels, corr_len) autocorrelation function
+        and returns a (num_channels, num_channels, corr_len) autocorrelation function
+        which includes the cross-correlations between the different channels,
+        which are assumed to be 0. 
+    
+    """
+    assert acf_2d.ndim == 2
+    num_channels = acf_2d.shape[0]
+    corr_len = acf_2d.shape[-1]
+    acf_3d = np.zeros((num_channels, num_channels, corr_len))
+    for ch in range(num_channels):
+        acf_3d[ch,ch,:] = acf_2d[ch,:]
+    return acf_3d
 
+    
 
 def corr_matrix_from_autocorrelation(corr):
     """The correlation is of shape (num_channels, num_channels, max_lag)
@@ -406,6 +420,11 @@ def is_autocorr_func(func, verbose=False):
         for j in range(num_channels):
             if not np.allclose(func[i,j,:], func[j,i,:]):
                 symmetric = False
+
+    if verbose:
+        print(f"Is symmetric: {symmetric}")
+        print(f"Is max at zero: {max_at_zero}")
+
     return all((symmetric, max_at_zero))
 
 def _func_is_symmetric(func):
@@ -424,6 +443,7 @@ def periodic_autocorr(seq):
 
     This function calculates the periodic autocorrelation
     
+    returns autocorr of shape (period_length)
     """
     assert seq.ndim == 2
     assert seq.shape[0] == 1
@@ -434,9 +454,6 @@ def periodic_autocorr(seq):
         autocorr[shift] += np.sum(seq[0,num_samples-shift:] * seq[0,:shift])
     autocorr /= num_samples
     return autocorr
-
-
-
 
 
 def get_filter_for_autocorrelation(autocorr):
@@ -456,6 +473,35 @@ def get_filter_for_autocorrelation(autocorr):
     ir = np.real_if_close(np.fft.ifft(freq_func, axis=-1))
     assert np.allclose(np.imag(ir), 0)  
     return ir
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -495,38 +541,6 @@ def autocorrelation(sig, max_lag, interval):
                                             np.flip(sig[j,interval[0]:interval[1]]), "valid")
     # corr /= interval[1] - interval[0] #+ max_lag - 1
     return corr
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # These should be working correctly, but are written only for testing purposes.
 # Might be removed at any time and moved to test module. 
