@@ -3,7 +3,7 @@ import scipy.signal as spsig
 import pandas as pd
 
 import aspcol.matrices as mat
-import ancsim.signal.filterclasses as fc
+import aspcol.filterclasses as fc
 
 
 def cov_est_oas(sample_cov, n, verbose=False):
@@ -123,7 +123,7 @@ class SampleCorrelation:
     Only the internal state will be changed by calling update()
     In order to update self.corr_mat, get_corr() must be called
     """
-    def __init__(self, forget_factor, size, delay=0):
+    def __init__(self, forget_factor, size, delay=0, estimate_mean=False):
         """
         size : scalar integer, correlation matrix is size x size. 
                 or tuple of length 2, correlation matrix is size
@@ -133,32 +133,126 @@ class SampleCorrelation:
         """
         if not isinstance(size, (list, tuple, np.ndarray)):
             size = (size, size)
+        assert len(size) == 2
+        self.vec_len = size[0]
         self.corr_mat = np.zeros(size)
-        self.avg = fc.MovingAverage(forget_factor, size)
-        self._preallocated_update = np.zeros_like(self.avg.state)
+        #self.avg = fc.MovingAverage(forget_factor, size)
+        self.corr = np.zeros(size)
+        self._preallocated_update = np.zeros_like(self.corr)
         self._old_vec = np.zeros((size[1], 1))
         self.delay = delay
         self._saved_vecs = np.zeros((size[1], delay))
+        self.estimate_mean = estimate_mean
+        if self.estimate_mean:
+            self.mean = fc.MovingAverage(forget_factor, (size[0], 1))
+            self.mean2 = fc.MovingAverage(forget_factor, (size[1], 1))
+
         self.n = 0
 
+
     def update(self, vec1, vec2=None):
-        """Update the correlation matrix with a new sample vector
+        """Updates the correlation matrix with a new sample vector
             If only one is provided, the autocorrelation is computed
-            If two are provided, the cross-correlation is computed
+            If two are provided, their cross-correlation is computed
+
+            Both vec are ndarrays of shape (vec_dim, 1)
+
+            For the recursive definition of covariance with sample mean, 
+            take a look at 'Computing (co)variances recursively' - Thijs Knaap. 
+
+            Without mean we calculate 1/N sum_{n=1}^{N} x_n y_n*
+
+            With mean we calculate 1/N sum_{n=1}^{N} (x_n - xbar_n)(y_n - ybar_n)*
+            where the sample mean is xbar_n = 1/n sum_{i=1}^{n} x_i. The recursive calculation
+            is exact (apart from possible numerical differences), there is no additional assumptions. 
+
+            Bessels correctyion (normalizing by 1 / (N-1)) is used, but is not necessarily desirable
+                since it is not the lower MSE (but it is unbiased). For a normalization of 1/N, use the
+                following code (the first index must be handled separately in this case as well)
+            
+                np.matmul(vec1 - self.mean.state, (vec2 - self.mean2.state).T, out=self._preallocated_update)
+                self._preallocated_update *= 1 / self.n
+                self.corr *= self.n / (self.n + 1)
         """
         if vec2 is None:
             vec2 = vec1
 
+        if self.estimate_mean:
+            self.mean.update(vec1)
+            if vec2 is None:
+                self.mean2 = self.mean
+            else:
+                self.mean2.update(vec2)
+
         if self.delay > 0:
+            assert not self.estimate_mean #Check if the implementation makes sense for this combo
             idx = self.n % self.delay
             self._old_vec[...] = self._saved_vecs[:,idx:idx+1]
             self._saved_vecs[:,idx:idx+1] = vec2
             vec2 = self._old_vec
 
         if self.n >= self.delay:
-            np.matmul(vec1, vec2.T, out=self._preallocated_update)
-            self.avg.update(self._preallocated_update)
+            if self.estimate_mean:
+                if self.n > 0:
+                    np.matmul(vec1 - self.mean.state, (vec2 - self.mean2.state).T, out=self._preallocated_update)
+                    self._preallocated_update *= (self.n+1) / (self.n**2)
+                    self.corr *= (self.n - 1) / self.n
+            else:
+                np.matmul(vec1, vec2.T, out=self._preallocated_update)
+                self._preallocated_update *= 1 / (self.n + 1)
+                self.corr *= self.n / (self.n + 1)
+            self.corr += self._preallocated_update
+            #self.avg.update(self._preallocated_update)
+
         self.n += 1
+
+    # def _update_with_sample_mean(self, vec1, vec2=None):
+    #     """Updates the correlation matrix with a new sample vector
+    #         If only one is provided, the autocorrelation is computed
+    #         If two are provided, their cross-correlation is computed
+
+    #         Both vec are ndarrays of shape (vec_dim, 1)
+
+    #         For the recursive definition of covariance with sample mean, 
+    #         take a look at
+    #         'Computing (co)variances recursively' - Thijs Knaap
+    #     """
+
+    #     self.mean.update(vec1)
+    #     if vec2 is None:
+    #         vec2 = vec1
+    #         self.mean2 = self.mean
+    #     else:
+    #         self.mean2.update(vec2)
+
+    #     if self.delay != 0:
+    #         raise NotImplementedError
+
+    #     np.matmul(vec1 - self.mean.state, (vec2 - self.mean2.state).T, out=self._preallocated_update)
+    #     self._preallocated_update *= (self.n + 1) / self.n #To get the new data normalized as (1/n instead of 1/(n+1))
+    #     self.avg.update(self._preallocated_update)
+
+    #     self.n += 1
+
+
+    # def _update_zero_mean(self, vec1, vec2=None):
+    #     """Update the correlation matrix with a new sample vector
+    #         If only one is provided, the autocorrelation is computed
+    #         If two are provided, the cross-correlation is computed
+    #     """
+    #     if vec2 is None:
+    #         vec2 = vec1
+
+    #     if self.delay > 0:
+    #         idx = self.n % self.delay
+    #         self._old_vec[...] = self._saved_vecs[:,idx:idx+1]
+    #         self._saved_vecs[:,idx:idx+1] = vec2
+    #         vec2 = self._old_vec
+
+    #     if self.n >= self.delay:
+    #         np.matmul(vec1, vec2.T, out=self._preallocated_update)
+    #         self.avg.update(self._preallocated_update)
+    #     self.n += 1
 
     def get_corr(self, autocorr=False, est_method="scm", pos_def=False):
         """Returns the correlation matrix and stores it in self.corr_mat
@@ -166,19 +260,25 @@ class SampleCorrelation:
             Will ensure positive semi-definiteness and hermitian-ness if autocorr is True
             If pos_def=True it will even ensure that the matrix is positive definite. 
         
-            est_method can be 'oas' or 'scm'
+            est_method can be 'scm', 'oas' or 'qis'
         """
         if not autocorr:
-            self.corr_mat[...] = self.avg.state
+            assert est_method == "scm"
+            self.corr_mat[...] = self.corr
+            #if self.estimate_mean:
+            #    self.corr_mat *= self.n / (self.n-1)
             return self.corr_mat
 
+        num_samples = self.n-1 if self.estimate_mean else self.n
         if est_method == "scm":
-            self.corr_mat[...] = self.avg.state
+            self.corr_mat[...] = self.corr
+            #if self.estimate_mean:
+            #    self.corr_mat *= self.n / (self.n-1)
         elif est_method == "oas":
-            self.corr_mat[...] = cov_est_oas(self.avg.state, self.n, verbose=True)
+            self.corr_mat[...] = cov_est_oas(self.corr, num_samples, verbose=True)
         elif est_method == "qis":
-            print(self.n)
-            self.corr_mat[...] = cov_est_qis(self.avg.state, self.n)
+            #print(self.n)
+            self.corr_mat[...] = cov_est_qis(self.corr, num_samples)
         else:
             raise ValueError("Invalid est_method name")
         

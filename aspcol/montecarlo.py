@@ -3,7 +3,7 @@ import numpy as np
 
 
 def integrate_parallell(
-    func, pointGenerator, totNumSamples, totalVolume, numPerIter=5, verbose=False
+    func, point_generator, tot_num_samples, total_volume, num_per_iter=5, verbose=False
 ):
     """Uses mcIntegrate but paralellized"""
     import dill
@@ -14,13 +14,13 @@ def integrate_parallell(
 
     ncpu = mp.cpu_count()
     # ncpu = 2
-    integrationSamples = int(np.ceil(totNumSamples / ncpu))
+    integration_samples = int(np.ceil(tot_num_samples / ncpu))
     intArgs = [
         [func for _ in range(ncpu)],
-        [pointGenerator for _ in range(ncpu)],
-        [integrationSamples for _ in range(ncpu)],
-        [totalVolume for _ in range(ncpu)],
-        [numPerIter for _ in range(ncpu)],
+        [point_generator for _ in range(ncpu)],
+        [integration_samples for _ in range(ncpu)],
+        [total_volume for _ in range(ncpu)],
+        [num_per_iter for _ in range(ncpu)],
         [verbose for _ in range(ncpu)],
     ]
 
@@ -31,95 +31,95 @@ def integrate_parallell(
     return integral
 
 def integrate_fast(
-    func, pointGenerator, totNumSamples, totalVolume, *args, numPerIter=50,
+    func, point_generator, tot_num_samples, total_volume, *args, num_per_iter=50,
 ):
     """identical to integrate, but is meant to be simpler."""
-    numBlocks = int(np.ceil(totNumSamples / numPerIter))
-    testVal = func(pointGenerator(1), *args)
-    outDims = np.squeeze(testVal, axis=-1).shape
-    integralVal = np.zeros(outDims, dtype=testVal.dtype)
+    num_blocks = int(np.ceil(tot_num_samples / num_per_iter))
+    test_val = func(point_generator(1), *args)
+    out_dims = np.squeeze(test_val, axis=-1).shape
+    integral_val = np.zeros(out_dims, dtype=test_val.dtype)
 
-    for i in range(numBlocks):
-        fVals = func(pointGenerator(numPerIter), *args)
-        integralVal = (integralVal * i + np.mean(fVals, axis=-1)) / (i + 1)
-    integralVal *= totalVolume
-    return integralVal
+    for i in range(num_blocks):
+        f_vals = func(point_generator(num_per_iter), *args)
+        integral_val = (integral_val * i + np.mean(f_vals, axis=-1)) / (i + 1)
+    integral_val *= total_volume
+    return integral_val
 
 
 
 def integrate(
-    func, pointGenerator, totNumSamples, totalVolume, numPerIter=50, verbose=False, *args
+    func, point_generator, tot_num_samples, total_volume, num_per_iter=50, verbose=False, *args
 ):
     """pointGenerator should return np array, [numPoints, numSpatialDimensions]
     func should return np array [funcDims, numPoints],
     where funcDims can be any number of dimensions (in a multidimensional array sense)"""
     print("Starting MC Integration")
-    samplesPerIter = numPerIter
-    numBlocks = int(np.ceil(totNumSamples / samplesPerIter))
-    outDims = np.squeeze(func(pointGenerator(1), *args), axis=-1).shape
-    integralVal = np.zeros(outDims)
+    samples_per_iter = num_per_iter
+    num_blocks = int(np.ceil(tot_num_samples / samples_per_iter))
+    out_dims = np.squeeze(func(point_generator(1), *args), axis=-1).shape
+    integral_val = np.zeros(out_dims)
 
-    for i in range(numBlocks):
-        points = pointGenerator(samplesPerIter)
-        fVals = func(points, *args)
+    for i in range(num_blocks):
+        points = point_generator(samples_per_iter)
+        f_vals = func(points, *args)
 
-        newIntVal = (integralVal * i + np.mean(fVals, axis=-1)) / (i + 1)
+        new_int_val = (integral_val * i + np.mean(f_vals, axis=-1)) / (i + 1)
         print("Block ", i)
         if verbose:
-            diagnostics(newIntVal, integralVal, i)
+            diagnostics(new_int_val, integral_val, i)
 
-        integralVal = newIntVal
-    integralVal *= totalVolume
+        integral_val = new_int_val
+    integral_val *= total_volume
     print("Finished!!")
-    return integralVal
+    return integral_val
 
 
-def diagnostics(newVal, oldVal, blockIdx):
+def diagnostics(new_val, old_val, block_idx):
     # print("Block ", blockIdx)
-    change = newVal - oldVal
-    relChange = change / oldVal
+    change = new_val - old_val
+    rel_change = change / old_val
 
-    meansquarechange = np.mean(np.square(newVal - oldVal))
-    meanabschange = np.mean(np.abs(newVal - oldVal))
-    print("Mean Square Change: " + "{:2.12E}".format(meansquarechange))
-    print("Mean Abs Change: " + "{:2.12E}".format(meanabschange))
+    mean_square_change = np.mean(np.square(new_val - old_val))
+    mean_abs_change = np.mean(np.abs(new_val - old_val))
+    print("Mean Square Change: " + "{:2.12E}".format(mean_square_change))
+    print("Mean Abs Change: " + "{:2.12E}".format(mean_abs_change))
 
-    maxAbsChange = np.max(np.abs(change))
-    maxAbsIdx = np.argmax(np.abs(change))
-    maxAbsChangeVal = np.abs(newVal.flatten()[maxAbsIdx])
-    maxAbsChangeRel = np.abs(relChange.flatten()[maxAbsIdx])
+    max_abs_change = np.max(np.abs(change))
+    max_abs_idx = np.argmax(np.abs(change))
+    max_abs_change_val = np.abs(new_val.flatten()[max_abs_idx])
+    max_abx_change_rel = np.abs(rel_change.flatten()[max_abs_idx])
     print(
         "Max Abs change: "
-        + "{:2.12E}".format(maxAbsChange)
+        + "{:2.12E}".format(max_abs_change)
         + "     Its Value: "
-        + "{:2.12E}".format(maxAbsChangeVal)
+        + "{:2.12E}".format(max_abs_change_val)
         + "     rel change: "
-        + "{:2.12E}".format(maxAbsChangeRel)
+        + "{:2.12E}".format(max_abx_change_rel)
     )
 
-    maxRelChange = np.max(np.abs(relChange))
-    maxRelIdx = np.argmax(np.abs(relChange))
-    maxRelChangeVal = np.abs(newVal.flatten()[maxRelIdx])
-    maxRelChangeAbs = np.abs(change.flatten()[maxRelIdx])
+    max_rel_change = np.max(np.abs(rel_change))
+    max_rel_idx = np.argmax(np.abs(rel_change))
+    max_rel_change_val = np.abs(new_val.flatten()[max_rel_idx])
+    max_rel_change_abs = np.abs(change.flatten()[max_rel_idx])
     print(
         "Max rel change: "
-        + "{:2.12E}".format(maxRelChange)
+        + "{:2.12E}".format(max_rel_change)
         + "     Its Value: "
-        + "{:2.12E}".format(maxRelChangeVal)
+        + "{:2.12E}".format(max_rel_change_val)
         + "     abs change "
-        + "{:2.12E}".format(maxRelChangeAbs)
+        + "{:2.12E}".format(max_rel_change_abs)
     )
 
-    avgRelChange = np.mean(np.abs(relChange))
-    avgAbsChange = np.mean(np.abs(change))
+    avg_rel_change = np.mean(np.abs(rel_change))
+    avg_abs_change = np.mean(np.abs(change))
     print(
         "Avg rel change: "
-        + "{:2.12E}".format(avgRelChange)
+        + "{:2.12E}".format(avg_rel_change)
         + "     Avg abs change: "
-        + "{:2.12E}".format(avgAbsChange)
+        + "{:2.12E}".format(avg_abs_change)
     )
 
-    maxVal = np.max(np.abs(newVal))
-    print("Max Value: " + "{:2.12E}".format(maxVal))
+    max_val = np.max(np.abs(new_val))
+    print("Max Value: " + "{:2.12E}".format(max_val))
     print()
-    return maxRelChange
+    return max_rel_change

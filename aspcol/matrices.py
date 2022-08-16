@@ -293,12 +293,6 @@ def is_hermitian_hardcoded(mat):
     return out
 
 
-# def _is_hermitian(mat):
-#     assert mat.ndim == 2
-#     if mat.shape[0] != mat.shape[1]:
-#         return False
-#     return np.allclose(mat, mat.conj().T)
-
 def is_pos_semidef(mat):
     return broadcast_func(mat, _is_pos_semidef, dtype=bool)
     

@@ -1,10 +1,7 @@
 import numpy as np
-import numexpr as ne
-import scipy.signal as spsig
 import scipy.linalg as splin
 
 import aspcol.matrices as mat
-import ancsim.signal.filterclasses as fc
 
 
 def mse(var1, var2):
@@ -22,6 +19,9 @@ def angular_distance(vec1, vec2):
     """
     A distance metric based on the cosine similary, that retains the
         scale invariant property, but is also a proper distance metric
+
+    Note that it is scale invariant, but not sign invariant 
+        (same shape but opposite signs is maximum distance)
     """
     return np.arccos(cos_similary(vec1, vec2)) / np.pi
 

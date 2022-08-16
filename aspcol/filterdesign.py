@@ -5,33 +5,33 @@ import itertools as it
 
 # =======================================================================
 
-def get_frequency_values(numFreq, samplerate):
+def get_frequency_values(num_freq, samplerate):
     """Get the frequency values of all positive frequency bins in Hz
     numFreq is the number of frequency bins INCLUDING negative frequencies
     If numFreq is even, it will return (numFreq/2)+1 values
     If numFreq is odd, it will return (numFreq+1)/2 values
     use np.fft.fftfreq to double check values when implementing. 
     """
-    if numFreq % 2 == 0:
-        return (samplerate / (numFreq)) * np.arange(numFreq // 2 + 1)
-    elif numFreq % 2 == 1:
+    if num_freq % 2 == 0:
+        return (samplerate / (num_freq)) * np.arange(num_freq // 2 + 1)
+    elif num_freq % 2 == 1:
         raise NotImplementedError
     else:
         raise ValueError
 
 
-def insert_negative_frequencies(freqSignal, even):
+def insert_negative_frequencies(freq_signal, even):
     """To be used in conjunction with getFrequencyValues
     Inserts all negative frequency values under the
     assumption of conjugate symmetry, i.e. a real impulse response.
     Parameter even: boolean indicating if an even or odd number
-    of bins is desired. This must correspond to numFreq value
-    set in getFrequencyValues
+    of bins is desired. This must correspond to num_freq value
+    set in get_frequency_values
     
     Frequencies must be on axis=0"""
     if even:
         return np.concatenate(
-            (freqSignal, np.flip(freqSignal[1:-1, :, :].conj(), axis=0)), axis=0
+            (freq_signal, np.flip(freq_signal[1:-1, :, :].conj(), axis=0)), axis=0
         )
     else:
         raise NotImplementedError

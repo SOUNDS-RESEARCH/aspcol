@@ -1,5 +1,4 @@
 import numpy as np
-import itertools as it
 import scipy.signal as spsig
 import numexpr as ne
 

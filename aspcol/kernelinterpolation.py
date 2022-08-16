@@ -1,18 +1,14 @@
 import numpy as np
 import scipy.spatial.distance as distfuncs
 import scipy.special as special
-import scipy.signal as sig
 import numba as nb
 
-import ancsim.utilities as util
+import aspcol.utilities as util
 import aspcol.filterdesign as fd
 import aspcol.montecarlo as mc
 
-import ancsim.signal.filterclasses as fc
-import ancsim.room.roomimpulseresponse as rir
 
-
-def kernel_helmholtz_2d(points1, points2, waveNum):
+def kernel_helmholtz_2d(points1, points2, wave_num):
     """points1 is shape (numPoints1, 2)
         points2 is shape (numPoints2, 2)
         waveNum is shape (numFreqs)
@@ -20,9 +16,9 @@ def kernel_helmholtz_2d(points1, points2, waveNum):
         returns shape (numFreqs, numPoints1, numPoints2)
     """
     distMat = distfuncs.cdist(points1, points2)
-    return special.j0(distMat[None,:,:] * waveNum[:,None,None])
+    return special.j0(distMat[None,:,:] * wave_num[:,None,None])
 
-def kernel_helmholtz_3d(points1, points2, waveNum):
+def kernel_helmholtz_3d(points1, points2, wave_num):
     """points1 is shape (numPoints1, 3)
         points2 is shape (numPoints2, 3)
         waveNum is shape (numFreqs)
@@ -30,23 +26,24 @@ def kernel_helmholtz_3d(points1, points2, waveNum):
         returns shape (numFreqs, numPoints1, numPoints2)
     """
     distMat = distfuncs.cdist(points1, points2)
-    return special.spherical_jn(0, distMat[None,:,:] * waveNum[:,None,None])
+    return special.spherical_jn(0, distMat[None,:,:] * wave_num[:,None,None])
 
-def kernel_directional_3d(points1, points2, waveNum, angle, beta):
+def kernel_directional_3d(points1, points2, wave_num, angle, beta):
     """points1 is shape (numPoints1, 3)
         points2 is shape (numPoints2, 3)
         waveNum is shape (numFreqs)
         angle is tuple (theta, phi) defined as in util.spherical2cart
+        beta sets the strength of the directional weighting
         
         returns shape (numFreqs, numPoints1, numPoints2)
     """
     rDiff = points1[:,None,:] - points2[None,:,:]
     angleFactor = beta * util.spherical2cart(np.ones((1,1)), np.array(angle)[None,:])[None,None,...]
-    posFactor = 1j * waveNum[:,None,None,None] * rDiff[None,...]
+    posFactor = 1j * wave_num[:,None,None,None] * rDiff[None,...]
     return special.spherical_jn(0, 1j*np.sqrt(np.sum((angleFactor + posFactor)**2, axis=-1)))
 
 @nb.njit
-def kernel_directional_vec_3d(points1, points2, waveNum, directionVec, beta):
+def kernel_directional_vec_3d(points1, points2, wave_num, direction_vec, beta):
     """points1 is shape (numPoints1, 3)
         points2 is shape (numPoints2, 3)
         waveNum is shape (numFreqs)
@@ -57,9 +54,9 @@ def kernel_directional_vec_3d(points1, points2, waveNum, directionVec, beta):
         Identical to kernelDirectional3d, but accepts the direction
         in the form of a unit vector instead of angles. 
     """
-    angleTerm = 1j * beta * directionVec.reshape((1,-1,1,1,directionVec.shape[-1]))
-    posTerm = waveNum.reshape((-1,1,1,1,1)) * (points1.reshape((1,1,-1,1,points1.shape[-1])) - points2.reshape((1,1,1,-1,points2.shape[-1])))
-    return np.sinc(np.sqrt(np.sum((angleTerm - posTerm)**2, axis=-1)) / np.pi)
+    angle_term = 1j * beta * direction_vec.reshape((1,-1,1,1,direction_vec.shape[-1]))
+    pos_term = wave_num.reshape((-1,1,1,1,1)) * (points1.reshape((1,1,-1,1,points1.shape[-1])) - points2.reshape((1,1,1,-1,points2.shape[-1])))
+    return np.sinc(np.sqrt(np.sum((angle_term - pos_term)**2, axis=-1)) / np.pi)
 
 
 # def kernelDirectionalVec3d(points1, points2, waveNum, directionVec, beta):
@@ -80,7 +77,7 @@ def kernel_directional_vec_3d(points1, points2, waveNum, directionVec, beta):
 
 
 
-def kernel_reciprocal_3d(points1, points2, waveNum):
+def kernel_reciprocal_3d(points1, points2, wave_num):
     """points is a tuple (micPoints, srcPoints),
         where micPoints is ndarray of shape (numMic, 3)
         srcPoints is ndarray of shape (numSrc, 3)
@@ -94,23 +91,23 @@ def kernel_reciprocal_3d(points1, points2, waveNum):
 
     From the paper: Kernel interpolation of acoustic transfer 
                 function between regions considering reciprocity"""
-    waveNum = waveNum[:,None,None,None,None]
-    micDist = distfuncs.cdist(points1[0], points2[0])[None,None,:,None,:]
-    srcDist = distfuncs.cdist(points1[1], points2[1])[None,:,None,:,None]
-    mixDist1 = distfuncs.cdist(points1[0], points2[1])[None,None,:,:,None]
-    mixDist2 = distfuncs.cdist(points1[1], points2[0])[None,:,None,None,:]
+    wave_num = wave_num[:,None,None,None,None]
+    mic_dist = distfuncs.cdist(points1[0], points2[0])[None,None,:,None,:]
+    src_dist = distfuncs.cdist(points1[1], points2[1])[None,:,None,:,None]
+    mix_dist1 = distfuncs.cdist(points1[0], points2[1])[None,None,:,:,None]
+    mic_dist2 = distfuncs.cdist(points1[1], points2[0])[None,:,None,None,:]
 
-    kVal = 0.5 * (special.spherical_jn(0, waveNum * micDist) * \
-                        special.spherical_jn(0, waveNum * srcDist)) + \
-                        (special.spherical_jn(0, waveNum * mixDist1) * \
-                        special.spherical_jn(0, waveNum * mixDist2))
-    kVal = np.reshape(kVal, kVal.shape[:3]+(-1,))
-    kVal = np.reshape(kVal, (kVal.shape[0], -1,kVal.shape[-1]))
-    return kVal
+    k_val = 0.5 * (special.spherical_jn(0, wave_num * mic_dist) * \
+                        special.spherical_jn(0, wave_num * src_dist)) + \
+                        (special.spherical_jn(0, wave_num * mix_dist1) * \
+                        special.spherical_jn(0, wave_num * mic_dist2))
+    k_val = np.reshape(k_val, k_val.shape[:3]+(-1,))
+    k_val = np.reshape(k_val, (k_val.shape[0], -1,k_val.shape[-1]))
+    return k_val
 
 
-def get_kernel_weighting_filter(kernelFunc, regParam, micPos, integralDomain, 
-                                mcSamples, numFreq, samplerate, c, *args):
+def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain, 
+                                mc_samples, num_freq, samplerate, c, *args):
     """Calculates kernel weighting filter A(w) in frequency domain
         
         kernelFunc is one of kernelHelmholtz3d, kernelHelmholtz2d, kernelDirectional3d as defined in this module
@@ -124,23 +121,23 @@ def get_kernel_weighting_filter(kernelFunc, regParam, micPos, integralDomain,
         
         For both diffuse and directional kernel P^H = P, so the hermitian tranpose should not do anything
         It is left in place in case a kernel function in the future changes that identity. """
-    freqs = fd.get_frequency_values(numFreq, samplerate)
-    waveNum = 2 * np.pi * freqs / c
+    freqs = fd.get_frequency_values(num_freq, samplerate)
+    wave_num = 2 * np.pi * freqs / c
 
     def integrableFunc(r):
-        kappa = kernelFunc(r, micPos, waveNum, *args)
+        kappa = kernel_func(r, mic_pos, wave_num, *args)
         kappa = np.transpose(kappa,(0,2,1))
         return kappa.conj()[:,:,None,:] * kappa[:,None,:,:]
 
-    numMics = micPos.shape[0]
-    K = kernelFunc(micPos, micPos, waveNum, *args)
-    P = np.linalg.pinv(K + regParam * np.eye(numMics))
+    num_mics = mic_pos.shape[0]
+    K = kernel_func(mic_pos, mic_pos, wave_num, *args)
+    P = np.linalg.pinv(K + reg_param * np.eye(num_mics))
 
-    integralValue = mc.integrate(integrableFunc, integralDomain.sample_points, mcSamples, integralDomain.volume)
-    weightingFilter = np.transpose(P,(0,2,1)).conj() @ integralValue @ P
+    integral_value = mc.integrate(integrableFunc, integral_domain.sample_points, mc_samples, integral_domain.volume)
+    weighting_filter = np.transpose(P,(0,2,1)).conj() @ integral_value @ P
 
-    weightingFilter = fd.insert_negative_frequencies(weightingFilter, even=True)
-    return weightingFilter
+    weighting_filter = fd.insert_negative_frequencies(weighting_filter, even=True)
+    return weighting_filter
 
 
 
@@ -171,36 +168,36 @@ def get_krr_parameters(kernel_func, reg_param, output_arg, data_arg, *args):
 
 
 def soundfield_interpolation_fir(
-    toPoints, fromPoints, irLen, regParam, numFreq, spatialDims, samplerate, c
+    to_points, from_points, ir_len, reg_param, num_freq, spatial_dims, samplerate, c
 ):
     """Convenience function for calculating the time domain causal FIR interpolation filter
     from a set of points to a set of points. """
-    assert numFreq > irLen
-    freqFilter = soundfield_interpolation(
-        toPoints, fromPoints, numFreq, regParam, spatialDims, samplerate, c
+    assert num_freq > ir_len
+    freq_filter = soundfield_interpolation(
+        to_points, from_points, num_freq, reg_param, spatial_dims, samplerate, c
     )
-    kiFilter,_ = fd.fir_from_freqs_window(freqFilter, irLen)
-    return kiFilter
+    ki_filter,_ = fd.fir_from_freqs_window(freq_filter, ir_len)
+    return ki_filter
 
 def soundfield_interpolation(
-    toPoints, fromPoints, numFreq, regParam, spatialDims, samplerate, c
+    to_points, from_points, num_freq, reg_param, spatial_dims, samplerate, c
 ):
     """ Convenience function for calculating the frequency domain interpolation filter
     from a set of points to a set of points. """
-    if spatialDims == 3:
-        kernelFunc = kernel_helmholtz_3d
-    elif spatialDims == 2:
-        kernelFunc = kernel_helmholtz_2d
+    if spatial_dims == 3:
+        kernel_func = kernel_helmholtz_3d
+    elif spatial_dims == 2:
+        kernel_func = kernel_helmholtz_2d
     else:
         raise ValueError
 
-    assert numFreq % 2 == 0
+    assert num_freq % 2 == 0
 
-    freqs = fd.get_frequency_values(numFreq, samplerate)#[:, None, None]
-    waveNum = 2 * np.pi * freqs / c
-    ipParams = get_krr_parameters(kernelFunc, regParam, toPoints, fromPoints, waveNum)
-    ipParams = fd.insert_negative_frequencies(ipParams, even=True)
-    return ipParams
+    freqs = fd.get_frequency_values(num_freq, samplerate)#[:, None, None]
+    wave_num = 2 * np.pi * freqs / c
+    ip_params = get_krr_parameters(kernel_func, reg_param, to_points, from_points, wave_num)
+    ip_params = fd.insert_negative_frequencies(ip_params, even=True)
+    return ip_params
 
 
 
@@ -253,7 +250,7 @@ def _get_s(maxOrder, k, positions):
 
 
 class ATFKernelInterpolator():
-    """Experimental, not sure if it works completely
+    """Experimental, not sure if it works
     
         Uses the method kernel interpolation with reciprocity (by ribeiro)
         It can interpolate the source positions as well. 
@@ -264,6 +261,10 @@ class ATFKernelInterpolator():
         
     """
     def __init__(self, kiFromSpeakerPos, kiToSpeakerPos, micPos, regParam, kiFiltLen, atfLen, numFreq, samplerate, c, atfDelay=0):
+        import ancsim.signal.filterclasses as fc
+        import ancsim.room.roomimpulseresponse as rir
+
+
         assert kiFiltLen % 2 == 1
         self.kiFiltLen = kiFiltLen
         self.kiDly = self.kiFiltLen // 2
