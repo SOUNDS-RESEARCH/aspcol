@@ -290,6 +290,52 @@ class SampleCorrelation:
         return self.corr_mat
         
 
+
+
+def sample_correlation(data, data2=None, estimate_mean=False):
+    """
+    data is a matrix of size (data_dim, num_samples)
+    data2 is an optional matrix of size (data_dim2, num_samples)
+        the cross-correlation is calulcated if this is supplied
+
+    if estimate_mean is True, the sample mean is calculated xbar = 1/N sum_{n=1}^{N} x_n
+        where x_n is the nth column of the data matrix
+        the correlation is 1/(N-1) sum_{n=1}^{N} (x_n - xbar)(y_n - ybar)^H
+
+    if estimate_mean is False, the data is assumed to be zero-mean
+        the correlation is 1/N sum_{n=1}^{N} x_n y_n^H
+    
+    """
+    if data2 is None:
+        data2 = data
+
+    assert data.ndim == 2
+    assert data2.ndim == 2
+    assert data.shape[1] == data2.shape[1]
+    N = data.shape[1]
+    data_dim = data.shape[0]
+    data_dim2 = data2.shape[0]
+
+    if estimate_mean:        
+        if N == 1:
+            scm = np.zeros((data_dim, data_dim2))
+        else:
+            centering_matrix = np.eye(N) - (1/N) * np.ones((N, N))
+            scm = data @ centering_matrix @ data2.T
+            scm *= 1 / (N-1)
+    else:    
+        scm = data @ data2.T
+        scm *= 1 / N
+    return scm
+
+
+
+
+
+
+
+
+
 class Autocorrelation:
     """
     Autocorrelation is defined as r_m1m2(i) = E[s_m1(n) s_m2(n-i)]

@@ -5,7 +5,7 @@ import hypothesis.strategies as st
 import pytest
 
 import ancsim.signal.sources as sources
-import ancsim.signal.correlation as cr
+import aspcol.correlation as cr
 
 
 @hyp.settings(deadline=None)
@@ -109,3 +109,86 @@ def test_autocorr_mat_delayed_pulse_train(bs, max_lag, num_channels, amp):
     #assert False
     #for i in range(max_lag):
     #    assert np.allclose(r[:,:,i], np.eye(num_channels, k=-i*dly)*amp**2/period)
+
+
+
+
+
+@hyp.settings(deadline=None)
+@hyp.given(num_samples = st.integers(min_value=1, max_value=20),
+            data_dim = st.integers(min_value=1, max_value=5))
+def test_direct_sample_corr_zero_mean_basic_check(num_samples, data_dim):
+    data = np.ones((data_dim, num_samples))
+    scm = cr.sample_correlation(data, estimate_mean=False)
+    assert np.allclose(scm, np.ones((data_dim, data_dim)))
+
+@hyp.settings(deadline=None)
+@hyp.given(num_samples = st.integers(min_value=1, max_value=20),
+            data_dim = st.integers(min_value=1, max_value=5))
+def test_direct_sample_corr_nonzero_mean_basic_check(num_samples, data_dim):
+    data = np.ones((data_dim, num_samples))
+    scm = cr.sample_correlation(data, estimate_mean=True)
+    assert np.allclose(scm, np.zeros((data_dim, data_dim)))
+
+
+
+@hyp.settings(deadline=None)
+@hyp.given(num_samples = st.integers(min_value=1, max_value=20),
+            data_dim = st.integers(min_value=1, max_value=5),
+            data_dim2 = st.integers(min_value=1, max_value=5))
+def test_recursive_sample_crosscorr_equals_direct_calculation_zero_mean(num_samples, data_dim, data_dim2):
+    rng = np.random.default_rng()
+    data1 = rng.normal(size=(data_dim, num_samples))
+    data2 = rng.normal(size=(data_dim2, num_samples))
+
+    scm = cr.sample_correlation(data1, data2, estimate_mean=False)
+
+    corr = cr.SampleCorrelation(1, (data_dim, data_dim2), estimate_mean=False)
+    for n in range(num_samples):
+        corr.update(data1[:,n:n+1], data2[:,n:n+1])
+    assert np.allclose(scm, corr.corr)
+
+
+@hyp.settings(deadline=None)
+@hyp.given(num_samples = st.integers(min_value=1, max_value=20),
+            data_dim = st.integers(min_value=1, max_value=5),
+            data_dim2 = st.integers(min_value=1, max_value=5))
+def test_recursive_sample_crosscorr_equals_direct_calculation_nonzero_mean(num_samples, data_dim, data_dim2):
+    rng = np.random.default_rng()
+    data1 = rng.normal(size=(data_dim, num_samples))
+    data2 = rng.normal(size=(data_dim2, num_samples))
+
+    scm = cr.sample_correlation(data1, data2, estimate_mean=True)
+
+    corr = cr.SampleCorrelation(1, (data_dim, data_dim2), estimate_mean=True)
+    for n in range(num_samples):
+        corr.update(data1[:,n:n+1], data2[:,n:n+1])
+    assert np.allclose(scm, corr.corr)
+
+@hyp.settings(deadline=None)
+@hyp.given(num_samples = st.integers(min_value=1, max_value=20),
+            data_dim = st.integers(min_value=1, max_value=5))
+def test_recursive_sample_autocorr_equals_direct_calculation_zero_mean(num_samples, data_dim):
+    rng = np.random.default_rng()
+    data = rng.normal(size=(data_dim, num_samples))
+
+    scm = cr.sample_correlation(data, data, estimate_mean=False)
+
+    corr = cr.SampleCorrelation(1, data_dim, estimate_mean=False)
+    for n in range(num_samples):
+        corr.update(data[:,n:n+1], data[:,n:n+1])
+    assert np.allclose(scm, corr.corr)
+
+
+@hyp.settings(deadline=None)
+@hyp.given(num_samples = st.integers(min_value=1, max_value=20),
+            data_dim = st.integers(min_value=1, max_value=5))
+def test_recursive_sample_autocorr_equals_direct_calculation_nonzero_mean(num_samples, data_dim):
+    rng = np.random.default_rng()
+    data = rng.normal(size=(data_dim, num_samples))
+    scm = cr.sample_correlation(data, estimate_mean=True)
+
+    corr = cr.SampleCorrelation(1, data_dim, estimate_mean=True)
+    for n in range(num_samples):
+        corr.update(data[:,n:n+1])
+    assert np.allclose(scm, corr.corr)
