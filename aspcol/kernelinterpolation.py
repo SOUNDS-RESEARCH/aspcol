@@ -8,6 +8,10 @@ import aspcol.filterdesign as fd
 import aspcol.montecarlo as mc
 
 
+def kernel_gaussian(points1, points2, scale):
+    dist_mat = distfuncs.cdist(points1, points2)**2
+    return np.exp(-scale[:,None,None] * dist_mat[None,:,:])
+
 def kernel_helmholtz_2d(points1, points2, wave_num):
     """points1 is shape (numPoints1, 2)
         points2 is shape (numPoints2, 2)
@@ -15,8 +19,8 @@ def kernel_helmholtz_2d(points1, points2, wave_num):
 
         returns shape (numFreqs, numPoints1, numPoints2)
     """
-    distMat = distfuncs.cdist(points1, points2)
-    return special.j0(distMat[None,:,:] * wave_num[:,None,None])
+    dist_mat = distfuncs.cdist(points1, points2)
+    return special.j0(dist_mat[None,:,:] * wave_num[:,None,None])
 
 def kernel_helmholtz_3d(points1, points2, wave_num):
     """points1 is shape (numPoints1, 3)
@@ -109,7 +113,8 @@ def kernel_reciprocal_3d(points1, points2, wave_num):
 def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain, 
                                 mc_samples, num_freq, samplerate, c, *args):
     """Calculates kernel weighting filter A(w) in frequency domain
-        
+        see 'Spatial active noise control based on kernel interpolation of sound field' by Koyama et al.     
+
         kernelFunc is one of kernelHelmholtz3d, kernelHelmholtz2d, kernelDirectional3d as defined in this module
         regParam is positive scalar
         micPos is ndarray with shape (numPositions, spatialDimension)
@@ -143,9 +148,16 @@ def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain
 
 def get_krr_parameters(kernel_func, reg_param, output_arg, data_arg, *args):
     """Calculates parameter vector or matrix given a kernel function for Kernel Ridge Regression.
-    Both dataArg and outputArg should be formatted as (numPoints, pointDimension)
-    kernelFunc should return args as (numfreq, numPoints1, numPoints2)
-    returns params of shape (numFreq, numOutPoints, numDataPoints)"""
+        The returned parameter Z is the optimal interpolation filter from the data points to
+        the output points. Apply filter as Z @ y, where y are the labels for data at data_arg positions
+    
+    data_arg is (num_data_points, data_dim)
+    outputArg (num_out_points, data_dim)
+    kernelFunc should return args as (num_freq, num_points1, num_points2)
+        any kernel function in this module works
+    
+    returns params of shape (num_freq, num_out_points, num_data_points)
+    """
     K = kernel_func(data_arg, data_arg, *args)
     K_reg = K + reg_param * np.eye(K.shape[-1])
     kappa = np.transpose(kernel_func(output_arg, data_arg, *args), (0,2,1))
