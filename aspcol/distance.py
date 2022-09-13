@@ -15,15 +15,21 @@ def mse(var1, var2):
 
 
 #============== FOR VECTORS ======================
-def angular_distance(vec1, vec2):
+def angular_distance(vec1, vec2, sign_invariant=False):
     """
     A distance metric based on the cosine similary, that retains the
         scale invariant property, but is also a proper distance metric
 
+    If sign_invariant is True, the angle is first adjusted to a range between 1 and 0
+        meaning that parallell vectors and opposite vectors are both considered to be the same
+
     Note that it is scale invariant, but not sign invariant 
         (same shape but opposite signs is maximum distance)
     """
-    return np.arccos(cos_similary(vec1, vec2)) / np.pi
+    sim = cos_similary(vec1, vec2)
+    if sign_invariant:
+        sim = np.abs(sim)
+    return np.arccos(sim) / np.pi
 
 def cos_similary(vec1, vec2):
     """Computes <vec1, vec2> / (||vec1|| ||vec2||)

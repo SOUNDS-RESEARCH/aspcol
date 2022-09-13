@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 import ancsim.signal.filterclasses as fc
 import ancsim.signal.freqdomainfiltering as fdf
-import ancsim.processor as proc
+import aspcol.utilities as util
 
 
 class AdaptiveFilterBase(ABC):
@@ -145,7 +145,7 @@ class LMS(AdaptiveFilterBase):
             init_len = self.ir_len
         else:
             init_len = 0
-        self.phases = proc.PhaseCounter({"init" : init_len, "processing" : np.inf})
+        self.phases = util.PhaseCounter({"init" : init_len, "processing" : np.inf})
 
         #self.metadata["step size"] = self.step_size
         self.metadata["regularization"] = self.reg
@@ -388,7 +388,7 @@ class RLS(AdaptiveFilterBase):
             init_len = self.ir_len
         else:
             init_len = 0
-        self.phases = proc.PhaseCounter({"init" : init_len, "processing" : np.inf})
+        self.phases = util.PhaseCounter({"init" : init_len, "processing" : np.inf})
 
         self.metadata["forget factor"] = self.forget_factor
         self.metadata["signal power estimate"] = self.signal_power_est
