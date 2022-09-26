@@ -55,8 +55,9 @@ def kernel_directional_vec_3d(points1, points2, wave_num, direction_vec, beta):
         
         returns shape (numFreqs, numAngles, numPoints1, numPoints2)
     
-        Identical to kernelDirectional3d, but accepts the direction
-        in the form of a unit vector instead of angles. 
+        Implements the same kernel function as kernel_directional_3d, 
+        but accepts the direction in the form of a unit vector
+        and is vectorized over angles as well as frequencies
     """
     angle_term = 1j * beta * direction_vec.reshape((1,-1,1,1,direction_vec.shape[-1]))
     pos_term = wave_num.reshape((-1,1,1,1,1)) * (points1.reshape((1,1,-1,1,points1.shape[-1])) - points2.reshape((1,1,1,-1,points2.shape[-1])))
@@ -153,16 +154,15 @@ def get_krr_parameters(kernel_func, reg_param, output_arg, data_arg, *args):
     
     data_arg is (num_data_points, data_dim)
     outputArg (num_out_points, data_dim)
-    kernelFunc should return args as (num_freq, num_points1, num_points2)
-        any kernel function in this module works
+    kernelFunc should return args as (..., num_points1, num_points2)
     
-    returns params of shape (num_freq, num_out_points, num_data_points)
+    returns params of shape (..., num_out_points, num_data_points)
     """
     K = kernel_func(data_arg, data_arg, *args)
     K_reg = K + reg_param * np.eye(K.shape[-1])
-    kappa = np.transpose(kernel_func(output_arg, data_arg, *args), (0,2,1))
+    kappa = np.moveaxis(kernel_func(output_arg, data_arg, *args), -1, -2)
 
-    params = np.transpose(np.linalg.solve(K_reg, kappa), (0, 2, 1))
+    params = np.moveaxis(np.linalg.solve(K_reg, kappa), -1, -2)
     return params
 
 # def getKRRParameters(kernelFunc, regParam, outputArg, dataArg, *args):
