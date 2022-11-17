@@ -2,6 +2,8 @@ import numpy as np
 import scipy.signal as spsig
 import numexpr as ne
 
+import aspcol.utilities as util
+
 class MovingAverage:
     def __init__(self, forget_factor, dim, dtype=np.float64):
         self.state = np.zeros(dim, dtype=dtype)
@@ -116,18 +118,6 @@ class IIRFilter:
 
 
 
-
-
-
-
-
-
-
- 
-
-
-
-
 # Free function for applying a filtersum once
 # Edge effects will be present
 def applyFilterSum(data, ir):
@@ -140,3 +130,84 @@ def applyFilterSum(data, ir):
         for inIdx in range(numIn):
             out[outIdx, :] += spsig.convolve(data[inIdx, :], ir[inIdx, outIdx, :], "full")
     return out
+
+
+
+
+class WOLA:
+    def __init__(self, num_channels : int, block_size : int, overlap : int):
+        self.num_channels = num_channels
+        self.block_size = block_size
+        self.overlap = overlap
+        self.hop = block_size - overlap
+        assert self.hop > 0
+
+        self.win = get_window_wola(block_size, overlap)
+        #self.buf_in = np.zeros((num_channels, overlap), dtype=float)
+        self.buffer = np.zeros((num_channels, overlap), dtype=float)
+        self.spectrum = np.zeros((num_channels, block_size), dtype=complex)
+
+    def analysis(self, sig):
+        self.spectrum[...] = wola_analysis(sig, self.win)
+
+    def synthesis(self):
+        sig = wola_synthesis(self.spectrum, self.buffer, self.win, self.overlap)
+        self.buffer[...] = sig[:,-self.overlap:]
+        return sig
+
+
+
+def get_window_wola(block_size : int, overlap : int):
+    """
+    block_size is number of samples
+    overlap is number of samples
+    """
+    win = spsig.windows.hann(block_size, sym=False)
+    assert spsig.check_COLA(win, block_size, overlap)
+    return np.sqrt(win)
+
+def wola_analysis(sig, window):
+    """
+    sig is (num_channels, num_samples)
+    window is (num_samples)
+    
+    """
+    num_samples = sig.shape[-1]
+    assert sig.ndim == 2
+    assert window.ndim == 1
+    assert window.shape[0] == num_samples
+   
+    spectrum = np.fft.fft(sig * window[None,:], axis=-1)
+    return spectrum
+
+def wola_synthesis(spectrum, sig_last_block, window, overlap):
+    """Generate time domain signal from WOLA spectrum
+
+    Parameters
+    ----------
+    spectrum : ndarray (num_channels, num_samples)
+    sig_last_block : ndarray (num_channels, overlap)
+    window : ndarray (num_samples)
+    overlap : int 
+
+    Returns
+    -------
+    sig : ndarray (num_channels, num_samples)
+    """
+    assert spectrum.ndim == 2
+    assert sig_last_block.ndim == 2
+    assert window.ndim == 1
+    block_size = spectrum.shape[-1]
+    num_channels = spectrum.shape[0]
+    assert sig_last_block.shape[0] == num_channels
+    assert window.shape[0] == block_size
+    
+    if overlap != block_size // 2:
+        raise NotImplementedError
+    if not util.is_power_of_2(block_size):
+        raise NotImplementedError 
+
+    sig = window[None,:] * np.fft.ifft(spectrum, axis=-1)
+    
+    sig[:,:overlap] += sig_last_block
+    return sig
