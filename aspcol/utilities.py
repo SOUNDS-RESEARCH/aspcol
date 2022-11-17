@@ -118,6 +118,40 @@ def measure(name):
 
 
 
+def block_process_idxs(num_samples : int, block_size : int, overlap : int, start_idx=0):
+    assert 0 <= overlap < block_size
+    assert 0 <= start_idx < num_samples
+    hop = block_size - overlap
+    #left_in_block = block_size - start_idx
+
+    #indices = []
+    
+    sample_counter = start_idx
+    while sample_counter+block_size < num_samples:
+        #block_len = min(num_samples - sample_counter, left_in_block)
+        yield sample_counter 
+        #indices.append(sample_counter)
+
+
+        sample_counter += hop
+
+        #
+
+
+# def calcBlockSizes(numSamples, startIdx, blockSize):
+#     leftInBlock = blockSize - startIdx
+#     sampleCounter = 0
+#     blockSizes = []
+#     while sampleCounter < numSamples:
+#         blockLen = np.min((numSamples - sampleCounter, leftInBlock))
+#         blockSizes.append(blockLen)
+#         sampleCounter += blockLen
+#         leftInBlock -= blockLen
+#         if leftInBlock == 0:
+#             leftInBlock = blockSize
+#     return blockSizes
+
+
 
 
 class PhaseCounter:
