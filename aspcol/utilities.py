@@ -119,6 +119,25 @@ def measure(name):
 
 
 def block_process_idxs(num_samples : int, block_size : int, overlap : int, start_idx=0):
+    """Yields the starting index for each block, for block processing a signal
+
+    Parameters
+    ----------
+    num_samples : int
+        total number of samples for the signal that should be processed
+    block_size : int
+        the size of each of the blocks
+    overlap : int
+        the amount each block should be overlapped at the output
+    start_idx : int
+        can be supplied if the processing should start at another place
+        of the original signal than idx = 0
+
+    Yields
+    -------
+    idx : int
+        can be used to get your block as signal[..., idx:idx + block_size]
+    """
     assert 0 <= overlap < block_size
     assert 0 <= start_idx < num_samples
     hop = block_size - overlap
