@@ -143,17 +143,29 @@ class WOLA:
         assert self.hop > 0
 
         self.win = get_window_wola(block_size, overlap)
-        #self.buf_in = np.zeros((num_channels, overlap), dtype=float)
-        self.buffer = np.zeros((num_channels, overlap), dtype=float)
+        #self.win = np.sqrt(1/2)*np.ones(self.block_size)
+        self.buf_in = np.zeros((num_channels, overlap), dtype=float)
+        self.buf_out = np.zeros((num_channels, overlap), dtype=float)
         self.spectrum = np.zeros((num_channels, block_size), dtype=complex)
 
     def analysis(self, sig):
-        self.spectrum[...] = wola_analysis(sig, self.win)
+        assert sig.ndim == 2
+        assert sig.shape[-1] == self.hop
+        if sig.shape[0] == 1:
+            sig = np.broadcast_to(sig, (self.num_channels, self.hop))
+        sig_to_analyze = np.concatenate((self.buf_in, sig), axis=-1)
+
+        self.spectrum[...] = wola_analysis(sig_to_analyze, self.win)
+        self.buf_in[...] = sig_to_analyze[:,-self.overlap:]
 
     def synthesis(self):
-        sig = wola_synthesis(self.spectrum, self.buffer, self.win, self.overlap)
-        self.buffer[...] = sig[:,-self.overlap:]
-        return sig
+        sig = wola_synthesis(self.spectrum, self.buf_out, self.win, self.overlap)
+
+        #sig[:,:self.overlap] += self.buf_out
+        self.buf_out[...] = sig[:,-self.overlap:]
+
+        #complete_sig = sig[:,:self.hop] += sig_last_block
+        return sig[:,:self.hop]
 
 
 
@@ -167,10 +179,16 @@ def get_window_wola(block_size : int, overlap : int):
     return np.sqrt(win)
 
 def wola_analysis(sig, window):
-    """
-    sig is (num_channels, num_samples)
-    window is (num_samples)
-    
+    """Generate WOLA spectrum from time domain signal
+
+    Parameters
+    ----------
+    sig : ndarray (num_channels, num_samples)
+    window : ndarray (num_samples)
+
+    Returns
+    -------
+    spectrum : ndarray (num_channels, num_samples)
     """
     num_samples = sig.shape[-1]
     assert sig.ndim == 2
@@ -182,6 +200,10 @@ def wola_analysis(sig, window):
 
 def wola_synthesis(spectrum, sig_last_block, window, overlap):
     """Generate time domain signal from WOLA spectrum
+        
+    Keep in mind that only the first block_size-overlap are correct
+    the last overlap samples should be saved until last block to 
+    be overlapped with the next block
 
     Parameters
     ----------
@@ -195,19 +217,16 @@ def wola_synthesis(spectrum, sig_last_block, window, overlap):
     sig : ndarray (num_channels, num_samples)
     """
     assert spectrum.ndim == 2
-    assert sig_last_block.ndim == 2
-    assert window.ndim == 1
-    block_size = spectrum.shape[-1]
-    num_channels = spectrum.shape[0]
-    assert sig_last_block.shape[0] == num_channels
-    assert window.shape[0] == block_size
+    (num_channels, block_size) = spectrum.shape
+    assert sig_last_block.shape == (num_channels, overlap)
+    assert window.shape == (block_size,)
     
     if overlap != block_size // 2:
         raise NotImplementedError
     if not util.is_power_of_2(block_size):
         raise NotImplementedError 
 
-    sig = window[None,:] * np.fft.ifft(spectrum, axis=-1)
+    sig = window[None,:] * np.real_if_close(np.fft.ifft(spectrum, axis=-1))
     
     sig[:,:overlap] += sig_last_block
     return sig

@@ -25,13 +25,11 @@ def test_wola_perfect_reconstruction(num_ch, nfft_exp):
     sig = src.get_samples(num_samples)
     sig_out = np.zeros((num_ch, num_samples))
 
-   
-
-    for i in util.block_process_idxs(num_samples, block_size, overlap):
-        wola.analysis(sig[:,i:i+block_size])
-        sig_out[:,i:i+block_size] = wola.synthesis()
+    for i in util.block_process_idxs(num_samples, wola.hop, 0):
+        wola.analysis(sig[:,i:i+wola.hop])
+        sig_out[:,i:i+wola.hop] = wola.synthesis()
 
     sig_in = sig[:,overlap:-block_size]
     sig_out = sig_out[:,overlap:-block_size]
 
-    assert np.allclose(sig_in, sig_out)
+    assert np.allclose(sig_in[:,:-wola.hop], sig_out[:,wola.hop:])
