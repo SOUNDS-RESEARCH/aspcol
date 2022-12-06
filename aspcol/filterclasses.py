@@ -135,8 +135,9 @@ def applyFilterSum(data, ir):
 
 
 class WOLA:
-    def __init__(self, num_channels : int, block_size : int, overlap : int):
-        self.num_channels = num_channels
+    def __init__(self, num_in : int, num_out : int, block_size : int, overlap : int):
+        self.num_in = num_in
+        self.num_out = num_out
         self.block_size = block_size
         self.overlap = overlap
         self.hop = block_size - overlap
@@ -144,28 +145,48 @@ class WOLA:
 
         self.win = get_window_wola(block_size, overlap)
         #self.win = np.sqrt(1/2)*np.ones(self.block_size)
-        self.buf_in = np.zeros((num_channels, overlap), dtype=float)
-        self.buf_out = np.zeros((num_channels, overlap), dtype=float)
-        self.spectrum = np.zeros((num_channels, block_size), dtype=complex)
+        self.buf_in = np.zeros((self.num_in, overlap), dtype=float)
+        self.buf_out = np.zeros((self.num_in, self.num_out, overlap), dtype=float)
+        self.spectrum = np.zeros((self.num_in, self.num_out, block_size), dtype=complex)
 
     def analysis(self, sig):
+        """Performs WOLA analysis and saved the contents to self.spectrum 
+        
+        Parameters
+        ----------
+        sig : ndarray (self.num_in, self.hop)
+            the new samples from the signal that should be analyzed
+        """
         assert sig.ndim == 2
         assert sig.shape[-1] == self.hop
         if sig.shape[0] == 1:
-            sig = np.broadcast_to(sig, (self.num_channels, self.hop))
-        sig_to_analyze = np.concatenate((self.buf_in, sig), axis=-1)
+            sig = np.broadcast_to(sig, (self.num_in, self.hop))
 
-        self.spectrum[...] = wola_analysis(sig_to_analyze, self.win)
+        sig_to_analyze = np.concatenate((self.buf_in, sig), axis=-1)
         self.buf_in[...] = sig_to_analyze[:,-self.overlap:]
 
+        self.spectrum[...] = wola_analysis(sig_to_analyze, self.win)[:,None,:]
+        
+
     def synthesis(self):
+        """Performs WOLA synthesis, sums with previous blocks and returns 
+            the self.hop number of valid samples 
+        
+        Parameters
+        ----------
+
+        Return
+        ------
+
+
+        """
         sig = wola_synthesis(self.spectrum, self.buf_out, self.win, self.overlap)
 
         #sig[:,:self.overlap] += self.buf_out
-        self.buf_out[...] = sig[:,-self.overlap:]
+        self.buf_out[...] = sig[...,-self.overlap:]
 
         #complete_sig = sig[:,:self.hop] += sig_last_block
-        return sig[:,:self.hop]
+        return sig[...,:self.hop]
 
 
 
@@ -207,26 +228,30 @@ def wola_synthesis(spectrum, sig_last_block, window, overlap):
 
     Parameters
     ----------
-    spectrum : ndarray (num_channels, num_samples)
-    sig_last_block : ndarray (num_channels, overlap)
+    spectrum : ndarray (..., num_channels, num_samples)
+    sig_last_block : ndarray (..., num_channels, overlap)
     window : ndarray (num_samples)
     overlap : int 
 
     Returns
     -------
-    sig : ndarray (num_channels, num_samples)
+    sig : ndarray (..., num_channels, num_samples)
     """
-    assert spectrum.ndim == 2
-    (num_channels, block_size) = spectrum.shape
-    assert sig_last_block.shape == (num_channels, overlap)
+    assert spectrum.ndim >= 2
+    (num_channels, block_size) = spectrum.shape[-2:]
+    assert sig_last_block.shape[-2:] == (num_channels, overlap)
+    assert spectrum.shape[:-2] == sig_last_block.shape[:-2]
     assert window.shape == (block_size,)
     
     if overlap != block_size // 2:
         raise NotImplementedError
     if not util.is_power_of_2(block_size):
-        raise NotImplementedError 
+        raise NotImplementedError
 
-    sig = window[None,:] * np.real_if_close(np.fft.ifft(spectrum, axis=-1))
+    win_broadcast_dims = spectrum.ndim - 1
+    window = window.reshape(win_broadcast_dims*(1,) + (-1,))
+
+    sig = window * np.real_if_close(np.fft.ifft(spectrum, axis=-1))
     
-    sig[:,:overlap] += sig_last_block
+    sig[...,:overlap] += sig_last_block
     return sig

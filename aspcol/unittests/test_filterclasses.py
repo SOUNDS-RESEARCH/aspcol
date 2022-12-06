@@ -10,9 +10,10 @@ import aspcol.utilities as util
 
 
 @hyp.settings(deadline=None)
-@hyp.given(num_ch = st.integers(min_value=1, max_value=5), 
+@hyp.given(num_ch = st.integers(min_value=1, max_value=5),
+            num_out = st.integers(min_value=1, max_value=5), 
             nfft_exp = st.integers(min_value=3, max_value=7))
-def test_wola_perfect_reconstruction(num_ch, nfft_exp):
+def test_wola_perfect_reconstruction(num_ch, num_out, nfft_exp):
     block_size = 2 ** nfft_exp
     overlap = block_size // 2
     num_blocks = 10
@@ -20,16 +21,17 @@ def test_wola_perfect_reconstruction(num_ch, nfft_exp):
     num_samples = num_blocks * block_size
 
     src = sources.WhiteNoiseSource(num_ch,1)
-    wola = fc.WOLA(num_ch, block_size, overlap)
+    wola = fc.WOLA(num_ch, num_out, block_size, overlap)
 
     sig = src.get_samples(num_samples)
-    sig_out = np.zeros((num_ch, num_samples))
+    sig_out = np.zeros((num_ch, num_out, num_samples))
 
     for i in util.block_process_idxs(num_samples, wola.hop, 0):
         wola.analysis(sig[:,i:i+wola.hop])
-        sig_out[:,i:i+wola.hop] = wola.synthesis()
+        sig_out[:,:,i:i+wola.hop] = wola.synthesis()
 
     sig_in = sig[:,overlap:-block_size]
-    sig_out = sig_out[:,overlap:-block_size]
+    sig_out = sig_out[:,:,overlap:-block_size]
 
-    assert np.allclose(sig_in[:,:-wola.hop], sig_out[:,wola.hop:])
+    for i in range(num_out):
+        assert np.allclose(sig_in[:,:-wola.hop], sig_out[:,i,wola.hop:])
