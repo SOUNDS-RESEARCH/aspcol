@@ -143,11 +143,16 @@ class WOLA:
         self.hop = block_size - overlap
         assert self.hop > 0
 
-        self.win = get_window_wola(block_size, overlap)
+        if self.block_size % 2 == 0:
+            self.num_freqs = 1 + self.block_size // 2
+        else:
+            raise NotImplementedError
+
+        self.win = get_window_wola(self.block_size, self.overlap)
         #self.win = np.sqrt(1/2)*np.ones(self.block_size)
-        self.buf_in = np.zeros((self.num_in, overlap), dtype=float)
-        self.buf_out = np.zeros((self.num_in, self.num_out, overlap), dtype=float)
-        self.spectrum = np.zeros((self.num_in, self.num_out, block_size), dtype=complex)
+        self.buf_in = np.zeros((self.num_in, self.overlap), dtype=float)
+        self.buf_out = np.zeros((self.num_in, self.num_out, self.overlap), dtype=float)
+        self.spectrum = np.zeros((self.num_in, self.num_out, self.num_freqs), dtype=complex)
 
     def analysis(self, sig):
         """Performs WOLA analysis and saved the contents to self.spectrum 
@@ -209,14 +214,14 @@ def wola_analysis(sig, window):
 
     Returns
     -------
-    spectrum : ndarray (num_channels, num_samples)
+    spectrum : ndarray (num_channels, num_samples//2 + 1)
     """
     num_samples = sig.shape[-1]
     assert sig.ndim == 2
     assert window.ndim == 1
     assert window.shape[0] == num_samples
    
-    spectrum = np.fft.fft(sig * window[None,:], axis=-1)
+    spectrum = np.fft.rfft(sig * window[None,:], axis=-1)
     return spectrum
 
 def wola_synthesis(spectrum, sig_last_block, window, overlap):
@@ -228,7 +233,9 @@ def wola_synthesis(spectrum, sig_last_block, window, overlap):
 
     Parameters
     ----------
-    spectrum : ndarray (..., num_channels, num_samples)
+    spectrum : ndarray (..., num_channels, num_samples//2 + 1)
+        the spectrum associated with the positive frequencies (output from rfft), 
+        which will be num_samples // 2 + 1 frequencies. 
     sig_last_block : ndarray (..., num_channels, overlap)
     window : ndarray (num_samples)
     overlap : int 
@@ -238,10 +245,15 @@ def wola_synthesis(spectrum, sig_last_block, window, overlap):
     sig : ndarray (..., num_channels, num_samples)
     """
     assert spectrum.ndim >= 2
-    (num_channels, block_size) = spectrum.shape[-2:]
-    assert sig_last_block.shape[-2:] == (num_channels, overlap)
+    assert sig_last_block.ndim >= 2
+    assert window.ndim == 1
+
+    block_size = window.shape[0]
+    num_channels = spectrum.shape[-2]
+
     assert spectrum.shape[:-2] == sig_last_block.shape[:-2]
-    assert window.shape == (block_size,)
+    assert spectrum.shape[-1] == block_size // 2 + 1
+    assert sig_last_block.shape[-2:] == (num_channels, overlap)
     
     if overlap != block_size // 2:
         raise NotImplementedError
@@ -251,7 +263,7 @@ def wola_synthesis(spectrum, sig_last_block, window, overlap):
     win_broadcast_dims = spectrum.ndim - 1
     window = window.reshape(win_broadcast_dims*(1,) + (-1,))
 
-    sig = window * np.real_if_close(np.fft.ifft(spectrum, axis=-1))
+    sig = window * np.real_if_close(np.fft.irfft(spectrum, axis=-1))
     
     sig[...,:overlap] += sig_last_block
     return sig

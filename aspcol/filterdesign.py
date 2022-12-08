@@ -50,9 +50,9 @@ def fir_from_freqs_window(freq_filter, ir_len, two_sided=True):
         #halfLen = irLen // 2
         mid_point = freq_filter.shape[0] // 2
 
-        time_signal = np.fft.ifft(freq_filter, axis=0)
+        time_filter = np.fft.ifft(freq_filter, axis=0)
         new_axis_order = np.concatenate((np.arange(1, freq_filter.ndim), [0]))
-        time_signal = np.real_if_close(np.transpose(time_signal, new_axis_order))
+        time_filter = np.real_if_close(np.transpose(time_filter, new_axis_order))
 
         #truncError = calcTruncationError(fullTimeFilter, irLen, twoSided)
         time_filter = np.concatenate((time_filter[...,-mid_point:], time_filter[...,:mid_point]), axis=-1)
