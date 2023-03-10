@@ -55,34 +55,6 @@ class MovingAverage:
 
 
 
-class SinglePoleLowPass:
-    def __init__(self, forget_factor, dim, dtype=np.float64):
-        self.state = np.zeros(dim, dtype=dtype)
-        self.forget_factor = forget_factor
-        self.inv_forget_factor = 1 - forget_factor
-        self.initialized = False
-
-    def set_forget_factor(self, cutoff, samplerate):
-        """Set cutoff in in Hz"""
-        wc = 2 * np.pi * cutoff / samplerate
-        y = 1 - np.cos(wc)
-        self.forget_factor = -y + np.sqrt(y ** 2 + 2 * y)
-        self.inv_forget_factor = 1 - self.forget_factor
-
-    def update(self, new_data_point):
-        assert new_data_point.shape == self.state.shape
-        if self.initialized:
-            self.state *= self.forget_factor
-            self.state += new_data_point * self.inv_forget_factor
-        else:
-            self.state = new_data_point
-            self.initialized = True
-
-
-
-
-
-
 class IIRFilter:
     """
     num_coeffs and denom_coeffs should be a list of ndarrays,
@@ -109,7 +81,6 @@ class IIRFilter:
     def process(self, data_to_filter):
         assert data_to_filter.ndim == 2
         num_channels = data_to_filter.shape[0]
-        #num_samples = data_to_filter.shape[1]
         filtered_sig = np.zeros_like(data_to_filter)
         for ch_idx in range(num_channels):
             filtered_sig[ch_idx,:], self.filter_state[ch_idx] = spsig.lfilter(self.num_coeffs[ch_idx], self.denom_coeffs[ch_idx], data_to_filter[ch_idx,:], axis=-1, zi=self.filter_state[ch_idx])
@@ -117,19 +88,6 @@ class IIRFilter:
 
 
 
-
-# Free function for applying a filtersum once
-# Edge effects will be present
-def applyFilterSum(data, ir):
-    numIn = ir.shape[0]
-    numOut = ir.shape[1]
-    filtLen = ir.shape[2]
-
-    out = np.zeros((numOut, data.shape[1] + filtLen - 1))
-    for outIdx in range(numOut):
-        for inIdx in range(numIn):
-            out[outIdx, :] += spsig.convolve(data[inIdx, :], ir[inIdx, outIdx, :], "full")
-    return out
 
 
 
