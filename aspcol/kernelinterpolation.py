@@ -152,11 +152,17 @@ def get_krr_parameters(kernel_func, reg_param, output_arg, data_arg, *args):
         The returned parameter Z is the optimal interpolation filter from the data points to
         the output points. Apply filter as Z @ y, where y are the labels for data at data_arg positions
     
-    data_arg is (num_data_points, data_dim)
-    outputArg (num_out_points, data_dim)
-    kernelFunc should return args as (..., num_points1, num_points2)
+    Parameters
+    ----------
+    data_arg : ndarray (num_data_points, data_dim)
+    output_arg : ndarray (num_out_points, data_dim)
+    kernel_func : function 
+        with calling signature kernel_func(output_arg, data_arg, *args)
+        should return ndarray (..., num_out_points, num_data_points)
     
-    returns params of shape (..., num_out_points, num_data_points)
+    Returns
+    -------
+    params : ndarray (..., num_out_points, num_data_points)
     """
     K = kernel_func(data_arg, data_arg, *args)
     K_reg = K + reg_param * np.eye(K.shape[-1])
@@ -164,19 +170,6 @@ def get_krr_parameters(kernel_func, reg_param, output_arg, data_arg, *args):
 
     params = np.moveaxis(np.linalg.solve(K_reg, kappa), -1, -2)
     return params
-
-# def getKRRParameters(kernelFunc, regParam, outputArg, dataArg, *args):
-#     """Calculates parameter vector or matrix given a kernel function for Kernel Ridge Regression.
-#     Both dataArg and outputArg should be formatted as (numPoints, pointDimension)
-#     kernelFunc should return args as (numfreq, numPoints1, numPoints2)
-#     returns params of shape (numFreq, numOutPoints, numDataPoints)"""
-#     dataDim = dataArg.shape[0]
-#     K = kernelFunc(dataArg, dataArg, *args)
-#     Kreg = K + regParam * np.eye(dataDim)
-#     kappa = kernelFunc(dataArg, outputArg, *args)
-
-#     params = np.transpose(np.linalg.solve(Kreg, kappa), (0, 2, 1))
-#     return params
 
 
 def soundfield_interpolation_fir(
@@ -358,7 +351,3 @@ class ATFKernelInterpolator():
 #     ipParams = getKRRParameters(kernelFunc, regParam, toPoints, fromPoints, waveNum, *args)
 #     ipParams = fd.insertNegativeFrequencies(ipParams, even=True)
 #     return ipParams
-
-
-
-
