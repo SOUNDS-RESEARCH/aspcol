@@ -142,14 +142,17 @@ class LMS(AdaptiveFilterBase):
             self.norm_func = self._no_norm
 
         if wait_until_initialized:
-            init_len = self.ir_len
+            self.init_len = self.ir_len
         else:
-            init_len = 0
-        self.phases = util.PhaseCounter({"init" : init_len, "processing" : np.inf})
+            self.init_len = 0
+        self.reinitialize()
 
         #self.metadata["step size"] = self.step_size
         self.metadata["regularization"] = self.reg
         self.metadata["normalization"] = normalization
+
+    def reinitialize(self):
+        self.phases = util.PhaseCounter({"init" : self.init_len, "processing" : np.inf})
 
     def _channel_indep_norm(self):
         return 1 / (self.reg + np.transpose(self.x, (0, 2, 1)) @ self.x)
