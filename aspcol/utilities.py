@@ -98,6 +98,18 @@ def pow2db(power):
     return 10 * np.log10(power)
 
 
+def simplify_ratio(a : int, b : int):
+    """
+    simplifies the ratio a/b into the simplest possible
+    ratio where both numerator and denominator are integers
+    """
+    d = np.gcd(a,b)
+    while d != 1:
+        a = a // d
+        b = b // d
+        d = np.gcd(a,b)
+    return a,b
+
 
 def measure(name):
     """
