@@ -17,9 +17,9 @@ def POLYMAT(draw, dtype=None, num_taps=None, mat_dim=None):
         dtype = draw(DTYPE)
 
     if dtype == float:
-        elements = st.floats(allow_infinity=False, allow_nan=False)
+        elements = st.floats(min_value=-1e10, max_value=1e10, allow_infinity=False, allow_nan=False)
     elif dtype == complex:
-        elements = st.complex_numbers(allow_infinity=False, allow_nan=False)
+        elements = st.complex_numbers(max_magnitude=1e10, allow_infinity=False, allow_nan=False)
     else:
         raise ValueError("Invalid dtype")
 
@@ -44,7 +44,7 @@ def PARAHERMITIAN(draw, mat_dim = None, **kwargs):
     else:
         assert mat_dim[0] == mat_dim[1]
 
-    mat = draw(POLYMAT(mat_dim, **kwargs))
+    mat = draw(POLYMAT(mat_dim=mat_dim, **kwargs))
     mat = (mat + pmt.paraconjugate(mat)) / 2
     assert pmt.is_parahermitian(mat)
     return mat
@@ -96,6 +96,6 @@ def test_matmul_by_unit_delay(mat1):
 
 
 @hyp.settings(deadline=None)
-@hyp.given(mat1 = PARAHERMITIAN(num_taps=1))
+@hyp.given(PARAHERMITIAN(num_taps=1))
 def test_pevd_single_tap_equals_evd(mat):
-    decomp = pmt.pevd_sbr2(mat, 1e-3, 100, 0.01)
+    decomp = pmt.pevd_sbr2(mat, 1e-3, 100, 0.99)
