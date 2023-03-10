@@ -397,10 +397,12 @@ class Autocorrelation:
         """
         if max_lag is None:
             max_lag = self.max_lag
+        current_corr_est = self.corr.state[...,:max_lag]
+
         if new_first:
-            self.corr_mat = corr_matrix_from_autocorrelation(self.corr.state)
+            self.corr_mat = corr_matrix_from_autocorrelation(current_corr_est)
         else:
-            self.corr_mat = mat.block_transpose(corr_matrix_from_autocorrelation(self.corr.state), max_lag)
+            self.corr_mat = mat.block_transpose(corr_matrix_from_autocorrelation(current_corr_est), max_lag)
 
         self.corr_mat = mat.ensure_hermitian(self.corr_mat)
         if pos_def:
