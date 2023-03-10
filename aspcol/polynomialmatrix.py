@@ -42,26 +42,26 @@ def matmul(mat1, mat2):
 
 
 #================== IMPLEMENTATION OF SBR2 ================================
-
-
-
-
 def pevd_sbr2(R, tolerance, max_iter, trim_param):
     """
     R is a parahermitian matrix, 
         R.ndim == 3
         R.shape == (num_taps, mat_dim, mat_dim)
     
+        tolerance is small positive real value
+        max_iter is positive integer
+        trim_param is positive real value close to 1
     """
     assert R.ndim == 3
     assert is_parahermitian(R)
     num_taps = R.shape[0]
     mat_dim = R.shape[-1]
     center = num_taps // 2
+    R = R.astype(complex)
 
     max_val = 1+tolerance
     iter = 0
-    Hp = np.zeros_like(R, dtype=complex)
+    Hp = np.zeros_like(R, dtype=R.dtype)
     Hp[center, :, :] = np.eye(mat_dim)
     #gs = []
     max_val_seq = []
@@ -75,12 +75,12 @@ def pevd_sbr2(R, tolerance, max_iter, trim_param):
         sq_norm_seq.append(np.linalg.norm(R)**2)
         if max_val > tolerance:
             iter += 1
-            B = delay_matrix(max_val_coord[2], max_val_coord[0], p=mat_dim, num_taps=num_taps)
+            B = delay_matrix(max_val_coord[2], max_val_coord[0], mat_dim=mat_dim, num_taps=num_taps, dtype=R.dtype)
             # Btilde, B = _delay_matrix_(k, tau, p=R.shape[0], max_tau=(R.shape[-1] - 1) // 2)
             Rp = matmul(matmul(B, R), paraconjugate(B))
             Hp = matmul(B, Hp)
 
-            theta, phi = _get_rotation_angles(Rp)
+            theta, phi = _get_rotation_angles(Rp, max_val_coord[1], max_val_coord[2])
             Q = rotation_matrix(mat_dim, max_val_coord[1], max_val_coord[2], theta, phi)
 
             Rp = matmul(matmul(Q, Rp), paraconjugate(Q))
@@ -92,7 +92,7 @@ def pevd_sbr2(R, tolerance, max_iter, trim_param):
     return Hp, max_val_seq, sq_norm_seq
 
 
-def delay_matrix(k, t, mat_dim, num_taps):
+def delay_matrix(k, t, mat_dim, num_taps, dtype=float):
     """ Create an elementary delay polynomial matrix
     Arguments:
             k (int): The row/column number  to apply the delay
@@ -105,7 +105,7 @@ def delay_matrix(k, t, mat_dim, num_taps):
     assert np.abs(t) <= num_taps // 2 
     #num_taps = 2*max_tau + 1
     center = num_taps // 2
-    B = np.zeros((num_taps, mat_dim, mat_dim), dtype=complex)
+    B = np.zeros((num_taps, mat_dim, mat_dim), dtype=dtype)
     B[center, :, :] = np.eye(mat_dim)
     B[center, k, k] = 0
     B[center+t, k, k] = 1
@@ -153,7 +153,7 @@ def off_diag_search(mat):
     mat_dim = mat.shape[2]
     center = num_taps // 2
     #maxtau = (X.shape[-1]-1)//2
-    max_val_coords = None
+    max_val_coords = [np.nan, np.nan, np.nan]
     max_val = 0
     for j in range(mat_dim):
         for k in range(j+1, mat_dim):
@@ -162,6 +162,7 @@ def off_diag_search(mat):
                 if val > max_val:
                     max_val_coords = [t, j, k]
                     max_val = val
+
     if max_val_coords[0] > center:
         max_val_coords[0] = max_val_coords[0]-mat.shape[-1]
     return max_val_coords, max_val
@@ -173,6 +174,7 @@ def trim(R, mu):
     sq_norm_orig = np.linalg.norm(R)**2
 
     #tod = -1
+    num_samples_trim = 0
     for i in range(center):
         D = R[i:-i, :, :]
         sq_norm_trim = np.linalg.norm(D)**2
@@ -191,7 +193,7 @@ def trim(R, mu):
 
 #===========================Everything below is copied from AlexW335 ========================
 
-def SBR2(R, delta, maxiter):
+def __SBR2(R, delta, maxiter):
     R0 = R.copy()
     g = 1+delta
     iter = 0
@@ -221,7 +223,7 @@ def SBR2(R, delta, maxiter):
             # Hp = trim(Hp, 0.99, N4)
     return Hp, gs, r2s
 
-def MS_SBR2(R, delta, maxiter):
+def __MS_SBR2(R, delta, maxiter):
     N4 = np.linalg.norm(R)**2
     g = 1+delta
     iter = 0
@@ -258,7 +260,7 @@ def MS_SBR2(R, delta, maxiter):
         Rp = trim(Rp, 0.99, N4)
     return Hp, gs, r2s
 
-def trim(R, mu, N4):
+def __trim(R, mu, N4):
     max_tau = (R.shape[-1]-1)//2
     tod = -1
     for idx in np.arange(max_tau):
@@ -271,14 +273,14 @@ def trim(R, mu, N4):
         R[:, :, max_tau-tod:max_tau+tod+2] = np.zeros((R.shape[0], R.shape[1], (tod+1)*2))
     return R
 
-def paraconjugate(X):
+def __paraconjugate(X):
     Xtmp = X[:, :, 1:]
     Xtmp = np.flip(Xtmp, -1)
     Xtmp = np.concatenate((X[:, :, 0:1], Xtmp), -1)
     Xtmp = np.conj(np.transpose(Xtmp, (1, 0, 2)))
     return Xtmp
 
-def off_diag_search(X, blacklist=()):
+def __off_diag_search(X, blacklist=()):
     # 1) Find dominant off-diagonal element
     maxtau = (X.shape[-1]-1)//2
     coords = None
@@ -294,7 +296,7 @@ def off_diag_search(X, blacklist=()):
     return coords[0], coords[1], coords[2], Xcoords
 
 
-def rotation_matrix(j, k, X):
+def __rotation_matrix(j, k, X):
     p = X.shape[0]
     max_tau = (X.shape[-1]-1)//2
     phi = np.angle(X[j, k, 0])
@@ -317,7 +319,7 @@ def rotation_matrix(j, k, X):
     QH[k, k, 0] = cs
     return Q, QH
 
-def fftpmm(H, R):
+def __fftpmm(H, R):
     """Algorithm 1 taken from Redif, S., & Kasap, S. (2015). Novel Reconfigurable Hardware Architecture for Polynomial Matrix Multiplications. Tvlsi, 23(3), 454–465."""
     (p, _, N) = H.shape
     Hfft = np.apply_along_axis(fft_pack.fft, -1, H, n=N)
