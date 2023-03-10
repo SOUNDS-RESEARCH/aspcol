@@ -1,5 +1,5 @@
-import ancsim.integration.montecarlo as mc
-import ancsim.integration.pointgenerator as gen
+import aspcol.montecarlo as mc
+#import ancsim.integration.pointgenerator as gen
 import numpy as np
 
 # def test_multiprocessing():
@@ -28,18 +28,18 @@ import numpy as np
 
 
 def test_constant_scalar_integral():
-    rDim = 10
-    domainLength = 2
+    r_dim = 10
+    domain_length = 2
 
     def f(r):
         return np.ones((1, r.shape[-1]))
 
-    def pointGen(numSamples):
-        points = np.random.rand(rDim, numSamples) * domainLength
+    def point_gen(num_samples):
+        points = np.random.rand(r_dim, num_samples) * domain_length
         return points
 
-    vol = domainLength ** rDim
-    val = mc.integrate(f, pointGen, 1000, vol)
+    vol = domain_length ** r_dim
+    val = mc.integrate(f, point_gen, 1000, vol)
     assert np.array_equal(val, np.array([vol]))
 
 
