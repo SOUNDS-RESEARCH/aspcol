@@ -194,44 +194,6 @@ class LMS(AdaptiveFilterBase):
         return desired_est, error
 
 
-    # for i in range(self.idx-num_samples, self.idx):
-    #     self.sig["mic_est"][:,i] = np.squeeze(self.rir_est.process(self.sig["ls"][:,i:i+1]), axis=-1)
-    #     error = self.sig["mic"][:,i:i+1] - self.sig["mic_est"][:,i:i+1]
-
-    #     grad = np.flip(self.sig["ls"][:,None,i+1-self.rir_len:i+1], axis=-1) * \
-    #                     error[None,:,:]
-
-    #     normalization = 1 / (np.sum(self.sig["ls"][:,i+1-self.rir_len:i+1]**2) + self.beta)
-    #     self.rir_est.ir += self.step_size * normalization * grad
-        
-    # self.sig["ls"][:,self.idx:self.idx+num_samples] = self.train_src.get_samples(num_samples)
-
-
-
-
-    # def update(self, ref, error):
-    #     """Inputs should be of the shape (channels, num_samples)"""
-    #     assert ref.shape[-1] == error.shape[-1]
-    #     num_samples = ref.shape[-1]
-
-    #     for n in range(num_samples):
-    #         self.insert_in_signal(ref[:, n : n + 1])
-    #         normalization = self.norm_func()
-    #         self.filt.ir += (
-    #             self.step_size
-    #             * normalization
-    #             * np.squeeze(
-    #                 error[None, :, None, n : n + 1] * self.x[:, None, :, :], axis=-1
-    #             )
-    #         )
-
-    #def process(self, signalToProcess):
-        #raise NotImplementedError # currently self.filt is already in use
-        # which would mean two processes using the same stateful filter
-        # that would lead to errors
-        #return super().process(signalToProcess)
-
-
 class BlockLMS(AdaptiveFilterBase):
     """Block based processing and normalization
     Dimension of filter is (input channels, output channels, IR length)
@@ -273,50 +235,50 @@ class FastBlockLMS(AdaptiveFilterFreq):
     """Identical to BlockLMS when scalar normalization is used"""
     def __init__(
         self,
-        blockSize,
+        block_size,
         num_in,
         num_out,
-        stepSize,
+        step_size,
         regularization=1e-3,
-        powerEstForgetFactor=0.99,
+        power_est_forget_factor=0.99,
         normalization="scalar",
     ):
-        super().__init__(2 * blockSize, num_in, num_out)
-        self.mu = stepSize
+        super().__init__(2 * block_size, num_in, num_out)
+        self.mu = step_size
         self.beta = regularization
-        self.blockSize = blockSize
+        self.block_size = block_size
 
         if normalization == "scalar":
-            self.normFunc = self.scalarNormalization
+            self.norm_func = self.scalar_normalization
         elif normalization == "freqIndependent":
-            self.refPowerEstimate = fc.MovingAverage(powerEstForgetFactor, (2 * blockSize, 1, 1))
-            self.normFunc = self.freqIndependentNormalization
+            self.ref_power_estimate = fc.MovingAverage(power_est_forget_factor, (2 * block_size, 1, 1))
+            self.norm_func = self.freq_independent_normalization
         elif normalization == "channelIndependent":
-            self.normFunc = self.channelIndependentNormalization
+            self.norm_func = self.channel_independent_normalization
         else:
             raise ValueError
             
-    def scalarNormalization(self, ref, freqRef):
-        return 1 / (np.sum(ref[...,self.blockSize:]**2) + self.beta)
+    def scalar_normalization(self, ref, freqRef):
+        return 1 / (np.sum(ref[...,self.block_size:]**2) + self.beta)
 
-    def freqIndependentNormalization(self, ref, freqRef):
-        self.refPowerEstimate.update(np.sum(np.abs(freqRef[:,:,None])**2, axis=(1,2), keepdims=True))
-        return 1 / (self.refPowerEstimate.state + self.beta)
+    def freq_independent_normalization(self, ref, freqRef):
+        self.ref_power_estimate.update(np.sum(np.abs(freqRef[:,:,None])**2, axis=(1,2), keepdims=True))
+        return 1 / (self.ref_power_estimate.state + self.beta)
     
-    def channelIndependentNormalization(self, ref, freqRef):
+    def channel_independent_normalization(self, ref, freqRef):
         return 1 / (np.mean(np.abs(X)**2,axis=0, keepdims=True) + self.beta)
 
 
     def update(self, ref, error):
         """ref is two blocks, the latter of which 
             corresponds to the single error block"""
-        assert ref.shape == (self.num_in, 2 * self.blockSize)
-        assert error.shape == (self.num_out, self.blockSize)
+        assert ref.shape == (self.num_in, 2 * self.block_size)
+        assert error.shape == (self.num_out, self.block_size)
 
-        X = fdf.fftWithTranspose(ref)
-        tdGrad = fdf.correlateEuclidianTF(error, X)
-        gradient = fdf.fftWithTranspose(np.concatenate((tdGrad, np.zeros_like(tdGrad)),axis=-1))
-        norm = self.normFunc(ref, X)
+        X = fdf.fft_transpose(ref)
+        td_grad = fdf.correlate_euclidian_tf(error, X)
+        gradient = fdf.fft_transpose(np.concatenate((td_grad, np.zeros_like(td_grad)),axis=-1))
+        norm = self.norm_func(ref, X)
         #print("Fast block normalization: ", norm)
         
         self.filt.tf += self.mu * norm * gradient
@@ -335,30 +297,30 @@ class FastBlockWeightedLMS(FastBlockLMS):
         blockSize,
         num_in,
         num_out,
-        stepSize,
-        weightMatrix,
+        step_size,
+        weight_matrix,
         regularization=1e-3,
-        freqIndepNorm=False,
+        freq_indep_norm=False,
     ):
         super().__init__(
-            blockSize, num_in, num_out, stepSize, regularization, freqIndepNorm
+            blockSize, num_in, num_out, step_size, regularization, freq_indep_norm
         )
-        self.weightMatrix = weightMatrix
+        self.weight_matrix = weight_matrix
 
     def update(self, ref, error):
-        assert ref.shape == (self.num_in, 2 * self.blockSize)
-        assert error.shape == (self.num_out, self.blockSize)
+        assert ref.shape == (self.num_in, 2 * self.block_size)
+        assert error.shape == (self.num_out, self.block_size)
 
-        paddedError = np.concatenate((np.zeros_like(error), error), axis=-1)
-        E = np.fft.fft(paddedError, axis=-1).T[:, :, None]
+        padded_error = np.concatenate((np.zeros_like(error), error), axis=-1)
+        E = np.fft.fft(padded_error, axis=-1).T[:, :, None]
         X = np.fft.fft(ref, axis=-1).T[:, :, None]
 
-        gradient = self.weightMatrix @ E @ np.transpose(X.conj(), (0, 2, 1))
-        tdgrad = np.fft.ifft(gradient, axis=0)
-        tdgrad[self.blockSize :, :, :] = 0
-        gradient = np.fft.fft(tdgrad, axis=0)
+        gradient = self.weight_matrix @ E @ np.transpose(X.conj(), (0, 2, 1))
+        td_grad = np.fft.ifft(gradient, axis=0)
+        td_grad[self.block_size :, :, :] = 0
+        gradient = np.fft.fft(td_grad, axis=0)
 
-        norm = self.normFunc(X)
+        norm = self.norm_func(X)
         self.ir += self.mu * norm * gradient
 
 
@@ -396,28 +358,6 @@ class RLS(AdaptiveFilterBase):
         self.metadata["forget factor"] = self.forget_factor
         self.metadata["signal power estimate"] = self.signal_power_est
 
-
-    def update_old(self, ref, desired):
-        """Inputs should be of the shape (channels, numSamples)"""
-        assert ref.shape[-1] == desired.shape[-1]
-        numSamples = ref.shape[-1]
-
-        for n in range(numSamples):
-            self.insert_in_signal(ref[:, n : n + 1])
-
-            X = self.x.reshape((1, -1, 1))
-            x_times_corr = self.inv_corr @ X
-            g = x_times_corr @ np.transpose(x_times_corr, (0, 2, 1))
-            denom = self.forget * np.transpose(X, (0, 2, 1)) @ x_times_corr
-            self.inv_corr = self.forget_inv * (self.inv_corr - g / denom)
-
-            self.crossCorr *= self.forget
-            self.crossCorr += desired[:, n, None, None] * X
-            newFilt = np.transpose(self.inv_corr @ self.crossCorr, (0, 2, 1))
-            self.filt.ir = np.transpose(
-                newFilt.reshape((self.num_out, self.num_in, self.ir_len)), (1, 0, 2)
-            )
-
     def update(self, ref, desired):
         assert ref.shape[-1] == desired.shape[-1]
         num_samples = ref.shape[-1]
@@ -435,78 +375,4 @@ class RLS(AdaptiveFilterBase):
                 self.filt.ir += self.gain.reshape(self.num_in, 1, self.ir_len) * error[None,:,:]
             self.phases.progress()
 
-
-
-
-
-
-class LMS_sig_operator:
-    """Sample by sample processing, although it accepts block inputs
-    Dimension of filter is (input channels, output channels, IR length)
-    
-    Not at all finished
-    """
-
-    def __init__(
-        self,
-        ir_len,
-        in_name,
-        out_name,
-        est_name,
-        sig, 
-        step_size,
-        regularization,
-        normalization="channel_independent",
-        filter_type=None,
-    ):
-        raise NotImplementedError
-
-        filter_dim = (num_in, num_out, ir_len)
-        self.num_in = sig[in_name].shape[0]
-        self.num_out = sig[out_name].shape[0]
-        self.ir_len = ir_len
-
-        if filter_type is not None:
-            self.filt = filter_type(ir=np.zeros(filter_dim))
-        else:
-            self.filt = fc.FilterSum(ir=np.zeros(filter_dim))
-        
-        
-        
-        self.step_size = step_size
-        self.reg = regularization
-        if normalization == "channel_independent":
-            self.norm_func = self._channel_indep_norm
-        elif normalization == "channel_common":
-            self.norm_func = self._channel_common_norm
-        elif normalization == "none":
-            self.norm_func = self._no_norm
-
-    def _channel_indep_norm(self):
-        return 1 / (self.reg + np.transpose(self.x, (0, 2, 1)) @ self.x)
-
-    def _channel_common_norm(self):
-        return 1 / (self.reg + np.mean(np.transpose(self.x, (0, 2, 1)) @ self.x))
-    
-    def _no_norm(self):
-        return 1
-
-    def update(self, ref, error):
-        """Inputs should be of the shape (channels, num_samples)"""
-        assert ref.shape[-1] == error.shape[-1]
-        num_samples = ref.shape[-1]
-
-        for n in range(num_samples):
-            self.insert_in_signal(ref[:, n : n + 1])
-            normalization = self.norm_func()
-            self.filt.ir += (
-                self.step_size
-                * normalization
-                * np.squeeze(
-                    error[None, :, None, n : n + 1] * self.x[:, None, :, :], axis=-1
-                )
-            )
-
-    def process(self, signalToProcess):
-        return self.filt.process(signalToProcess)
 
