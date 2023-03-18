@@ -9,15 +9,15 @@ The package makes heavy use of numpy and scipy.
 
 
 ## List of algorithms
-# adaptivefilter
+### adaptivefilter
 Least mean squares (LMS), Recursive least squares (RLS), Fast block LMS, Fast block weighted LMS
-# correlation
+### correlation
 Estimation of correlation function and covariance matrix of signal. Sample covariance for vector-valued variable, including the non-zero mean case, even in a streaming processing. Covariance estimation with optimal linear shrinkage, covariance estimation with optimal non-linear shrinkage
 
 Relevant papers
 Shrinkage Algorithms for MMSE Covariance Estimation
 Ledoit, Wolf, "Quadratic shrinkage for large covariance matrices"
-# distance
+### distance
 Distance measures for any variable: Mean square error
 Distance measures for vectors: Angular distance, Cosine similarity, 
 Distance measures for matrices: Correlation matrix distance, Affine invariant Riemannian metric, Kullback Leibler divergence
@@ -25,11 +25,11 @@ Distance measures for matrices: Correlation matrix distance, Affine invariant Ri
 Relevant papers
 Correlation matrix distaince, a meaningful measure for evaluation of non-stationary MIMO channels - Herdin, Czink, Ozcelik, Bonek
 A Metric for Covariance Matrices - Wolfgang Förstner, Boudewijn Moonen
-# filterclasses
+### filterclasses
 Weighted overlap-add, IIR filter, mean with forgetting factor, 
-# filterdesign
+### filterdesign
 Helper functions to obtain FIR filters from frequency values, for less risk of errors. 
-# kernelinterpolation
+### kernelinterpolation
 Kernel interpolation of sound field
 
 Relevant papers
@@ -39,18 +39,18 @@ J. G. C. Ribeiro, N. Ueno, S. Koyama, and H. Saruwatari, “Kernel interpolation
 S. Koyama, J. Brunnström, H. Ito, N. Ueno, and H. Saruwatari, “Spatial active noise control based on kernel interpolation of sound field,”
 J. Brunnström, S. Koyama, and M. Moonen, “Variable span trade-off filter for sound zone control with kernel interpolation weighting,”
 
-# matrices
+### matrices
 Helper functions for dealing with matrices. Some examples include constructing a block matrix, ensure positive definiteness, apply function to individual blocks of a block matrix. 
-# montecarlo
+### montecarlo
 Functions for naive monte carlo sampling of any given function
-# polynomialmatrix
+### polynomialmatrix
 Implements Polynomial Eigenvalue Decomposition (PEVD)
 
 Relevant papers
-# soundfieldestimation
+### soundfieldestimation
 Directionally weighted wave field estimation. Can be used for directional microphones
 
 Relevant papers
 Ueno, Koyama, Saruwatari - Directionally weighted wave field estimation exploiting prior information on source direction
-# utilities
+### utilities
 Helper functions for anything
