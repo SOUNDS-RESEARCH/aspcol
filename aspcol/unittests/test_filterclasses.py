@@ -4,7 +4,7 @@ import hypothesis as hyp
 import hypothesis.strategies as st
 import pytest
 
-import ancsim.signal.sources as sources
+import aspsim.signal.sources as sources
 import aspcol.filterclasses as fc
 import aspcol.utilities as util
 
