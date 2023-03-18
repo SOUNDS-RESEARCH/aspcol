@@ -266,7 +266,7 @@ class ATFKernelInterpolator():
         
     """
     def __init__(self, kiFromSpeakerPos, kiToSpeakerPos, micPos, regParam, kiFiltLen, atfLen, numFreq, samplerate, c, atfDelay=0):
-        import ancsim.signal.filterclasses as fc
+        import aspcore.filterclasses as fc
         import ancsim.room.roomimpulseresponse as rir
 
 

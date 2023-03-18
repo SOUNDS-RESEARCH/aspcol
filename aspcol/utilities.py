@@ -5,7 +5,7 @@ from functools import wraps
 import numpy as np
 import copy
 
-import ancsim.signal.filterclasses as fc
+import aspcore.filterclasses as fc
 
 
 
@@ -28,7 +28,7 @@ def power_of_filtered_signal(src, ir, num_samples):
     src_copy = copy.deepcopy(src)
     in_sig = src_copy.get_samples(num_samples+ir_len-1)
 
-    filt = fc.createFilter(ir)
+    filt = fc.create_filter(ir)
     filt_sig = filt.process(in_sig)
     filt_sig = filt_sig[...,ir_len-1:]
     avg_pow = np.mean(filt_sig**2, axis=-1)

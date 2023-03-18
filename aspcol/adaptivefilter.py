@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
-import ancsim.signal.filterclasses as fc
+import aspcore.filterclasses as fc
 import ancsim.signal.freqdomainfiltering as fdf
 import aspcol.utilities as util
 
