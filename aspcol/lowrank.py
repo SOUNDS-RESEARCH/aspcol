@@ -1,4 +1,5 @@
 import numpy as np
+import numba as nb
 import itertools as it
 import tensorly.decomposition as td
 import aspcore.filterclasses as fc
@@ -89,7 +90,7 @@ def decompose_ir(ir, dims, rank):
 
 
 
-class LowRankFilter_slow:
+class LowRankFilter_slowest:
     def __init__ (self, ir):
         """
         Parameters
@@ -147,7 +148,7 @@ class LowRankFilter_slow:
     
 
 
-class LowRankFilter:
+class LowRankFilter_slow:
     def __init__ (self, ir):
         """
         Parameters
@@ -173,7 +174,7 @@ class LowRankFilter:
 
         self.dly_len = self.tot_ir_len
         self.delay_line = np.zeros((self.num_in, self.num_out, self.rank, self.dly_len))
-        self.filters = [[fc.create_filter(self.ir[0][ch_in:ch_in+1, :,r,:]) for ch_in in range(self.num_in)] for r in range(self.rank)]
+        #self.filters = [[fc.create_filter(self.ir[0][ch_in:ch_in+1, :,r,:]) for ch_in in range(self.num_in)] for r in range(self.rank)]
 
     def process(self, sig):
         """
@@ -216,3 +217,109 @@ class LowRankFilter:
 
         self.buffer[...] = buffered_sig[:, buffered_sig.shape[-1] - self.tot_ir_len + 1 :]
         return out_sig
+    
+
+spec_lr2d = [
+    ('ir1', nb.float64[:,:,:,:]),          
+    ('ir2', nb.float64[:,:,:,:]),
+    ('num_in', nb.int32),
+    ('num_out', nb.int32),
+    ('rank', nb.int32),
+    ('ir_len1', nb.int32),
+    ('ir_len2', nb.int32),
+    ('tot_ir_len', nb.int32),
+    ('buffer', nb.float64[:,:]),
+    ('dly_len', nb.int32),
+    ('delay_line', nb.float64[:,:,:,:]),
+]
+@nb.experimental.jitclass(spec_lr2d)
+class LowRankFilter2D:
+    def __init__ (self, ir1, ir2):
+        """
+        Parameters
+        ----------
+        ir1 : ndarray of shape (num_in, num_out, rank, ir_len1)
+            Corresponds to output from decompose_ir
+        ir2 : ndarray of shape (num_in, num_out, rank, ir_len2)
+        
+        """
+        #assert all([individual_ir.ndim == 4 for individual_ir in (ir1, ir2)])
+        #assert ir1.shape[:3] == ir2.shape[:3]
+
+        self.ir1 = ir1
+        self.ir2 = ir2
+        self.num_in = ir1.shape[0]
+        self.num_out = ir1.shape[1]
+        self.rank = ir1.shape[2]
+        #self.ir_len = [individual_ir.shape[3] for individual_ir in (ir1, ir2)]
+        self.ir_len1 = ir1.shape[3]
+        self.ir_len2 = ir2.shape[3]
+        
+        self.tot_ir_len = self.ir_len1 * self.ir_len2 #np.prod(self.ir_len)
+        self.buffer = np.zeros((self.num_in, self.tot_ir_len - 1))
+
+        self.dly_len = self.tot_ir_len
+        self.delay_line = np.zeros((self.num_in, self.num_out, self.rank, self.dly_len))
+        #self.filters = [[fc.create_filter(self.ir[0][ch_in:ch_in+1, :,r,:]) for ch_in in range(self.num_in)] for r in range(self.rank)]
+
+    def process(self, sig):
+        """
+        Parameters
+        ----------
+        sig : ndarray of shape (num_in, num_samples)
+
+        Returns
+        -------
+        out_sig : ndarray of shape (num_out, num_samples)
+        
+        """
+        #assert sig.ndim == 2
+        #assert sig.shape[0] == self.num_in
+        num_samples = sig.shape[1]
+
+        buffered_sig = np.concatenate((self.buffer, sig), axis=-1)
+        out_sig = np.zeros((self.num_out, num_samples))
+
+        temp_vec = np.zeros((self.num_out, self.ir_len2))
+        for ch_in in range(self.num_in):
+            for r in range(self.rank):
+                for i in range(num_samples):
+                    start_idx = i + self.tot_ir_len - 1
+
+                    sig1 = self.ir1[ch_in,:,r,:]
+                    sig2 = np.expand_dims(buffered_sig[ch_in,start_idx-self.ir_len1+1:start_idx+1], axis=0)
+                    result = np.sum(np.fliplr(sig2)*sig1 , axis=-1)
+                    self.delay_line[ch_in, :, r,-1] = result
+
+                    for j in range(self.ir_len2):
+                        temp_vec[:,j] = self.delay_line[ch_in,:,r, self.ir_len1-1+j*self.ir_len1]
+
+                    new_val = np.sum(np.fliplr(temp_vec) * self.ir2[ch_in,:,r,:], axis=-1)
+                    out_sig[:,i] += new_val
+
+
+                    #for j in range(self.dly_len):
+                    #res = _roll_numba(self.delay_line[ch_in,:,r,:], -1)
+                    self.delay_line[ch_in,:,r,:-1] = self.delay_line[ch_in,:,r,1:]
+
+
+                    #self.delay_line[ch_in,:,r,:] = res
+
+        self.buffer[...] = buffered_sig[:, buffered_sig.shape[-1] - self.tot_ir_len + 1 :]
+        return out_sig
+
+#@nb.njit()
+def _roll_back_numba(arr, shift):
+    """
+    shift = 1 corresponds to np.roll(arr, -1)
+    but we ignore the roll around, since it should be overwritten
+    """
+    b = np.empty_like(arr)
+    rows_num = arr.shape[0]
+    cols = arr.shape[1]
+    #for i in range(rows_num):
+        #n = shift
+    b[:, :cols-shift] = arr[:, cols - shift:]
+    #b[:, cols-shift:] = arr[:, :cols - n]
+    
+    return b

@@ -23,7 +23,7 @@ def test_low_rank_filter_same_result_as_reconstructed_filter(num_in, num_out, ra
     ir = lr.reconstruct_ir(lr_ir)
     tot_len = ir_len1 * ir_len2
 
-    lrfilt = lr.LowRankFilter(lr_ir)
+    lrfilt = lr.LowRankFilter2D(ir1, ir2)
     filt = fc.create_filter(ir)
 
     num_samples = 30
@@ -43,8 +43,8 @@ def test_low_rank_filter_same_result_as_reconstructed_filter(num_in, num_out, ra
 @hyp.given(num_in = st.integers(min_value=3, max_value=3),
             num_out = st.integers(min_value=3, max_value=3), 
             rank = st.integers(min_value=3, max_value=3), 
-            ir_len1 = st.integers(min_value=64, max_value=64),
-            ir_len2 = st.integers(min_value=64, max_value=64))
+            ir_len1 = st.integers(min_value=128, max_value=128),
+            ir_len2 = st.integers(min_value=128, max_value=128))
 def test_speed_comparison_low_rank_filter_reconstructed_filter(num_in, num_out, rank, ir_len1, ir_len2):
     rng = np.random.default_rng()
     ir1 = rng.normal(size=(num_in, num_out, rank, ir_len1))
@@ -52,7 +52,7 @@ def test_speed_comparison_low_rank_filter_reconstructed_filter(num_in, num_out, 
     lr_ir = (ir1, ir2)
     ir = lr.reconstruct_ir(lr_ir)
 
-    lrfilt = lr.LowRankFilter(lr_ir)
+    lrfilt = lr.LowRankFilter2D(ir1, ir2)
     filt = fc.create_filter(ir)
 
     num_samples = 1000
