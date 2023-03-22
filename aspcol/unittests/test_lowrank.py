@@ -46,6 +46,11 @@ def test_low_rank_filter_same_result_as_reconstructed_filter(num_in, num_out, ra
             ir_len1 = st.integers(min_value=128, max_value=128),
             ir_len2 = st.integers(min_value=128, max_value=128))
 def test_speed_comparison_low_rank_filter_reconstructed_filter(num_in, num_out, rank, ir_len1, ir_len2):
+    """
+    Clearly not a great way to write a unit test, but is just here as a sanity check to 
+    flag if the low rank is slower for a case it should be faster for. First run gave 
+    0.9s for regular filter, 0.2s for LowRankFilter2D. 
+    """
     rng = np.random.default_rng()
     ir1 = rng.normal(size=(num_in, num_out, rank, ir_len1))
     ir2 = rng.normal(size=(num_in, num_out, rank, ir_len2))
@@ -67,4 +72,4 @@ def test_speed_comparison_low_rank_filter_reconstructed_filter(num_in, num_out, 
     t4 = time.process_time()
     s2 = t4-t3
     #assert np.allclose(out_sig, out_lr)
-    assert np.allclose(s1, s2)
+    assert s1 > s2
