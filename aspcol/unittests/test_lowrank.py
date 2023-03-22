@@ -40,9 +40,9 @@ def test_low_rank_filter_same_result_as_reconstructed_filter(num_in, num_out, ra
 
 
 @hyp.settings(deadline=None)
-@hyp.given(num_in = st.integers(min_value=3, max_value=3),
-            num_out = st.integers(min_value=3, max_value=3), 
-            rank = st.integers(min_value=3, max_value=3), 
+@hyp.given(num_in = st.integers(min_value=5, max_value=5),
+            num_out = st.integers(min_value=5, max_value=5), 
+            rank = st.integers(min_value=10, max_value=10), 
             ir_len1 = st.integers(min_value=128, max_value=128),
             ir_len2 = st.integers(min_value=128, max_value=128))
 def test_speed_comparison_low_rank_filter_reconstructed_filter(num_in, num_out, rank, ir_len1, ir_len2):
