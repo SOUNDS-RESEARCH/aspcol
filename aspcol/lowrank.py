@@ -356,6 +356,7 @@ class LowRankFilter2D:
         self.delay_line = np.zeros((self.num_in, self.num_out, self.rank, self.tot_ir_len+self.dly_len))
         #self.filters = [[fc.create_filter(self.ir[0][ch_in:ch_in+1, :,r,:]) for ch_in in range(self.num_in)] for r in range(self.rank)]
 
+
     def process(self, sig):
         """
         Parameters
@@ -367,93 +368,33 @@ class LowRankFilter2D:
         out_sig : ndarray of shape (num_out, num_samples)
         
         """
-        #assert sig.ndim == 2
-        #assert sig.shape[0] == self.num_in
         num_samples = sig.shape[1]
 
         buffered_sig = np.concatenate((self.buffer, sig), axis=-1)
         out_sig = np.zeros((self.num_out, num_samples))
 
-        temp_vec = np.zeros((self.num_out, self.ir_len2))
+        temp_vec = np.zeros(self.ir_len2)
         for ch_in in range(self.num_in):
-            for r in range(self.rank):
-                for i in range(num_samples):
-                    start_idx = i + self.tot_ir_len - 1
+            for ch_out in range(self.num_out):
+                for r in range(self.rank):
+                    for i in range(num_samples):
+                        start_idx = i + self.tot_ir_len - 1
 
-                    sig2 = np.expand_dims(buffered_sig[ch_in,start_idx-self.ir_len1+1:start_idx+1], axis=0)
-                    result = np.sum(np.fliplr(sig2)*self.ir1[ch_in,:,r,:] , axis=-1)
-                    self.delay_line[ch_in, :, r,self.tot_ir_len+self.dly_counter-1] = result
+                        sig2 = buffered_sig[ch_in,start_idx-self.ir_len1+1:start_idx+1]
+                        result = np.sum(np.flip(sig2)*self.ir1[ch_in,ch_out,r,:])
+                        self.delay_line[ch_in, ch_out, r,self.tot_ir_len+self.dly_counter-1] = result
 
-                    for j in range(self.ir_len2):
-                        temp_vec[:,j] = self.delay_line[ch_in,:,r, self.dly_counter+self.ir_len1-1+j*self.ir_len1]
+                        for j in range(self.ir_len2):
+                            temp_vec[j] = self.delay_line[ch_in,ch_out,r, self.dly_counter+self.ir_len1-1+j*self.ir_len1]
 
-                    new_val = np.sum(np.fliplr(temp_vec) * self.ir2[ch_in,:,r,:], axis=-1)
-                    out_sig[:,i] += new_val
+                        new_val = np.sum(np.flip(temp_vec) * self.ir2[ch_in,ch_out,r,:])
+                        out_sig[ch_out,i] += new_val
 
-
-                    
-
-                    self.dly_counter += 1
-                    if self.dly_counter % self.dly_len == 0:
-                        self.dly_counter = 0
-                        self.delay_line[ch_in,:,r,:self.tot_ir_len] = self.delay_line[ch_in,:,r,self.dly_len:]
+                        self.dly_counter += 1
+                        if self.dly_counter % self.dly_len == 0:
+                            self.dly_counter = 0
+                            self.delay_line[ch_in,ch_out,r,:self.tot_ir_len] = self.delay_line[ch_in,ch_out,r,self.dly_len:]
 
 
         self.buffer[...] = buffered_sig[:, buffered_sig.shape[-1] - self.tot_ir_len + 1 :]
         return out_sig
-    
-
-
-    # def process(self, sig):
-    #     """
-    #     Parameters
-    #     ----------
-    #     sig : ndarray of shape (num_in, num_samples)
-
-    #     Returns
-    #     -------
-    #     out_sig : ndarray of shape (num_out, num_samples)
-        
-    #     """
-    #     #assert sig.ndim == 2
-    #     #assert sig.shape[0] == self.num_in
-    #     num_samples = sig.shape[1]
-
-    #     buffered_sig = np.concatenate((self.buffer, sig), axis=-1)
-    #     out_sig = np.zeros((self.num_out, num_samples))
-
-
-    #     num_blocks = num_samples // self.dly_len
-    #     remainder = num_samples % self.dly_len
-
-    #     temp_vec = np.zeros((self.num_out, self.ir_len2))
-    #     for ch_in in range(self.num_in):
-    #         for ch_out in range(self.num_out):
-    #             for r in range(self.rank):
-    #                 for b in range(num_blocks):
-    #                     block = buffered_sig[ch_in, b*self.dly_len:(b+1)*self.dly_len]
-
-    #                     sig2 = np.expand_dims(block[ch_in,start_idx-self.ir_len1+1:start_idx+1], axis=0)
-    #                     self.delay_line[ch_in, ch_out, r,-1] = np.sum(np.fliplr(sig2)*self.ir1[ch_in,ch_out,r,:])
-
-
-    #                     self.delay_line[ch_in,:,r,:self.dly_len] = self.delay_line[ch_in,:,r,self.tot_ir_len:]
-
-
-    #                 for i in range(remainder):
-    #                     start_idx = i + self.tot_ir_len - 1
-
-    #                     sig2 = np.expand_dims(buffered_sig[ch_in,start_idx-self.ir_len1+1:start_idx+1], axis=0)
-    #                     self.delay_line[ch_in, :, r,-1] = np.sum(np.fliplr(sig2)*self.ir1[ch_in,:,r,:] , axis=-1)
-
-    #                     for j in range(self.ir_len2):
-    #                         temp_vec[:,j] = self.delay_line[ch_in,:,r, self.ir_len1-1+j*self.ir_len1]
-
-    #                     new_val = np.sum(np.fliplr(temp_vec) * self.ir2[ch_in,:,r,:], axis=-1)
-    #                     out_sig[:,i] += new_val
-
-    #                     self.delay_line[ch_in,:,r,:-1] = self.delay_line[ch_in,:,r,1:]
-
-
-    #     self.buffer[...] = buffered_sig[:, buffered_sig.shape[-1] - self.tot_ir_len + 1 :]
-    #     return out_sig
