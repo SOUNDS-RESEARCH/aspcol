@@ -109,11 +109,16 @@ spec_lr2d = [
 class LowRankFilter2D:
     def __init__ (self, ir1, ir2):
         """
+        Computes the linear convolution directly using a low-rank representation
+        of the impulse response. Is equivalent to using a conventional filter
+        using the impulse response from reconstruct_ir((ir1, ir2, ir3)), but this
+        one is faster if the rank is low enough. 
+
         Parameters
         ----------
         ir1 : ndarray of shape (num_in, num_out, rank, ir_len1)
-            Corresponds to output from decompose_ir
         ir2 : ndarray of shape (num_in, num_out, rank, ir_len2)
+            Corresponds to output from decompose_ir
         
         """
         #assert all([individual_ir.ndim == 4 for individual_ir in (ir1, ir2)])
@@ -164,8 +169,6 @@ class LowRankFilter2D:
                         result = np.sum(np.flip(sig2)*self.ir1[ch_in,ch_out,r,:])
                         self.delay_line[ch_in, ch_out, r, dly_idx] = result
 
-                        #for j in range(self.ir_len2):
-                        #    temp_vec[j] = self.delay_line[ch_in,ch_out,r, self.dly_counter+self.ir_len1-1+j*self.ir_len1]
                         for j in range(self.ir_len2):
                             temp_vec[j] = self.delay_line[ch_in,ch_out,r, dly_idx-j*self.ir_len1]
 
@@ -206,16 +209,19 @@ spec_lr3d = [
 class LowRankFilter3D:
     def __init__ (self, ir1, ir2, ir3):
         """
+        Computes the linear convolution directly using a low-rank representation
+        of the impulse response. Is equivalent to using a conventional filter
+        using the impulse response from reconstruct_ir((ir1, ir2, ir3)), but this
+        one is faster if the rank is low enough. 
+
         Parameters
         ----------
         ir1 : ndarray of shape (num_in, num_out, rank, ir_len1)
-            Corresponds to output from decompose_ir
         ir2 : ndarray of shape (num_in, num_out, rank, ir_len2)
+        ir3 : ndarray of shape (num_in, num_out, rank, ir_len2)
+            Corresponds to the decomposed ir from decompose_ir
         
         """
-        #assert all([individual_ir.ndim == 4 for individual_ir in (ir1, ir2)])
-        #assert ir1.shape[:3] == ir2.shape[:3]
-
         self.ir1 = ir1
         self.ir2 = ir2
         self.ir3 = ir3
