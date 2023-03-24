@@ -256,7 +256,6 @@ class LowRankFilter2D:
         self.delay_line = np.zeros((self.num_in, self.num_out, self.rank, self.tot_ir_len+self.dly_len))
         #self.filters = [[fc.create_filter(self.ir[0][ch_in:ch_in+1, :,r,:]) for ch_in in range(self.num_in)] for r in range(self.rank)]
 
-
     def process(self, sig):
         """
         Parameters
@@ -279,15 +278,18 @@ class LowRankFilter2D:
                 for r in range(self.rank):
                     for i in range(num_samples):
                         start_idx = i + self.tot_ir_len - 1
+                        dly_idx = self.tot_ir_len+self.dly_counter-1
 
                         sig2 = buffered_sig[ch_in,start_idx-self.ir_len1+1:start_idx+1]
                         result = np.sum(np.flip(sig2)*self.ir1[ch_in,ch_out,r,:])
-                        self.delay_line[ch_in, ch_out, r,self.tot_ir_len+self.dly_counter-1] = result
+                        self.delay_line[ch_in, ch_out, r, dly_idx] = result
 
+                        #for j in range(self.ir_len2):
+                        #    temp_vec[j] = self.delay_line[ch_in,ch_out,r, self.dly_counter+self.ir_len1-1+j*self.ir_len1]
                         for j in range(self.ir_len2):
-                            temp_vec[j] = self.delay_line[ch_in,ch_out,r, self.dly_counter+self.ir_len1-1+j*self.ir_len1]
+                            temp_vec[j] = self.delay_line[ch_in,ch_out,r, dly_idx-j*self.ir_len1]
 
-                        new_val = np.sum(np.flip(temp_vec) * self.ir2[ch_in,ch_out,r,:])
+                        new_val = np.sum(temp_vec * self.ir2[ch_in,ch_out,r,:])
                         out_sig[ch_out,i] += new_val
 
                         self.dly_counter += 1
@@ -298,3 +300,111 @@ class LowRankFilter2D:
 
         self.buffer[...] = buffered_sig[:, buffered_sig.shape[-1] - self.tot_ir_len + 1 :]
         return out_sig
+    
+
+
+
+
+spec_lr3d = [
+    ('ir1', nb.float64[:,:,:,:]),          
+    ('ir2', nb.float64[:,:,:,:]),
+    ('ir3', nb.float64[:,:,:,:]),
+    ('num_in', nb.int32),
+    ('num_out', nb.int32),
+    ('rank', nb.int32),
+    ('ir_len1', nb.int32),
+    ('ir_len2', nb.int32),
+    ('ir_len3', nb.int32),
+    ('tot_ir_len', nb.int32),
+    ('buffer', nb.float64[:,:]),
+    ('dly_len', nb.int32),
+    ('dly_counter', nb.int32),
+    ('delay_line1', nb.float64[:,:,:,:]),
+    ('delay_line2', nb.float64[:,:,:,:]),
+]
+@nb.experimental.jitclass(spec_lr3d)
+class LowRankFilter3D:
+    def __init__ (self, ir1, ir2, ir3):
+        """
+        Parameters
+        ----------
+        ir1 : ndarray of shape (num_in, num_out, rank, ir_len1)
+            Corresponds to output from decompose_ir
+        ir2 : ndarray of shape (num_in, num_out, rank, ir_len2)
+        
+        """
+        #assert all([individual_ir.ndim == 4 for individual_ir in (ir1, ir2)])
+        #assert ir1.shape[:3] == ir2.shape[:3]
+
+        self.ir1 = ir1
+        self.ir2 = ir2
+        self.ir3 = ir3
+        self.num_in = ir1.shape[0]
+        self.num_out = ir1.shape[1]
+        self.rank = ir1.shape[2]
+        #self.ir_len = [individual_ir.shape[3] for individual_ir in (ir1, ir2)]
+        self.ir_len1 = ir1.shape[3]
+        self.ir_len2 = ir2.shape[3]
+        self.ir_len3 = ir3.shape[3]
+        
+        self.tot_ir_len = self.ir_len1 * self.ir_len2 * self.ir_len3 #np.prod(self.ir_len)
+        self.buffer = np.zeros((self.num_in, self.tot_ir_len - 1))
+
+        self.dly_len = self.tot_ir_len
+        self.dly_counter = 0
+        self.delay_line1 = np.zeros((self.num_in, self.num_out, self.rank, self.tot_ir_len+self.dly_len))
+        self.delay_line2 = np.zeros((self.num_in, self.num_out, self.rank, self.tot_ir_len+self.dly_len))
+        #self.filters = [[fc.create_filter(self.ir[0][ch_in:ch_in+1, :,r,:]) for ch_in in range(self.num_in)] for r in range(self.rank)]
+
+
+    def process(self, sig):
+        """
+        Parameters
+        ----------
+        sig : ndarray of shape (num_in, num_samples)
+
+        Returns
+        -------
+        out_sig : ndarray of shape (num_out, num_samples)
+        
+        """
+        num_samples = sig.shape[1]
+
+        buffered_sig = np.concatenate((self.buffer, sig), axis=-1)
+        out_sig = np.zeros((self.num_out, num_samples))
+
+        temp_vec1 = np.zeros(self.ir_len2)
+        temp_vec2 = np.zeros(self.ir_len3)
+        for ch_in in range(self.num_in):
+            for ch_out in range(self.num_out):
+                for r in range(self.rank):
+                    for i in range(num_samples):
+                        start_idx = i + self.tot_ir_len - 1
+                        dly_idx = self.tot_ir_len+self.dly_counter-1
+
+                        sig2 = buffered_sig[ch_in,start_idx-self.ir_len1+1:start_idx+1]
+                        result = np.sum(np.flip(sig2)*self.ir1[ch_in,ch_out,r,:])
+                        self.delay_line1[ch_in, ch_out, r,dly_idx] = result
+
+                        for j in range(self.ir_len2):
+                            temp_vec1[j] = self.delay_line1[ch_in,ch_out,r, dly_idx - j*self.ir_len1]
+
+                        new_val = np.sum(temp_vec1 * self.ir2[ch_in,ch_out,r,:])
+                        self.delay_line2[ch_in, ch_out, r,dly_idx] = new_val
+                        
+                        skip = self.ir_len1*self.ir_len2
+                        for j in range(self.ir_len3):
+                            temp_vec2[j] = self.delay_line2[ch_in,ch_out,r, dly_idx-j*skip]
+
+                        new_val = np.sum(temp_vec2 * self.ir3[ch_in,ch_out,r,:])
+                        out_sig[ch_out,i] += new_val
+
+                        self.dly_counter += 1
+                        if self.dly_counter % self.dly_len == 0:
+                            self.dly_counter = 0
+                            self.delay_line1[ch_in,ch_out,r,:self.tot_ir_len] = self.delay_line1[ch_in,ch_out,r,self.dly_len:]
+                            self.delay_line2[ch_in,ch_out,r,:self.tot_ir_len] = self.delay_line2[ch_in,ch_out,r,self.dly_len:]
+
+        self.buffer[...] = buffered_sig[:, buffered_sig.shape[-1] - self.tot_ir_len + 1 :]
+        return out_sig
+    
