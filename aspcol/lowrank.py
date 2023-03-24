@@ -2,7 +2,6 @@ import numpy as np
 import numba as nb
 import itertools as it
 import tensorly.decomposition as td
-import aspcore.filterclasses as fc
 
 def reconstruct_ir(ir_decomp, out=None):
     """
@@ -89,6 +88,48 @@ def decompose_ir(ir, dims, rank):
         #     return ir_decomp.factors
 
 
+
+def create_filter(
+    ir=None, 
+    num_in=None, 
+    num_out=None,
+    rank = None, 
+    ir_len=None
+    ):
+    """
+    Returns the appropriate low rank filter. 
+    
+    The use of the filters are identical to the filter classes of aspcore.filterclasses. 
+    Under an assumption that the keywords were default, meaning sum_over_input=True, 
+    broadcast_dim=None, dynamic=False
+
+    Either ir must be provided or num_in, num_out, rank, and ir_len. In the
+    latter case, the filter coefficients are initialized to zero.  
+
+    Parameters
+    ----------
+    ir : tuple or list of length 2 or 3, of ndarrays of shape (num_in, num_out, rank, ir_len[i])
+        So the first three axes must be the same length, but they can differ in ir_len
+    num_in : int
+    num_out : int
+    rank : int
+    ir_len : 2-tuple or 3-tuple of ints
+
+    Returns
+    -------
+    filter : Appropriate filter class, LowRankFilter2D or LowRankFilter3D
+    """
+    if all([val is not None for val in (num_in, num_out, rank, ir_len)]):
+        assert ir is None
+        ir = [np.zeros((num_in, num_out, rank, ir_len_i)) for ir_len_i in ir_len]
+
+    if ir is not None:
+        if len(ir) == 2:
+            return LowRankFilter2D(*ir)
+        elif len(ir) == 3:
+            return LowRankFilter3D(*ir)
+        else:
+            raise ValueError("Incorrect ir supplied")
 
 
 spec_lr2d = [
