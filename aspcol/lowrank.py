@@ -143,7 +143,7 @@ spec_lr2d = [
     ('tot_ir_len', nb.int32),
     ('buffer', nb.float64[:,:]),
     ('dly_len', nb.int32),
-    ('dly_counter', nb.int32),
+    ('dly_counter', nb.int32[:,:,:]),
     ('delay_line', nb.float64[:,:,:,:]),
 ]
 @nb.experimental.jitclass(spec_lr2d)
@@ -178,7 +178,8 @@ class LowRankFilter2D:
         self.buffer = np.zeros((self.num_in, self.tot_ir_len - 1))
 
         self.dly_len = self.tot_ir_len
-        self.dly_counter = 0
+        #self.dly_counter = 0
+        self.dly_counter = np.zeros((self.num_in, self.num_out, self.rank), dtype=nb.int32)
         self.delay_line = np.zeros((self.num_in, self.num_out, self.rank, self.tot_ir_len+self.dly_len))
         #self.filters = [[fc.create_filter(self.ir[0][ch_in:ch_in+1, :,r,:]) for ch_in in range(self.num_in)] for r in range(self.rank)]
 
@@ -204,7 +205,7 @@ class LowRankFilter2D:
                 for r in range(self.rank):
                     for i in range(num_samples):
                         start_idx = i + self.tot_ir_len - 1
-                        dly_idx = self.tot_ir_len+self.dly_counter-1
+                        dly_idx = self.tot_ir_len+self.dly_counter[ch_in, ch_out, r]-1
 
                         sig2 = buffered_sig[ch_in,start_idx-self.ir_len1+1:start_idx+1]
                         result = np.sum(np.flip(sig2)*self.ir1[ch_in,ch_out,r,:])
@@ -216,9 +217,9 @@ class LowRankFilter2D:
                         new_val = np.sum(temp_vec * self.ir2[ch_in,ch_out,r,:])
                         out_sig[ch_out,i] += new_val
 
-                        self.dly_counter += 1
-                        if self.dly_counter % self.dly_len == 0:
-                            self.dly_counter = 0
+                        self.dly_counter[ch_in, ch_out, r] += 1
+                        if self.dly_counter[ch_in, ch_out, r] % self.dly_len == 0:
+                            self.dly_counter[ch_in, ch_out, r] = 0
                             self.delay_line[ch_in,ch_out,r,:self.tot_ir_len] = self.delay_line[ch_in,ch_out,r,self.dly_len:]
 
 
@@ -247,7 +248,7 @@ class LowRankFilter2D:
                 for r in range(self.rank):
                     for i in range(num_samples):
                         start_idx = i + self.tot_ir_len - 1
-                        dly_idx = self.tot_ir_len+self.dly_counter-1
+                        dly_idx = self.tot_ir_len+self.dly_counter[ch_in, ch_out, r]-1
 
                         sig2 = buffered_sig[ch_in,start_idx-self.ir_len1+1:start_idx+1]
                         result = np.sum(np.flip(sig2)*self.ir1[ch_in,ch_out,r,:])
@@ -259,9 +260,9 @@ class LowRankFilter2D:
                         new_val = np.sum(temp_vec * self.ir2[ch_in,ch_out,r,:])
                         out_sig[ch_in,ch_out,i] += new_val
 
-                        self.dly_counter += 1
-                        if self.dly_counter % self.dly_len == 0:
-                            self.dly_counter = 0
+                        self.dly_counter[ch_in, ch_out, r] += 1
+                        if self.dly_counter[ch_in, ch_out, r] % self.dly_len == 0:
+                            self.dly_counter[ch_in, ch_out, r] = 0
                             self.delay_line[ch_in,ch_out,r,:self.tot_ir_len] = self.delay_line[ch_in,ch_out,r,self.dly_len:]
 
 
@@ -283,7 +284,7 @@ spec_lr3d = [
     ('tot_ir_len', nb.int32),
     ('buffer', nb.float64[:,:]),
     ('dly_len', nb.int32),
-    ('dly_counter', nb.int32),
+    ('dly_counter', nb.int32[:,:,:]),
     ('delay_line1', nb.float64[:,:,:,:]),
     ('delay_line2', nb.float64[:,:,:,:]),
 ]
@@ -319,7 +320,7 @@ class LowRankFilter3D:
         self.buffer = np.zeros((self.num_in, self.tot_ir_len - 1))
 
         self.dly_len = self.tot_ir_len
-        self.dly_counter = 0
+        self.dly_counter = np.zeros((self.num_in, self.num_out, self.rank), dtype=nb.int32)
         self.delay_line1 = np.zeros((self.num_in, self.num_out, self.rank, self.tot_ir_len+self.dly_len))
         self.delay_line2 = np.zeros((self.num_in, self.num_out, self.rank, self.tot_ir_len+self.dly_len))
         #self.filters = [[fc.create_filter(self.ir[0][ch_in:ch_in+1, :,r,:]) for ch_in in range(self.num_in)] for r in range(self.rank)]
@@ -348,7 +349,7 @@ class LowRankFilter3D:
                 for r in range(self.rank):
                     for i in range(num_samples):
                         start_idx = i + self.tot_ir_len - 1
-                        dly_idx = self.tot_ir_len+self.dly_counter-1
+                        dly_idx = self.tot_ir_len+self.dly_counter[ch_in, ch_out, r]-1
 
                         sig2 = buffered_sig[ch_in,start_idx-self.ir_len1+1:start_idx+1]
                         result = np.sum(np.flip(sig2)*self.ir1[ch_in,ch_out,r,:])
@@ -367,9 +368,9 @@ class LowRankFilter3D:
                         new_val = np.sum(temp_vec2 * self.ir3[ch_in,ch_out,r,:])
                         out_sig[ch_out,i] += new_val
 
-                        self.dly_counter += 1
-                        if self.dly_counter % self.dly_len == 0:
-                            self.dly_counter = 0
+                        self.dly_counter[ch_in, ch_out, r] += 1
+                        if self.dly_counter[ch_in, ch_out, r] % self.dly_len == 0:
+                            self.dly_counter[ch_in, ch_out, r] = 0
                             self.delay_line1[ch_in,ch_out,r,:self.tot_ir_len] = self.delay_line1[ch_in,ch_out,r,self.dly_len:]
                             self.delay_line2[ch_in,ch_out,r,:self.tot_ir_len] = self.delay_line2[ch_in,ch_out,r,self.dly_len:]
 
