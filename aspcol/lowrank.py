@@ -225,7 +225,48 @@ class LowRankFilter2D:
         self.buffer[...] = buffered_sig[:, buffered_sig.shape[-1] - self.tot_ir_len + 1 :]
         return out_sig
     
+    def process_nosum(self, sig):
+        """
+        Parameters
+        ----------
+        sig : ndarray of shape (num_in, num_samples)
 
+        Returns
+        -------
+        out_sig : ndarray of shape (num_out, num_samples)
+        
+        """
+        num_samples = sig.shape[1]
+
+        buffered_sig = np.concatenate((self.buffer, sig), axis=-1)
+        out_sig = np.zeros((self.num_in, self.num_out, num_samples))
+
+        temp_vec = np.zeros(self.ir_len2)
+        for ch_in in range(self.num_in):
+            for ch_out in range(self.num_out):
+                for r in range(self.rank):
+                    for i in range(num_samples):
+                        start_idx = i + self.tot_ir_len - 1
+                        dly_idx = self.tot_ir_len+self.dly_counter-1
+
+                        sig2 = buffered_sig[ch_in,start_idx-self.ir_len1+1:start_idx+1]
+                        result = np.sum(np.flip(sig2)*self.ir1[ch_in,ch_out,r,:])
+                        self.delay_line[ch_in, ch_out, r, dly_idx] = result
+
+                        for j in range(self.ir_len2):
+                            temp_vec[j] = self.delay_line[ch_in,ch_out,r, dly_idx-j*self.ir_len1]
+
+                        new_val = np.sum(temp_vec * self.ir2[ch_in,ch_out,r,:])
+                        out_sig[ch_in,ch_out,i] += new_val
+
+                        self.dly_counter += 1
+                        if self.dly_counter % self.dly_len == 0:
+                            self.dly_counter = 0
+                            self.delay_line[ch_in,ch_out,r,:self.tot_ir_len] = self.delay_line[ch_in,ch_out,r,self.dly_len:]
+
+
+        self.buffer[...] = buffered_sig[:, buffered_sig.shape[-1] - self.tot_ir_len + 1 :]
+        return out_sig
 
 
 
