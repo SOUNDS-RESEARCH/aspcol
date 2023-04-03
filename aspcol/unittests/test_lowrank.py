@@ -130,6 +130,40 @@ def test_low_rank_3d_filter_same_result_as_reconstructed_filter(num_in, num_out,
     #assert np.allclose(out_sig[:,tot_len:], out_lr[:,tot_len:])
 
 
+@hyp.settings(deadline=None)
+@hyp.given(num_in = st.integers(min_value=1, max_value=3),
+            num_out = st.integers(min_value=1, max_value=3), 
+            rank = st.integers(min_value=1, max_value=3), 
+            ir_len1 = st.integers(min_value=3, max_value=7),
+            ir_len2 = st.integers(min_value=3, max_value=7),
+            ir_len3 = st.integers(min_value=3, max_value=7),
+            block_size = st.integers(min_value=1, max_value=10),
+            num_samples = st.integers(min_value=5, max_value=35))
+def test_low_rank_3d_filter_nosum_same_result_as_reconstructed_filter(num_in, num_out, rank, ir_len1, ir_len2, ir_len3, block_size, num_samples):
+    rng = np.random.default_rng()
+    ir1 = rng.normal(size=(num_in, num_out, rank, ir_len1))
+    ir2 = rng.normal(size=(num_in, num_out, rank, ir_len2))
+    ir3 = rng.normal(size=(num_in, num_out, rank, ir_len3))
+    lr_ir = (ir1, ir2, ir3)
+    ir = lr.reconstruct_ir(lr_ir)
+    filt_lr = lr.create_filter(ir = lr_ir)
+    filt = fc.create_filter(ir, sum_over_input=False)
+
+    in_sig = rng.normal(size = (num_in, num_samples))
+    out_sig = np.zeros((num_in, num_out, num_samples))
+    out_lr = np.zeros((num_in, num_out, num_samples))
+
+    num_blocks = num_samples // block_size + 1
+    for b in range(num_blocks):
+        bs = min(block_size, num_samples - b*block_size)
+        start, end = b*block_size, b*block_size+bs
+        out_sig[...,start:end] = filt.process(in_sig[:,start:end])
+        out_lr[...,start:end] = filt_lr.process_nosum(in_sig[:,start:end])
+    assert np.allclose(out_sig, out_lr)
+    #assert np.allclose(out_sig[:,tot_len:], out_lr[:,tot_len:])
+
+
+
 
 @hyp.settings(deadline=None)
 @hyp.given(num_in = st.integers(min_value=5, max_value=5),
