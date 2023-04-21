@@ -4,9 +4,9 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="aspcol-PVJesper",
+    name="aspcol",
     version="0.0.1",
-    author="Jesper Brunnström",
+    author="Jesper Brunnstrom",
     author_email="jesper.brunnstroem@kuleuven.be",
     description="Audio signal processing collection",
     long_description=long_description,

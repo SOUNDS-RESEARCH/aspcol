@@ -33,11 +33,11 @@ Helper functions to obtain FIR filters from frequency values, for less risk of e
 Kernel interpolation of sound field
 
 Relevant papers
-N. Ueno, S. Koyama, and H. Saruwatari, “Kernel ridge regression with constraint of Helmholtz equation for sound field interpolation,”
-N. Ueno, S. Koyama, and H. Saruwatari, “Directionally weighted wave field estimation exploiting prior information on source direction,” 
-J. G. C. Ribeiro, N. Ueno, S. Koyama, and H. Saruwatari, “Kernel interpolation of acoustic transfer function between regions considering reciprocity,”
-S. Koyama, J. Brunnström, H. Ito, N. Ueno, and H. Saruwatari, “Spatial active noise control based on kernel interpolation of sound field,”
-J. Brunnström, S. Koyama, and M. Moonen, “Variable span trade-off filter for sound zone control with kernel interpolation weighting,”
+N. Ueno, S. Koyama, and H. Saruwatari, "Kernel ridge regression with constraint of Helmholtz equation for sound field interpolation,"
+N. Ueno, S. Koyama, and H. Saruwatari, "Directionally weighted wave field estimation exploiting prior information on source direction,"
+J. G. C. Ribeiro, N. Ueno, S. Koyama, and H. Saruwatari, "Kernel interpolation of acoustic transfer function between regions considering reciprocity,"
+S. Koyama, J. Brunnström, H. Ito, N. Ueno, and H. Saruwatari, "Spatial active noise control based on kernel interpolation of sound field,"
+J. Brunnström, S. Koyama, and M. Moonen, "Variable span trade-off filter for sound zone control with kernel interpolation weighting,"
 
 ### matrices
 Helper functions for dealing with matrices. Some examples include constructing a block matrix, ensure positive definiteness, apply function to individual blocks of a block matrix. 
