@@ -10,7 +10,7 @@ import aspcol.montecarlo as mc
 
 def kernel_gaussian(points1, points2, scale):
     dist_mat = distfuncs.cdist(points1, points2)**2
-    return np.exp(-scale[:,None,None] * dist_mat[None,:,:])
+    return np.exp(-scale[:,None,None]**2 * dist_mat[None,:,:])
 
 def kernel_helmholtz_2d(points1, points2, wave_num):
     """points1 is shape (numPoints1, 2)
