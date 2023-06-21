@@ -111,9 +111,10 @@ def simplify_ratio(a : int, b : int):
     return a,b
 
 
-def measure(name):
+def measure_time(name):
     """
-        edited, originally from JBirdVegas, stackoverflow
+    Use as decorator on a function to measure the time the function takes
+    use as @measure_time('print_this_as_name')
     """
     def measure_internal(func):
         @wraps(func)
@@ -165,24 +166,6 @@ def block_process_idxs(num_samples : int, block_size : int, overlap : int, start
 
 
         sample_counter += hop
-
-        #
-
-
-# def calcBlockSizes(numSamples, startIdx, blockSize):
-#     leftInBlock = blockSize - startIdx
-#     sampleCounter = 0
-#     blockSizes = []
-#     while sampleCounter < numSamples:
-#         blockLen = np.min((numSamples - sampleCounter, leftInBlock))
-#         blockSizes.append(blockLen)
-#         sampleCounter += blockLen
-#         leftInBlock -= blockLen
-#         if leftInBlock == 0:
-#             leftInBlock = blockSize
-#     return blockSizes
-
-
 
 
 class PhaseCounter:
