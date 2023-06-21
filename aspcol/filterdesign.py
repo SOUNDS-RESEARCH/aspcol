@@ -36,7 +36,7 @@ def insert_negative_frequencies(freq_signal, even):
     else:
         raise NotImplementedError
 
-def fir_from_freqs_window(freq_filter, ir_len, two_sided=True):
+def fir_from_freqs_window(freq_filter, ir_len, two_sided=True, window="hamming"):
     """Use this over the other window methods,
     as they might be wrong. freqFilter is with both positive
     and negative frequencies.
@@ -54,23 +54,19 @@ def fir_from_freqs_window(freq_filter, ir_len, two_sided=True):
         new_axis_order = np.concatenate((np.arange(1, freq_filter.ndim), [0]))
         time_filter = np.real_if_close(np.transpose(time_filter, new_axis_order))
 
-        #truncError = calcTruncationError(fullTimeFilter, irLen, twoSided)
         time_filter = np.concatenate((time_filter[...,-mid_point:], time_filter[...,:mid_point]), axis=-1)
 
-        #truncFilter = timeFilter[..., midPoint-halfLen:midPoint+halfLen+1]
         trunc_filter, trunc_error = truncate_filter(time_filter, ir_len, True)
-        
-        # timeFilter = np.concatenate(
-        #     (fullTimeFilter[..., -halfLen:], fullTimeFilter[..., : halfLen + 1]), axis=-1
-        # )
 
 
-        # ONLY TEMPORARILY COMMENTED. THE WINDOW CODE HERE REALLY WORKS. 
-        # ADD A BOOLEAN ARGUMENT INSTEAD
-        #truncFilter = truncFilter * signal.windows.hamming(irLen).reshape(
-        #    (1,) * (truncFilter.ndim - 1) + truncFilter.shape[-1:]
-        #)
-        
+        if window == "hamming":
+            trunc_filter = trunc_filter * signal.windows.hamming(ir_len).reshape(
+            (1,) * (trunc_filter.ndim - 1) + trunc_filter.shape[-1:]
+            )
+        elif window is None:
+            pass
+        else:
+            raise ValueError("Invalid value for window argument")
     else:
         raise NotImplementedError
 
