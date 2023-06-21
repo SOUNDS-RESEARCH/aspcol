@@ -79,24 +79,6 @@ def kernel_directional_vec_3d(points1, points2, wave_num, direction_vec, beta):
     return np.sinc(np.sqrt(np.sum((angle_term - pos_term)**2, axis=-1)) / np.pi)
 
 
-# def kernelDirectionalVec3d(points1, points2, waveNum, directionVec, beta):
-#     """points1 is shape (numPoints1, 3)
-#         points2 is shape (numPoints2, 3)
-#         waveNum is shape (numFreqs)
-#         directionVec is shape (numAngles, 3), where each (1,3) is a unit vector
-        
-#         returns shape (numFreqs, numAngles, numPoints1, numPoints2)
-    
-#         Identical to kernelDirectional3d, but accepts the direction
-#         in the form of a unit vector instead of angles. 
-#     """
-#     #angleFactor = beta * util.spherical2cart(np.ones((1,1)), np.array(angle)[None,:])[None,None,...]
-#     angleTerm = 1j * beta * directionVec[None, :,None, None, :]
-#     posTerm = waveNum[:,None,None,None,None] * (points1[None,None,:,None,:] - points2[None,None,None,:,:])
-#     return special.spherical_jn(0, np.sqrt(np.sum((angleTerm - posTerm)**2, axis=-1)))
-
-
-
 def kernel_reciprocal_3d(points1, points2, wave_num):
     """points is a tuple (micPoints, srcPoints),
         where micPoints is ndarray of shape (numMic, 3)
@@ -354,15 +336,3 @@ class ATFKernelInterpolator():
         ir_ip = ir_ip[...,self.kiDly:-self.kiDly]
         ir_ip += self.directCompTo
         return ir_ip
-
-
-# def kiFilter(kernelFunc, regParam, toPoints, fromPoints, numFreq, samplerate, c, *args):
-#     """ Convenience function for calculating the frequency domain interpolation filter
-#     from a set of points to a set of points. Uses any kernel, in contrast to soundfieldInterpolation
-#     Returns frequency domain coefficients. Use with filterdesign.firFromFreqsWindow() for FIR filter"""
-#     assert numFreq
-#     freqs = fd.getFrequencyValues(numFreq, samplerate)#[:, None, None]
-#     waveNum = 2 * np.pi * freqs / c
-#     ipParams = getKRRParameters(kernelFunc, regParam, toPoints, fromPoints, waveNum, *args)
-#     ipParams = fd.insertNegativeFrequencies(ipParams, even=True)
-#     return ipParams
