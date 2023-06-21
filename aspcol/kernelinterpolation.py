@@ -7,7 +7,6 @@ import aspcol.utilities as util
 import aspcol.filterdesign as fd
 import aspcol.montecarlo as mc
 
-
 def kernel_gaussian(points1, points2, scale):
     dist_mat = distfuncs.cdist(points1, points2)**2
     return np.exp(-scale[:,None,None]**2 * dist_mat[None,:,:])
@@ -22,7 +21,8 @@ def kernel_helmholtz_2d(points1, points2, wave_num):
     dist_mat = distfuncs.cdist(points1, points2)
     return special.j0(dist_mat[None,:,:] * wave_num[:,None,None])
 
-def kernel_helmholtz_3d(points1, points2, wave_num):
+
+def kernel_helmholtz_3d_slow(points1, points2, wave_num):
     """points1 is shape (numPoints1, 3)
         points2 is shape (numPoints2, 3)
         waveNum is shape (numFreqs)
@@ -31,6 +31,21 @@ def kernel_helmholtz_3d(points1, points2, wave_num):
     """
     distMat = distfuncs.cdist(points1, points2)
     return special.spherical_jn(0, distMat[None,:,:] * wave_num[:,None,None])
+
+
+@nb.njit
+def kernel_helmholtz_3d(points1, points2, wave_num):
+    """points1 is shape (numPoints1, 3)
+        points2 is shape (numPoints2, 3)
+        waveNum is shape (numFreqs)
+
+        returns shape (numFreqs, numPoints1, numPoints2)
+    """
+    #distMat = distfuncs.cdist(points1, points2)
+
+    dist_mat = np.sqrt(np.sum((np.expand_dims(points1,1) - np.expand_dims(points2,0))**2, axis=-1))
+    return np.sinc(np.expand_dims(dist_mat,0) * wave_num.reshape(-1, 1,1) / np.pi)
+
 
 def kernel_directional_3d(points1, points2, wave_num, angle, beta):
     """points1 is shape (numPoints1, 3)
