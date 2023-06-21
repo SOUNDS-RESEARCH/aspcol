@@ -91,33 +91,6 @@ def truncate_filter(ir, ir_len, two_sided):
         raise NotImplementedError
     return trunc_filter, rel_trunc_error
 
-    
-
-# def firFromFreqsWindow_works(freqFilter, irLen, twoSided=True):
-#     """Use this over the other window methods,
-#     as they might be wrong. freqFilter is with both positive
-#     and negative frequencies.
-
-#     Makes FIR filter from frequency values.
-#     Works only for odd impulse response lengths
-#     Uses hamming window"""
-#     assert irLen % 1 == 0
-#     if twoSided:
-#         halfLen = irLen // 2
-#         midPoint = freqFilter.shape[0] // 2
-
-#         fullTimeFilter = np.real(fdf.ifftWithTranspose(freqFilter))
-#         timeFilter = np.concatenate(
-#             (fullTimeFilter[..., -halfLen:], fullTimeFilter[..., : halfLen + 1]), axis=-1
-#         )
-#         timeFilter = timeFilter * signal.windows.hamming(irLen).reshape(
-#             (1,) * (timeFilter.ndim - 1) + timeFilter.shape[-1:]
-#         )
-        
-#     else:
-#         raise NotImplementedError
-
-#     return timeFilter, truncError
 
 
 def calc_truncation_error(ir, ir_len, two_sided=True):
@@ -167,70 +140,3 @@ def min_truncated_length(ir, two_sided=True, max_rel_trunc_error=1e-3):
     if two_sided:
         req_filter_length = 2 * req_filter_length + 1
     return req_filter_length
-
-
-
-
-
-
-
-
-
-
-# ==============================================================================
-# GENERATES TIME DOMAIN FILTER FROM FREQUENCY DOMAIN FILTERS
-# SHOULD BE CHECKED OUT/TESTED BEFORE USED. I DONT FULLY TRUST THEM
-# def tdFilterFromFreq(
-#     freqSamples, irLen, posFreqOnly=True, method="window", window="hamming"
-# ):
-#     numFreqs = freqSamples.shape[-1]
-#     if posFreqOnly:
-#         if numFreqs % 2 == 0:
-#             raise NotImplementedError
-#             freqSamples = np.concatenate(
-#                 (freqSamples, np.flip(freqSamples, axis=-1)), axis=-1
-#             )
-#         else:
-#             freqSamples = np.concatenate(
-#                 (freqSamples, np.flip(freqSamples[:, :, 1:], axis=-1)), axis=-1
-#             )
-
-#     if method == "window":
-#         assert irLen < freqSamples.shape[-1]
-#         tdFilter = tdFilterWindow(freqSamples, irLen, window)
-#     elif method == "minphase":
-#         assert irLen < 2 * freqSamples.shape[-1] - 1
-#         tdFilter = tdFilterMinphase(freqSamples, irLen, window)
-
-#     return tdFilter
-
-
-# def tdFilterWindow(freqSamples, irLen, window):
-#     ir = np.fft.ifft(freqSamples, axis=-1)
-#     ir = np.concatenate(
-#         (ir[:, :, -irLen // 2 + 1 :], ir[:, :, 0 : irLen // 2 + 1]), axis=-1
-#     )
-
-#     if np.abs(np.imag(ir)).max() / np.abs(np.real(ir)).max() < 10 ** (-7):
-#         ir = np.real(ir)
-
-#     ir *= signal.get_window(window, (irLen), fftbins=False)[None, None, :]
-#     return ir
-
-
-# def tdFilterMinphase(freqSamples, irLen, window):
-#     ir = np.fft.ifft(freqSamples ** 2, axis=-1)
-#     ir = np.concatenate((ir[:, :, -irLen + 1 :], ir[:, :, 0:irLen]), axis=-1)
-#     ir = ir * (
-#         signal.get_window(window, (irLen * 2 - 1), fftbins=False)[None, None, :] ** 2
-#     )
-
-#     if np.abs(np.imag(ir)).max() / np.abs(np.real(ir)).max() < 10 ** (-7):
-#         ir = np.real(ir)
-
-#     tdFilter = np.zeros((ir.shape[0], ir.shape[1], irLen))
-#     for i in range(ir.shape[0]):
-#         for j in range(ir.shape[1]):
-#             tdFilter[i, j, :] = signal.minimum_phase(ir[i, j, :])
-#     return tdFilter
-
