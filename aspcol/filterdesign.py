@@ -12,12 +12,71 @@ def get_frequency_values(num_freq, samplerate):
     If numFreq is odd, it will return (numFreq+1)/2 values
     use np.fft.fftfreq to double check values when implementing. 
     """
+    print(f"get_frequency_values is deprecated, use get_real_freqs instead")
     if num_freq % 2 == 0:
         return (samplerate / (num_freq)) * np.arange(num_freq // 2 + 1)
     elif num_freq % 2 == 1:
         raise NotImplementedError
     else:
         raise ValueError
+
+def get_freqs(num_freq : int, samplerate : int):
+    """
+    Returns the sampled frequencies in Hz for a discrete Fourier transform
+
+    Parameters
+    ----------
+    num_freq should equal the length of the sequence 
+        (so it includes the number of )negative frequencies
+    
+    """
+    return np.arange(num_freq) * samplerate / num_freq
+
+def get_wavenum(num_freq : int, samplerate : int, c : float):
+    return get_angular_freqs(num_freq, samplerate) / c
+
+def get_angular_freqs(num_freq : int, samplerate : int):
+    return 2 * np.pi * get_freqs(num_freq, samplerate)
+
+def get_real_freqs(num_freq : int, samplerate : int):
+    """
+    Returns the real sampled frequencies in Hz for a discrete Fourier transform
+
+    Get the frequency values of all positive frequency bins in Hz
+    numFreq is the number of frequency bins INCLUDING negative frequencies
+    If numFreq is even, it will return (numFreq/2)+1 values
+    If numFreq is odd, it will return (numFreq+1)/2 values
+    use np.fft.fftfreq to double check values when implementing. 
+
+    Parameters
+    ----------
+    num_freq :int 
+        should equal the length of the sequence 
+        (so it includes the number of) negative frequencies
+    
+    Returns
+    -------
+    freqs : ndarray of shape (num_real_freq,)
+    """
+    if num_freq % 2 == 0:
+        return (samplerate / (num_freq)) * np.arange(num_freq // 2 + 1)
+    elif num_freq % 2 == 1:
+        raise NotImplementedError
+    else:
+        raise ValueError
+
+def get_real_wavenum(num_freq : int, samplerate : int, c : float):
+    """
+    Get wave numbers associated with the real frequencies
+    """
+    return get_real_angular_freqs(num_freq, samplerate) / c
+
+def get_real_angular_freqs(num_freq : int, samplerate : int):
+    """
+    returns angular frequencies associated with the real frequencies of the DFT
+    """
+    return 2 * np.pi * get_real_freqs(num_freq, samplerate)
+
 
 
 def insert_negative_frequencies(freq_signal, even):
