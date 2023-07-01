@@ -3,7 +3,7 @@ import scipy.signal as signal
 import itertools as it
 
 
-# =======================================================================
+# ================== BASIC DFT FUNCTIONS =============================
 
 def get_frequency_values(num_freq, samplerate):
     """Get the frequency values of all positive frequency bins in Hz
@@ -78,7 +78,6 @@ def get_real_angular_freqs(num_freq : int, samplerate : int):
     return 2 * np.pi * get_real_freqs(num_freq, samplerate)
 
 
-
 def insert_negative_frequencies(freq_signal, even):
     """To be used in conjunction with getFrequencyValues
     Inserts all negative frequency values under the
@@ -94,6 +93,21 @@ def insert_negative_frequencies(freq_signal, even):
         )
     else:
         raise NotImplementedError
+    
+
+
+def dft_vector (freq_idx : int, num_freq : int):
+    exp_factor = -2 * np.pi * 1j * freq_idx / num_freq
+    return np.exp(np.arange(num_freq) * exp_factor)
+
+def idft_vector (freq_idx : int, num_freq : int):
+    exp_factor = 2 * np.pi * 1j * freq_idx / num_freq
+    return np.exp(np.arange(num_freq) * exp_factor) / num_freq
+
+
+
+
+# ============== DESIGN FIR FILTERS ====================
 
 def fir_from_freqs_window(freq_filter, ir_len, two_sided=True, window="hamming"):
     """Use this over the other window methods,
