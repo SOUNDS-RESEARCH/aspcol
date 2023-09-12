@@ -34,7 +34,6 @@ def cov_est_oas(sample_cov, n, verbose=False):
         print(f"OAS covariance estimate is {1-rho_oas} * sample_cov + {reg_factor} * I")
     return cov_est
 
-
 def cov_est_qis(sample_cov, n):
     """
     Implements the quadratic-inverse shrinkage, the non-linear shrinkage from 
@@ -42,75 +41,50 @@ def cov_est_qis(sample_cov, n):
 
     Sample vectors in the sample covariance matrix should be i.i.d and zero mean. 
     
-    n is the sample size of the covariance matrix. If the sample mean was subtracted 
+    Code adapted from https://github.com/pald22/covShrinkage by Patrick Ledoit
+    It is here rewritten to use only numpy instead of pandas.
+
+    Parameters
+    ----------
+    sample_cov : ndarray of shape (p,p)
+        assumes the matrix is ensure to be symmetric positive semidefinite
+    n  : int
+        the sample size of the covariance matrix. If the sample mean was subtracted 
         (if the variables were not zero mean), the sample size should be adjusted to n-1.
 
-    Code slightly adapted, but mostly taken straight from
-    https://github.com/pald22/covShrinkage by Patrick Ledoit
-    
+    Returns
+    -------
+    cov_estimate : ndarray of shape (p,p)
     """
-    #Pre-Conditions: Y is a valid pd.dataframe and optional arg- k which can be
-    #    None, np.nan or int
-    #Post-Condition: Sigmahat dataframe is returned
-
-    #Set df dimensions
-    #N = Y.shape[0]                                              #num of columns
-    #p = Y.shape[1]                                                 #num of rows
     p = sample_cov.shape[0]
     assert sample_cov.shape == (p,p)
+    c = p/n
+    h = (min(c**2,1/c**2)**0.35)/p**0.35
 
-    #vars
-    #n = N-k                                      # adjust effective sample size
-    c = p/n                                               # concentration ratio
-
-    #Cov df: sample covariance matrix
-    #sample = pd.DataFrame(np.matmul(Y.T.to_numpy(),Y.to_numpy()))/n     
-    #sample = (sample+sample.T)/2                              #make symmetrical
-
-    #Spectral decomp
-    lambda1, u = np.linalg.eigh(sample_cov)            #use Cholesky factorisation 
-    #                                               based on hermitian matrix
-    lambda1 = lambda1.real.clip(min=0)              #reset negative values to 0
-    dfu = pd.DataFrame(u,columns=lambda1)   #create df with column names lambda
-    #                                        and values u
-    dfu.sort_index(axis=1,inplace = True)              #sort df by column index
-    lambda1 = dfu.columns                              #recapture sorted lambda
-
-    #COMPUTE Quadratic-Inverse Shrinkage estimator of the covariance matrix
-    h = (min(c**2,1/c**2)**0.35)/p**0.35                   #smoothing parameter
-    invlambda = 1/lambda1[max(1,p-n+1)-1:p]  #inverse of (non-null) eigenvalues
-    dfl = pd.DataFrame()
-    dfl['lambda'] = invlambda
-    Lj = dfl[np.repeat(dfl.columns.values,min(p,n))]          #like  1/lambda_j
-    Lj = pd.DataFrame(Lj.to_numpy())                        #Reset column names
-    Lj_i = Lj.subtract(Lj.T)                    #like (1/lambda_j)-(1/lambda_i)
-
-    theta = Lj.multiply(Lj_i).div(Lj_i.multiply(Lj_i).add(
-        Lj.multiply(Lj)*h**2)).mean(axis = 0)          #smoothed Stein shrinker
-    Htheta = Lj.multiply(Lj*h).div(Lj_i.multiply(Lj_i).add(
-        Lj.multiply(Lj)*h**2)).mean(axis = 0)                    #its conjugate
-    Atheta2 = theta**2+Htheta**2                         #its squared amplitude
-
-    if p<=n:               #case where sample covariance matrix is not singular
-        delta = 1 / ((1-c)**2*invlambda+2*c*(1-c)*invlambda*theta \
-                    +c**2*invlambda*Atheta2)    #optimally shrunk eigenvalues
-        delta = delta.to_numpy()
-    else:
-        delta0 = 1/((c-1)*np.mean(invlambda.to_numpy())) #shrinkage of null 
-        #                                                 eigenvalues
-        delta = np.repeat(delta0,p-n)
-        delta = np.concatenate((delta, 1/(invlambda*Atheta2)), axis=None)
-
-    deltaQIS = delta*(sum(lambda1)/sum(delta))                  #preserve trace
+    eigvals, eigvec = np.linalg.eigh(sample_cov)
+    eigvals = eigvals.real.clip(min=0)
     
-    temp1 = dfu.to_numpy()
-    temp2 = np.diag(deltaQIS)
-    temp3 = dfu.T.to_numpy().conjugate()
-    #reconstruct covariance matrix
-    sigmahat = np.matmul(np.matmul(temp1,temp2),temp3)
-    return sigmahat
+    eigval_inv = 1 / eigvals[max(1,p-n+1)-1:p]
+    ev_j = np.repeat(eigval_inv[:,None], min(p,n), axis=-1)
+    ev_ji = ev_j - ev_j.T
 
+    theta = np.mean(ev_j * ev_ji / (ev_ji**2 + ev_j**2 * h**2),axis = 0)
+    Htheta = np.mean(h* ev_j**2 / (ev_ji**2 + ev_j**2 * h**2),axis = 0)
+    Atheta2 = theta**2 + Htheta**2
 
+    is_full_rank = p <= n
+    if is_full_rank:
+        delta = 1 / ((1-c)**2*eigval_inv+2*c*(1-c)*eigval_inv*theta \
+                    +c**2*eigval_inv*Atheta2)
+    else:
+        delta0 = 1/((c-1)*np.mean(eigval_inv))
+        delta = np.repeat(delta0, p-n)
+        delta = np.concatenate((delta, 1/(eigval_inv*Atheta2)), axis=None)
+
+    deltaQIS = np.diag(delta*(sum(eigvals)/sum(delta)))
+    
+    cov_estimate = eigvec @ deltaQIS @ eigvec.T.conj()
+    return cov_estimate
 
 class SampleCorrelation:
     """

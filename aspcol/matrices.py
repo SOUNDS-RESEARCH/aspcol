@@ -235,32 +235,6 @@ def apply_blockwise(mat, func, out_shape, *args, num_blocks=None, block_size=Non
                     func(mat[i*block_size:(i+1)*block_size, j*block_size:(j+1)*block_size], *args, **kwargs)
     return out
 
-# def broadcast_func(mat, func, *args, out_shape=None, dtype=float, **kwargs):
-#     """
-#     Applies the same function to each matrix in the array
-#     mat is of shape (*tuple, a, b).
-#     func is applied to the matrices in the last two axes
-
-#     out_shape is the shape of the return value for a single matrix.
-#     It must be provided if the output is not a scalar
-
-#     output is shape (*tuple, out_shape)
-#     """
-#     assert mat.ndim >= 2
-#     if mat.ndim == 2:
-#         return func(mat, *args, **kwargs)
-
-#     broadcast_shape = mat.shape[:-2]
-#     if out_shape is None:
-#         out_shape = broadcast_shape
-#     else:
-#         out_shape = (*broadcast_shape, *out_shape)
-
-#     out = np.empty(out_shape, dtype=dtype)
-#     for i in np.ndindex(broadcast_shape):
-#         out[(*i, Ellipsis)] = func(mat[(*i,slice(None), slice(None))], *args, *kwargs)
-#     return out
-
 
 def is_hermitian(mat):
     return broadcast_func(mat, _is_hermitian, dtype=bool)

@@ -192,3 +192,4 @@ def test_recursive_sample_autocorr_equals_direct_calculation_nonzero_mean(num_sa
     for n in range(num_samples):
         corr.update(data[:,n:n+1])
     assert np.allclose(scm, corr.corr)
+
