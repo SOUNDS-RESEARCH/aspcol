@@ -57,44 +57,23 @@ class AdaptiveFilterBase(ABC):
 
 
 class AdaptiveFilterFreq(ABC):
-    def __init__(self, numFreq, num_in, num_out):
-        assert numFreq % 2 == 0
+    def __init__(self, num_freq, num_in, num_out):
+        assert num_freq % 2 == 0
         self.num_in = num_in
         self.num_out = num_out
-        self.numFreq = numFreq
+        self.num_freq = num_freq
 
-        self.filt = fc.FilterSum_Freqdomain(numFreq=numFreq, num_in=num_in, num_out=num_out)
+        self.filt = fc.FilterSum_Freqdomain(numFreq=num_freq, num_in=num_in, num_out=num_out)
 
     @abstractmethod
     def update(self):
         pass
 
-    def process(self, signalToProcess):
-        return self.filt.process(signalToProcess)
+    def process(self, sig_to_process):
+        return self.filt.process(sig_to_process)
     
-    def processWithoutSum(self, signalToProcess):
-        return self.filt.processWithoutSum(signalToProcess)
-
-
-# class LMS(AdaptiveFilterBase):
-#     """Dimension of filter is (input channels, output channels, IR length)"""
-
-#     def __init__(self, ir_len, num_in, num_out, stepSize, filter_type=None):
-#         super().__init__(ir_len, num_in, num_out, filter_type)
-#         self.mu = stepSize
-
-#     def update(self, ref, error):
-#         """Inputs should be of the shape (channels, numSamples)"""
-#         assert ref.shape[-1] == error.shape[-1]
-#         numSamples = ref.shape[-1]
-
-#         for n in range(numSamples):
-#             self.insert_in_signal(ref[:, n : n + 1])
-#             self.filt.ir += self.mu * np.squeeze(
-#                 error[None, :, None, n : n + 1] * self.x[:, None, :, :], axis=-1
-#             )
-
-
+    def process_nosum(self, sig_to_process):
+        return self.filt.process_nosum(sig_to_process)
 
 
 class LMS(AdaptiveFilterBase):
@@ -226,8 +205,6 @@ class BlockLMS(AdaptiveFilterBase):
             )
 
         norm = 1 / (np.sum(ref ** 2) + self.beta)
-        #print(norm)
-        print("Block normalization: ", norm)
         self.filt.ir += self.mu * norm * grad
 
 
@@ -250,10 +227,10 @@ class FastBlockLMS(AdaptiveFilterFreq):
 
         if normalization == "scalar":
             self.norm_func = self.scalar_normalization
-        elif normalization == "freqIndependent":
+        elif normalization == "freq_independent":
             self.ref_power_estimate = fc.MovingAverage(power_est_forget_factor, (2 * block_size, 1, 1))
             self.norm_func = self.freq_independent_normalization
-        elif normalization == "channelIndependent":
+        elif normalization == "channel_independent":
             self.norm_func = self.channel_independent_normalization
         else:
             raise ValueError
@@ -279,16 +256,8 @@ class FastBlockLMS(AdaptiveFilterFreq):
         td_grad = fdf.correlate_euclidian_tf(error, X)
         gradient = fdf.fft_transpose(np.concatenate((td_grad, np.zeros_like(td_grad)),axis=-1))
         norm = self.norm_func(ref, X)
-        #print("Fast block normalization: ", norm)
         
         self.filt.tf += self.mu * norm * gradient
-
-    # def process(self, signal):
-    #     """"""
-    #     assert signal.shape[-1] == self.blockSize
-    #     concatBlock = np.concatenate((self.lastBlock, signal),axis=-1)
-    #     self.lastBlock[:] = signal
-    #     return fdf.convolveSum(self.ir, concatBlock)
 
 
 class FastBlockWeightedLMS(FastBlockLMS):
