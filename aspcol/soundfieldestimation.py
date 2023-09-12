@@ -90,10 +90,21 @@ def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
 
     Parameters
     ----------
-    p_freq : ndarray of shape ()
-    array : ArrayCollection
+    p_freq : ndarray of shape (num_real_freqs, num_mics)
+        sound pressure in frequency domain at num_mic microphone positions
+    pos : ndarray of shape (num_mic, 3)
+        positions of the microphones
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
     k : ndarray of shape (num_freq)
-    
+        wavenumbers
+    reg_param : float
+        regularization parameter for kernel interpolation
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
     """
     est_filt = ki.get_krr_parameters(ki.kernel_helmholtz_3d, reg_param, pos_eval, pos, k)
     p_ki = est_filt @ p_freq[:,:,None]
