@@ -1,8 +1,6 @@
 import numpy as np
 import scipy.linalg as splin
 
-import aspcol.matrices as mat
-
 
 def mse(var1, var2):
     """
@@ -100,7 +98,7 @@ def covariance_distance_kl_divergence(mat1, mat2):
     """
     assert mat1.shape == mat2.shape
     assert mat1.shape[0] == mat1.shape[1]
-    assert mat.ndim == 2
+    assert mat1.ndim == 2
     N = mat1.shape[0]
     eigvals = splin.eigh(mat1, mat2, eigvals_only=True)
 
