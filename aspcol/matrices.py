@@ -3,8 +3,23 @@ import scipy.signal as spsig
 import scipy.linalg as splin
 
 def to_length(ar, length, axis=-1):
-    """Either truncates or pads ndarray at the end with zeros, 
-        so that the length along axis is equal to length."""
+    """
+    Either truncates or pads ar at the end with zeros, 
+    so that the length along axis is equal to length.
+        
+    Parameters
+    ----------
+    ar : ndarray
+        array to be truncated or padded
+    length : int
+        length of the array along axis after truncation or padding
+    axis : int
+        axis along which to truncate or pad
+
+    Returns
+    -------
+    ar : ndarray
+    """
     end = min(length, ar.shape[axis])
     slices = [slice(None) for _ in range(ar.ndim)]
     slices[axis] = slice(0,end)
@@ -16,12 +31,22 @@ def to_length(ar, length, axis=-1):
     return ar
 
 def block_diag(arrays):
-    """Creates a block diagonal matrix
-        - arrays is a list of ndarrays
-        - The operation is performed independently for the first dimension. 
-        The length of the first dimension must naturally be the same.
-        - arr.ndim must be 3 or more
-        (to make a block_diag with ndim=2, just use scipy.block_diag)"""
+    """
+    Creates a block diagonal matrix
+
+    The operation is performed independently (broadcasted) over the first dimension. 
+        The length of the first dimension must be the same for all matrices.
+
+    Parameters
+    ----------
+    arrays : list of ndarrays
+        ndim must be 3 or more
+        to make a block_diag with ndim=2, just use scipy.block_diag
+
+    Returns
+    -------
+    diag_mat : ndarray of shape (tot_rows, tot_cols)
+    """
     assert all([ar.ndim == arrays[0].ndim for ar in arrays])
     assert all([ar.shape[:-2] == arrays[0].shape[:-2] for ar in arrays])
     assert all([ar.dtype == arrays[0].dtype for ar in arrays])
@@ -41,15 +66,20 @@ def block_diag(arrays):
     return diag_mat
 
 def block_of_toeplitz(block_of_col, block_of_row=None):
-    """ block_of_col and block_of_row are of shapes
-        (M, N, K_col) and (M, N, K_row)
-        
-        The values in the last axis for each (m,n) block is turned
-        into a toeplitz matrix. The output is a single matrix of shape
-        (M*K_col N*K_row)
+    """ 
+    Generates a block matrix of toeplitz blocks from a set of columns and rows
+    The values in the last axis for each (m,n) block is turned into a toeplitz matrix. 
 
-        If only block_of_col is supplied, the toeplitz 
-        matrices are constructed symmetric
+    Parameters
+    ----------
+    block_of_col : ndarray of shape (M, N, K_col)
+    block_of_row : ndarray of shape (M, N, K_row), optional
+        If not supplied, block_of_row is set to block_of_col.conj() and will
+        therefore be symmetric
+
+    Returns
+    -------
+    block_mat : ndarray of shape (M*K_col, N*K_row)
     """
     if block_of_row is None:
         if np.iscomplexobj(block_of_col):
@@ -73,17 +103,25 @@ def block_of_toeplitz(block_of_col, block_of_row=None):
 
 def block_transpose(matrix, block_size, out=None):
     """
+    This function can easily be replaced by apply_blockwise. 
+
     Transposes each block individually in a block matrix. 
-    block_size is an integer defining the size of the square blocks. 
     Requires square blocks, but not a square block matrix. 
+    B = [A_11^T, ..., A_1r^T
 
-    B = [
-        A_11^T, ..., A_1r^T
+        A_r1^T, ..., A_rc^T]
 
-        A_r1^T, ..., A_rc^T
-    ]
+    Parameters
+    ----------
+    matrix : ndarray of shape (r, c)
+        matrix to be transposed
+    block_size : int
+        size of the square blocks
+    out : ndarray of shape (c, r), optional
 
-    if out is supplied, the transposed matrix will be written into its memory
+    Returns
+    -------
+    transposed_mat : ndarray of shape (c, r)
     """
     assert matrix.shape[0] % block_size == 0
     assert matrix.shape[1] % block_size == 0
@@ -105,13 +143,27 @@ def block_transpose(matrix, block_size, out=None):
 
 def block_diag_multiply(mat, block_left=None, block_right=None, out_matrix=None):
     """
+    This function can easily be replaced by apply_blockwise. 
+
+    Performs the operation block_diag_left @ mat @ block_diag_right, 
+    where block_diag is a matrix with multiple copies of block on the diagonal
+    block_diag = I_b kron block
+
+    Parameters
+    ----------
+    mat : ndarray of shape (ab, ab)
+    block_left : ndarray of shape (a, a), optional
+    block_right : ndarray of shape (a, a), optional
+    out_matrix : ndarray of shape (ab, ab), optional
+        if provided, the result is written to this matrix
+    
+    Returns
+    -------
+    out_matrix : ndarray of shape (ab, ab)
+
     block_left is size (a, a)
     block_right is size (a, a)
     mat is size (ab, ab) for some integer b
-    
-    performs the operation block_diag_left @ mat @ block_diag_right, 
-    where block_diag is a matrix with multiple copies of block on the diagonal
-    block_diag = I_b kron block
     """
     if block_left is not None and block_right is not None:
         assert all([block_left.shape[0] == b for b in (*block_left.shape, *block_right.shape)])
@@ -160,14 +212,23 @@ def block_diag_multiply(mat, block_left=None, block_right=None, out_matrix=None)
 def broadcast_func(mat, func, *args, out_shape=None, dtype=float, **kwargs):
     """
     Applies the same function to each matrix in the array
-    mat is of shape (*tuple, a, b)
-        it can also be a tuple of multiple matrices of the same shape
-    func is applied to the matrices in the last two axes
+    
+    Parameters
+    ----------
+    mat : ndarray of shape (*tuple, a, b) 
+        or tuple of ndarrays of shape (a, b)
+    func : function
+        function to be applied to the matrices in the last two axes
+    out_shape : tuple of ints
+        shape of the output for a single matrix
+        must be provided if the output is not a scalar
+    dtype : type
+    kwargs : dict
+        passed to func
 
-    out_shape is the shape of the return value for a single matrix.
-    It must be provided if the output is not a scalar
-
-    output is shape (*tuple, out_shape)
+    Returns
+    -------
+    output : ndarray of shape (*tuple, out_shape)
     """
     if isinstance(mat, (tuple, list)):
         assert all([mat[0].shape == m.shape for m in mat])
@@ -200,14 +261,30 @@ def apply_blockwise(mat, func, out_shape, *args, num_blocks=None, block_size=Non
 
     Either num_blocks or block_size must be supplied. 
 
-    the func should return a matrix of shape out_shape
+    Parameters
+    ----------
+    mat : ndarray of shape (a, a)
+    func : function
+        function to be applied to each block, should return a matrix of shape out_shape
+    out_shape : tuple of ints or 'same'
+        if 'same', the output will be the same size as the input blocks
+    num_blocks : int, optional
+        number of blocks in each dimension
+    block_size : int, optional
+        size of each block
+    separate_axis : bool, optional
+        if True, out_shape can be a scalar value or a tuple of any length
+            the output will be of shape (*out_shape, num_blocks, num_blocks)
+        if False, out_shape must be length-2 tuple
+            the output will be of shape (num_blocks*out_shape[0], num_blocks*out_shape[1])
+    dtype : type
+    kwargs : dict
+        passed to func
 
-    if separate_axis is False, out_shape must be length-2 tuple
-        , or the keyword 'same', in which case the returned blocks are same size as the input
-        the output will be of shape (num_blocks*out_shape[0], num_blocks*out_shape[1])
-    if separate_axis is True, out_shape can be a scalar value or a tuple of any length
-        the output will be of shape (*out_shape, num_blocks, num_blocks)
-
+    Returns
+    -------
+    out : ndarray of shape (num_blocks*out_shape[0], num_blocks*out_shape[1])
+        or ndarray of shape (*out_shape, num_blocks, num_blocks)
     """
     assert mat.ndim == 2
     assert mat.shape[0] == mat.shape[1]
@@ -237,6 +314,18 @@ def apply_blockwise(mat, func, out_shape, *args, num_blocks=None, block_size=Non
 
 
 def is_hermitian(mat):
+    """
+    Returns true if mat is hermitian, false otherwise
+
+    Parameters
+    ----------
+    mat : ndarray of shape (a, a) or (*tpl, a, a)
+        if ndim > 2, then the array is interpreted as an array of
+        multiple matrices
+    Returns
+    -------
+    is_hermitian : bool or ndarray of shape tpl
+    """
     return broadcast_func(mat, _is_hermitian, dtype=bool)
 
 def _is_hermitian(mat):
@@ -246,7 +335,10 @@ def _is_hermitian(mat):
     return np.allclose(mat, mat.conj().T)
 
 def is_hermitian_hardcoded(mat):
-    """If ndim > 2, then the array is interpreted as an array of
+    """
+    Deprecated, use is_hermitian instead
+    
+    If ndim > 2, then the array is interpreted as an array of
     multiple matrices
 
     if mat has shape (a,a) then a single boolean is returned
@@ -268,6 +360,19 @@ def is_hermitian_hardcoded(mat):
 
 
 def is_pos_semidef(mat):
+    """
+    Returns true if mat is positive semidefinite, false otherwise
+
+    Parameters
+    ----------
+    mat : ndarray of shape (a, a) or (*tpl, a, a)
+        if ndim > 2, then the array is interpreted as an array of
+        multiple matrices
+
+    Returns
+    -------
+    is_pos_semidef : bool or ndarray of shape tpl
+    """
     return broadcast_func(mat, _is_pos_semidef, dtype=bool)
     
 def _is_pos_semidef(mat):
@@ -279,6 +384,19 @@ def _is_pos_semidef(mat):
     return np.all(evs >= 0)
 
 def is_pos_def(mat):
+    """
+    Returns true if mat is positive definite, false otherwise
+
+    Parameters
+    ----------
+    mat : ndarray of shape (a, a) or (*tpl, a, a)
+        if ndim > 2, then the array is interpreted as an array of
+        multiple matrices
+    
+    Returns
+    -------
+    is_pos_def : bool or ndarray of shape tpl
+    """
     return broadcast_func(mat, _is_pos_def, dtype=bool)
 
 def _is_pos_def(mat):
@@ -293,6 +411,20 @@ def _is_pos_def(mat):
 
 
 def ensure_hermitian(mat, overwrite_ok=True):
+    """
+    Symmetrizes mat if it is not already Hermitian
+
+    Parameters
+    ----------
+    mat : ndarray of shape (a, a)
+    overwrite_ok : bool, optional
+        if True, the matrix is modified in place.
+    
+    Returns
+    -------
+    mat : ndarray of shape (a, a)
+    """
+
     assert mat.ndim == 2
     if not is_hermitian(mat):
         if overwrite_ok:
@@ -304,12 +436,20 @@ def ensure_hermitian(mat, overwrite_ok=True):
 
 def ensure_pos_semidef(mat):
     """
-    Ensures matrix is positive semidefinite
-        now uses ensure_pos_def_adhoc. Change implementation
-        if there is a better way to ensure positive semidefiniteness
+    Modifies mat to ensure it is positive semidefinite if it is not already. 
+    It does this by adding a scaled identity matrix to mat by iterating over
+    gradually increasing scaling factors until the matrix is positive semidefinite.
 
-    Assumes without checking that mat is hermitian
-    If you are unsure, use ensure_hermitian first. 
+    This can be slow if many iterations are required.
+    Assumes without checking that mat is hermitian. If you are unsure, use ensure_hermitian first. 
+
+    Parameters
+    ----------
+    mat : ndarray of shape (a, a) or (*tpl, a, a)
+
+    Returns
+    -------
+    mat : same shape as input
     """
     assert mat.ndim == 2
     if _is_pos_semidef(mat):
