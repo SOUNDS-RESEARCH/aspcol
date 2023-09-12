@@ -5,6 +5,10 @@ import tensorly.decomposition as td
 
 def reconstruct_ir(ir_decomp, out=None):
     """
+    Takes a decomposition of an IR and reconstructs the IR. The decomposition
+    is assumed to be of the form (ir1, ir2, ir3, ...), where the i:th entry has
+    shape (..., rank, I_i). 
+
     Parameters
     ----------
     ir_decomp : list or tuple of ndarrays, where the i:th array has shape (..., rank, I_i)
@@ -45,6 +49,9 @@ def reconstruct_ir(ir_decomp, out=None):
 
 def decompose_ir(ir, dims, rank):
     """
+    Decomposes an IR into a Kronecker / Tensor product decomposition of rank rank. 
+    The IR is assumed to be of shape (..., ir_len), where the product of dims must equal ir_len. 
+
     Parameters
     ----------
     ir : ndarray of shape (..., ir_len)
@@ -54,7 +61,7 @@ def decompose_ir(ir, dims, rank):
 
     Return
     ------
-    tuple of ndarrays which are shorter IRs, the i:th entry has shape (..., rank, dims[i])
+    ir_decomp : tuple of ndarrays which are shorter IRs, the i:th entry has shape (..., rank, dims[i])
     len(decomposed_ir) == len(dims)
     
     """
