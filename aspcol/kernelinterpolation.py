@@ -8,26 +8,52 @@ import aspcol.filterdesign as fd
 import aspcol.montecarlo as mc
 
 def kernel_gaussian(points1, points2, scale):
+    """
+    Guassian kernel, also known as the radial basis function kernel. 
+
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_points1, spatial_dim)
+    points2 : ndarray of shape (num_points2, spatial_dim)
+    scale : ndarray of shape (num_scales,)
+
+    Returns
+    -------
+    ndarray of shape (num_scales, num_points1, num_points2)
+    """
     dist_mat = distfuncs.cdist(points1, points2)**2
     return np.exp(-scale[:,None,None]**2 * dist_mat[None,:,:])
 
 def kernel_helmholtz_2d(points1, points2, wave_num):
-    """points1 is shape (numPoints1, 2)
-        points2 is shape (numPoints2, 2)
-        waveNum is shape (numFreqs)
+    """
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_points1, 2)
+    points2 : ndarray of shape (num_points2, 2)
+    wave_num : ndarray of shape (num_freqs,)
 
-        returns shape (numFreqs, numPoints1, numPoints2)
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_points1, num_points2)
     """
     dist_mat = distfuncs.cdist(points1, points2)
     return special.j0(dist_mat[None,:,:] * wave_num[:,None,None])
 
 
 def kernel_helmholtz_3d_slow(points1, points2, wave_num):
-    """points1 is shape (numPoints1, 3)
-        points2 is shape (numPoints2, 3)
-        waveNum is shape (numFreqs)
+    """
+    Identical to kernel_helmholtz_3d, but is not JIT compiled by numba. 
+    This is faster if the kernel is only evaluated once, but slower if it is evaluated many times
+    
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_points1, 3)
+    points2 : ndarray of shape (num_points2, 3)
+    wave_num : ndarray of shape (num_freqs,)
 
-        returns shape (numFreqs, numPoints1, numPoints2)
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_points1, num_points2)
     """
     distMat = distfuncs.cdist(points1, points2)
     return special.spherical_jn(0, distMat[None,:,:] * wave_num[:,None,None])
@@ -35,11 +61,20 @@ def kernel_helmholtz_3d_slow(points1, points2, wave_num):
 
 @nb.njit
 def kernel_helmholtz_3d(points1, points2, wave_num):
-    """points1 is shape (numPoints1, 3)
-        points2 is shape (numPoints2, 3)
-        waveNum is shape (numFreqs)
+    """
+    Diffuse kernel for 3D sound field interpolation. Defined in 
+    'Spatial active noise control based on kernel interpolation 
+    of sound field' by Koyama et al.
 
-        returns shape (numFreqs, numPoints1, numPoints2)
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_points1, 3)
+    points2 : ndarray of shape (num_points2, 3)
+    wave_num : ndarray of shape (num_freqs,)
+
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_points1, num_points2)
     """
     #distMat = distfuncs.cdist(points1, points2)
 
@@ -47,14 +82,24 @@ def kernel_helmholtz_3d(points1, points2, wave_num):
     return np.sinc(np.expand_dims(dist_mat,0) * wave_num.reshape(-1, 1,1) / np.pi)
 
 
-def kernel_directional_3d(points1, points2, wave_num, angle, beta):
-    """points1 is shape (numPoints1, 3)
-        points2 is shape (numPoints2, 3)
-        waveNum is shape (numFreqs)
-        angle is tuple (theta, phi) defined as in util.spherical2cart
-        beta sets the strength of the directional weighting
-        
-        returns shape (numFreqs, numPoints1, numPoints2)
+def kernel_directional_3d_slow(points1, points2, wave_num, angle, beta):    
+    """
+    Identical to kernel_directional_3d, but is not JIT compiled by numba. 
+    This is faster if the kernel is only evaluated once, but slower if it is evaluated many times
+
+    In addition, this only allows for a single angle to be evaluated at a time.
+
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_points1, 3)
+    points2 : ndarray of shape (num_points2, 3)
+    wave_num : ndarray of shape (num_freqs,)
+    angle : tuple (theta, phi) defined as in util.spherical2cart
+    beta : sets the strength of the directional weighting
+
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_points1, num_points2)
     """
     rDiff = points1[:,None,:] - points2[None,:,:]
     angleFactor = beta * util.spherical2cart(np.ones((1,1)), np.array(angle)[None,:])[None,None,...]
@@ -62,17 +107,25 @@ def kernel_directional_3d(points1, points2, wave_num, angle, beta):
     return special.spherical_jn(0, 1j*np.sqrt(np.sum((angleFactor + posFactor)**2, axis=-1)))
 
 @nb.njit
-def kernel_directional_vec_3d(points1, points2, wave_num, direction_vec, beta):
-    """points1 is shape (numPoints1, 3)
-        points2 is shape (numPoints2, 3)
-        waveNum is shape (numFreqs)
-        directionVec is shape (numAngles, 3), where each (1,3) is a unit vector
-        
-        returns shape (numFreqs, numAngles, numPoints1, numPoints2)
+def kernel_directional_3d(points1, points2, wave_num, direction_vec, beta):
+    """
+    Directionally weighted kernel for 3D sound field interpolation. 
+    Defined in 'Spatial active noise control based on kernel interpolation 
+    of sound field' by Koyama, Brunnström, Ito, Ueno, Saruwatari.
     
-        Implements the same kernel function as kernel_directional_3d, 
-        but accepts the direction in the form of a unit vector
-        and is vectorized over angles as well as frequencies
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_points1, 3)
+    points2 : ndarray of shape (num_points2, 3)
+    wave_num : ndarray of shape (num_freqs,)
+    direction_vec : ndarray of shape (num_angles, 3)
+        unit vectors describing the arrival direction
+    beta : float nonnegative 
+        sets the strength of the directional weighting
+
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_angles, num_points1, num_points2)
     """
     angle_term = 1j * beta * direction_vec.reshape((1,-1,1,1,direction_vec.shape[-1]))
     pos_term = wave_num.reshape((-1,1,1,1,1)) * (points1.reshape((1,1,-1,1,points1.shape[-1])) - points2.reshape((1,1,1,-1,points2.shape[-1])))
@@ -80,19 +133,26 @@ def kernel_directional_vec_3d(points1, points2, wave_num, direction_vec, beta):
 
 
 def kernel_reciprocal_3d(points1, points2, wave_num):
-    """points is a tuple (micPoints, srcPoints),
-        where micPoints is ndarray of shape (numMic, 3)
-        srcPoints is ndarray of shape (numSrc, 3)
+    """
+    Reciprocal kernel for room impulse response interpolation. Definition found in
+    'Kernel interpolation of acoustic transfer function between regions considering reciprocity'
+    by Ribeiro, Ueno, Koyama, Saruwatari.
 
-        waveNum is shape (numFreq)
-        output has shape (numFreq, numMic1*numSrc1, numMic2*numSrc2)
-        they are placed according to micIdx+numMics*srcIdx
+    Parameters
+    ----------
+    points1 : 2-tuple of (mic_points1, src_points1)
+        where mic_points ndarray of shape (num_mic1, 3)
+        and src_points ndarray of shape (num_src1, 3)
+    points2 : same type of object as points1, 
+        although the ndarray shapes can be different
+    wave_num : ndarray of shape (num_freqs,)
 
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_mic1*num_src1, num_mic2*num_src2)
         When flattened, the index for microphone m, speaker l is m+l*M. i.e.
         the microphone index changes faster. 
-
-    From the paper: Kernel interpolation of acoustic transfer 
-                function between regions considering reciprocity"""
+    """
     wave_num = wave_num[:,None,None,None,None]
     mic_dist = distfuncs.cdist(points1[0], points2[0])[None,None,:,None,:]
     src_dist = distfuncs.cdist(points1[1], points2[1])[None,:,None,:,None]
@@ -110,24 +170,35 @@ def kernel_reciprocal_3d(points1, points2, wave_num):
 
 def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain, 
                                 mc_samples, num_freq, samplerate, c, *args):
-    """Calculates kernel weighting filter A(w) in frequency domain
-        see 'Spatial active noise control based on kernel interpolation of sound field' by Koyama et al.     
+    """ 
+    Calculates kernel weighting filter A(w) in frequency domain
+    see 'Spatial active noise control based on kernel interpolation of sound field' by Koyama et al.     
 
-        kernelFunc is one of kernelHelmholtz3d, kernelHelmholtz2d, kernelDirectional3d as defined in this module
-        regParam is positive scalar
-        micPos is ndarray with shape (numPositions, spatialDimension)
-        integralDomain is subclass of Region object, found in soundfield/geometry module
-        mcSamples is integer, how many monte carlo samples to be drawn for integration
-        samplerate is integer
-        c is speed of sound
-        *args are arguments needed for kernel function except points1, points2, waveNum
-        
-        For both diffuse and directional kernel P^H = P, so the hermitian tranpose should not do anything
-        It is left in place in case a kernel function in the future changes that identity. """
+    Parameters
+        ----------
+    kernel_func : function
+        with calling signature kernel_func(points1, points2, waveNum, *args)
+    reg_param : float
+    mic_pos : ndarray of shape (num_mics, spatial_dim)
+    integral_domain : instance of any Region object found is aspsim package
+    mc_samples : int
+        how many monte carlo samples to be drawn for integration
+    num_freq : int
+    samplerate : int
+    c : float
+        speed of sound
+    *args : arguments needed for kernel function except points1, points2, waveNum
+
+    Returns
+    -------
+    ndarray of shape (num_freq, num_mics, num_mics)
+    
+    For both diffuse and directional kernel P^H = P, so the hermitian tranpose should not do anything
+    It is left in place in case a kernel function in the future changes that identity. """
     freqs = fd.get_frequency_values(num_freq, samplerate)
     wave_num = 2 * np.pi * freqs / c
 
-    def integrableFunc(r):
+    def integrable_func(r):
         kappa = kernel_func(r, mic_pos, wave_num, *args)
         kappa = np.transpose(kappa,(0,2,1))
         return kappa.conj()[:,:,None,:] * kappa[:,None,:,:]
@@ -136,7 +207,7 @@ def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain
     K = kernel_func(mic_pos, mic_pos, wave_num, *args)
     P = np.linalg.pinv(K + reg_param * np.eye(num_mics))
 
-    integral_value = mc.integrate(integrableFunc, integral_domain.sample_points, mc_samples, integral_domain.volume)
+    integral_value = mc.integrate(integrable_func, integral_domain.sample_points, mc_samples, integral_domain.volume)
     weighting_filter = np.transpose(P,(0,2,1)).conj() @ integral_value @ P
 
     weighting_filter = fd.insert_negative_frequencies(weighting_filter, even=True)
@@ -145,9 +216,10 @@ def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain
 
 
 def get_krr_parameters(kernel_func, reg_param, output_arg, data_arg, *args):
-    """Calculates parameter vector or matrix given a kernel function for Kernel Ridge Regression.
-        The returned parameter Z is the optimal interpolation filter from the data points to
-        the output points. Apply filter as Z @ y, where y are the labels for data at data_arg positions
+    """
+    Calculates parameter vector or matrix given a kernel function for Kernel Ridge Regression.
+    The returned parameter Z is the optimal interpolation filter from the data points to
+    the output points. Apply filter as Z @ y, where y are the labels for data at data_arg positions
     
     Parameters
     ----------
@@ -172,8 +244,27 @@ def get_krr_parameters(kernel_func, reg_param, output_arg, data_arg, *args):
 def soundfield_interpolation_fir(
     to_points, from_points, ir_len, reg_param, num_freq, spatial_dims, samplerate, c
 ):
-    """Convenience function for calculating the time domain causal FIR interpolation filter
-    from a set of points to a set of points. """
+    """
+    Convenience function for calculating the time domain causal FIR interpolation filter
+    from a set of points to another set of points. 
+    
+    Parameters
+    ----------
+    to_points : ndarray of shape (num_to_points, spatial_dims)
+    from_points : ndarray of shape (num_from_points, spatial_dims)
+    ir_len : int
+        length of the impulse response
+    reg_param : float
+    num_freq : int
+    spatial_dims : int
+    samplerate : int
+    c : float
+        speed of sound
+
+    Returns
+    -------
+    ndarray of shape (ir_len, num_to_points, num_from_points)    
+    """
     assert num_freq > ir_len
     freq_filter = soundfield_interpolation(
         to_points, from_points, num_freq, reg_param, spatial_dims, samplerate, c
@@ -185,7 +276,23 @@ def soundfield_interpolation(
     to_points, from_points, num_freq, reg_param, spatial_dims, samplerate, c
 ):
     """ Convenience function for calculating the frequency domain interpolation filter
-    from a set of points to a set of points. """
+    from a set of points to another set of points. 
+    
+    Parameters
+    ----------
+    to_points : ndarray of shape (num_to_points, spatial_dims)
+    from_points : ndarray of shape (num_from_points, spatial_dims)
+    num_freq : int
+    reg_param : float
+    spatial_dims : int
+    samplerate : int
+    c : float
+        speed of sound
+
+    Returns
+    -------
+    ndarray of shape (num_freq, num_to_points, num_from_points)
+    """
     if spatial_dims == 3:
         kernel_func = kernel_helmholtz_3d
     elif spatial_dims == 2:
@@ -205,8 +312,25 @@ def soundfield_interpolation(
 
 
 def analytic_kernel_weighting_disc_2d(error_mic_pos, freq, reg_param, trunc_order, radius, c):
-    """Analytic solution of the kernel interpolation weighting filter integral
-        in the frequency domain for a disc in 2D. """
+    """
+    Analytic solution of the kernel interpolation weighting filter integral
+    in the frequency domain for a disc in 2D. See definition in 'Feedforward 
+    spatial active noise control based on kernel interpolation of sound field'
+    by Ito, Koyama, Ueno, Saruwatari.
+
+    Parameters
+    ----------
+    error_mic_pos : ndarray of shape (num_mics, spatial_dim)
+    freq : float or ndarray of shape (num_freqs,)
+    reg_param : float
+    trunc_order : int
+    radius : float
+    c : float
+
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_mics, num_mics)
+    """
     if isinstance(freq, (int, float)):
         freq = np.array([freq])
     if len(freq.shape) == 1:
