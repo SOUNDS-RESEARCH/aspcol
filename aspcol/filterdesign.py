@@ -6,7 +6,10 @@ import itertools as it
 # ================== BASIC DFT FUNCTIONS =============================
 
 def get_frequency_values(num_freq, samplerate):
-    """Get the frequency values of all positive frequency bins in Hz
+    """
+    Deprecated, use get_real_freqs instead
+    
+    Get the frequency values of all positive frequency bins in Hz
     numFreq is the number of frequency bins INCLUDING negative frequencies
     If numFreq is even, it will return (numFreq/2)+1 values
     If numFreq is odd, it will return (numFreq+1)/2 values
@@ -26,37 +29,51 @@ def get_freqs(num_freq : int, samplerate : int):
 
     Parameters
     ----------
-    num_freq should equal the length of the sequence 
-        (so it includes the number of )negative frequencies
-    
+    num_freq : int
+        should equal the length of the sequence 
+        so it includes the number of negative frequencies
+    samplerate : int
+
+    Returns
+    -------
+    freqs : ndarray of shape (num_freq,)    
     """
     return np.arange(num_freq) * samplerate / num_freq
 
 def get_wavenum(num_freq : int, samplerate : int, c : float):
+    """
+    Returns the wave numbers associated with the sampled frequencies
+    of the DFT
+
+    See documentation for get_freqs
+    """
     return get_angular_freqs(num_freq, samplerate) / c
 
 def get_angular_freqs(num_freq : int, samplerate : int):
+    """
+    Returns the angular frequencies associated with the sampled frequencies
+    of the DFT
+
+    See documentation for get_freqs
+    """
     return 2 * np.pi * get_freqs(num_freq, samplerate)
 
 def get_real_freqs(num_freq : int, samplerate : int):
     """
     Returns the real sampled frequencies in Hz for a discrete Fourier transform
 
-    Get the frequency values of all positive frequency bins in Hz
-    numFreq is the number of frequency bins INCLUDING negative frequencies
-    If numFreq is even, it will return (numFreq/2)+1 values
-    If numFreq is odd, it will return (numFreq+1)/2 values
-    use np.fft.fftfreq to double check values when implementing. 
-
     Parameters
     ----------
     num_freq :int 
-        should equal the length of the sequence 
-        (so it includes the number of) negative frequencies
+        should equal the length of the sequence, so it includes 
+        the number of negative frequencies
+    samplerate : int
     
     Returns
     -------
     freqs : ndarray of shape (num_real_freq,)
+        if num_freq is even, num_real_freq = num_freq // 2 + 1
+        if num_freq is odd, num_real_freq = (num_freq + 1) // 2
     """
     if num_freq % 2 == 0:
         return (samplerate / (num_freq)) * np.arange(num_freq // 2 + 1)
@@ -68,25 +85,41 @@ def get_real_freqs(num_freq : int, samplerate : int):
 def get_real_wavenum(num_freq : int, samplerate : int, c : float):
     """
     Get wave numbers associated with the real frequencies
+    of the DFT
+
+    See documentation for get_real_freqs
     """
     return get_real_angular_freqs(num_freq, samplerate) / c
 
 def get_real_angular_freqs(num_freq : int, samplerate : int):
     """
-    returns angular frequencies associated with the real frequencies of the DFT
+    Returns angular frequencies associated with the real frequencies 
+    of the DFT
+
+    See documentation for get_real_freqs
     """
     return 2 * np.pi * get_real_freqs(num_freq, samplerate)
 
 
 def insert_negative_frequencies(freq_signal, even):
-    """To be used in conjunction with getFrequencyValues
+    """
     Inserts all negative frequency values under the
     assumption of conjugate symmetry, i.e. a real impulse response.
-    Parameter even: boolean indicating if an even or odd number
-    of bins is desired. This must correspond to num_freq value
-    set in get_frequency_values
+
+    To be used in conjunction with get_real_freqs
     
-    Frequencies must be on axis=0"""
+    Parameters
+    ----------
+    freq_signal : ndarray of shape (num_real_freq, ...)
+    even : bool
+        if True, the full dft length was even
+
+    Returns
+    -------
+    freq_signal_full : ndarray of shape (num_freq, ...)
+        num_freq is even if even=True, and odd if even=False
+    
+    """
     if even:
         return np.concatenate(
             (freq_signal, np.flip(freq_signal[1:-1, :, :].conj(), axis=0)), axis=0
@@ -96,13 +129,31 @@ def insert_negative_frequencies(freq_signal, even):
     
 
 
-def dft_vector (freq_idx : int, num_freq : int):
-    exp_factor = -2 * np.pi * 1j * freq_idx / num_freq
-    return np.exp(np.arange(num_freq) * exp_factor)
+def dft_vector (freq_idx : int, dft_len : int):
+    """
+    Returns the vector with all complex exponential values used
+    to calculate the DFT
 
-def idft_vector (freq_idx : int, num_freq : int):
-    exp_factor = 2 * np.pi * 1j * freq_idx / num_freq
-    return np.exp(np.arange(num_freq) * exp_factor) / num_freq
+    Parameters
+    ----------
+    freq_idx : int
+        the index of the frequency bin
+    dft_len : int
+        the number of frequency bins
+    
+    Returns
+    -------
+    exp_vector : ndarray of shape (dft_len,)
+    """
+    exp_factor = -2 * np.pi * 1j * freq_idx / dft_len
+    return np.exp(np.arange(dft_len) * exp_factor)
+
+def idft_vector (freq_idx : int, dft_len : int):
+    """
+    See documentation fpr dft_vector
+    """
+    exp_factor = 2 * np.pi * 1j * freq_idx / dft_len
+    return np.exp(np.arange(dft_len) * exp_factor) / dft_len
 
 
 
@@ -110,13 +161,28 @@ def idft_vector (freq_idx : int, num_freq : int):
 # ============== DESIGN FIR FILTERS ====================
 
 def fir_from_freqs_window(freq_filter, ir_len, two_sided=True, window="hamming"):
-    """Use this over the other window methods,
-    as they might be wrong. freqFilter is with both positive
-    and negative frequencies.
+    """
+    Constructs a FIR filter from frequency values
+    
+    Currently works only for two_sided=True and odd ir_len
 
-    Makes FIR filter from frequency values.
-    Works only for odd impulse response lengths
-    Uses hamming window"""
+    Parameters
+    ----------
+    freq_filter : ndarray of shape (num_freqs, ...)
+        should include both positive and negative frequencies
+    ir_len : int
+        the length of the impulse response
+    two_sided : bool
+        if True, the impulse response is assumed to be centered in the middle
+    window : str or None
+        the window to apply to the impulse response
+        
+    Returns
+    -------
+    trunc_filter : ndarray of shape (ir_len, ...)
+    trunc_error : float
+        the relative truncation error of the impulse response 
+    """
     assert ir_len % 1 == 0
     assert freq_filter.shape[0] % 2 == 0
     if two_sided:
@@ -146,6 +212,22 @@ def fir_from_freqs_window(freq_filter, ir_len, two_sided=True, window="hamming")
     return trunc_filter, trunc_error
 
 def truncate_filter(ir, ir_len, two_sided):
+    """
+    Truncates the impulse response to the desired length
+    Currently only works for two_sided=True and odd ir_len
+
+    Parameters
+    ----------
+    ir : ndarray of shape (..., ir_len_original)
+    ir_len : int
+        the length of the truncated impulse response
+    two_sided : bool
+        if True, the impulse response is assumed to be centered in the middle
+
+    Returns
+    -------
+    trunc_filter : ndarray of shape (..., ir_len)
+    """
     if two_sided:
         assert ir_len % 2 == 1
         assert ir.shape[-1] % 2 == 0
@@ -163,6 +245,21 @@ def truncate_filter(ir, ir_len, two_sided):
 
 
 def calc_truncation_error(ir, ir_len, two_sided=True):
+    """Calculates the relative truncation error of an impulse response
+    The relative error is how much of the power of the impulse response that is lost by truncating.
+
+    Parameters
+    ----------
+    ir : ndarray of shape (..., ir_len_original)
+    ir_len : int
+        the length of the truncated impulse response
+    two_sided : bool
+        if True, the impulse response is assumed to be centered in the middle
+    
+    Returns
+    -------
+    rel_trunc_error : float
+    """
     if two_sided:
         assert ir_len % 2 == 1
         half_len = ir_len // 2
@@ -177,12 +274,23 @@ def calc_truncation_error(ir, ir_len, two_sided=True):
 
 def min_truncated_length(ir, two_sided=True, max_rel_trunc_error=1e-3):
     """Calculates the minimum length you can truncate a filter to.
-    ir has shape (..., irLength)
-    if twosided, the ir will be assumed centered in the middle.
-    The filter can be multidimensional, the minimum length will
-    be calculated independently for all impulse responses, and
+    The minimum length will be calculated independently for all impulse responses, and
     the longest length chosen. The relative error is how much of the
-    power of the impulse response that is lost by truncating."""
+    power of the impulse response that is lost by truncating.
+    
+    Parameters
+    ----------
+    ir : ndarray of shape (..., ir_len)
+    two_sided : bool
+        if True, the impulse response is assumed to be centered in the middle
+    max_rel_trunc_error : float
+        the maximum relative truncation error allowed
+
+    Returns
+    -------
+    req_filter_length : int
+        the minimum length you can truncate the filter to
+    """
     ir_len = ir.shape[-1]
     ir_shape = ir.shape[:-1]
 
