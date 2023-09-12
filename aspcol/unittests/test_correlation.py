@@ -5,6 +5,7 @@ import hypothesis.strategies as st
 import pytest
 
 import aspsim.signal.sources as sources
+import aspsim.signal.sourcescollection as sourcescollection
 import aspcol.correlation as cr
 
 
@@ -17,7 +18,7 @@ def test_autocorr_pulse_train_gives_identity_single_block(max_lag, num_channels,
     #rng = np.random.default_rng()
     #amp = rng.normal(loc=1, scale=0.5)
 
-    src = sources.PulseTrain(num_channels, amp, max_lag, 0)
+    src = sourcescollection.PulseTrain(num_channels, amp, max_lag, 0)
     #src = sources.WhiteNoiseSource(num_channels, 1, rng)
     num_samples = 15 * max_lag
     sig = src.get_samples(num_samples)
@@ -39,7 +40,7 @@ def test_autocorr_pulse_train_gives_identity_single_block(max_lag, num_channels,
             num_channels = st.integers(min_value=1, max_value=3),
             amp = st.floats(min_value=1, max_value=1))
 def test_autocorr_pulse_train_gives_identity_block_processing(bs, max_lag, num_channels, amp):
-    src = sources.PulseTrain(num_channels, amp, max_lag, 0)
+    src = sourcescollection.PulseTrain(num_channels, amp, max_lag, 0)
     num_samples = 5 * max_lag
     sig = src.get_samples(num_samples)
 
@@ -64,7 +65,7 @@ def test_autocorr_delayed_pulse_train_gives_offdiagonal(bs, max_lag, num_channel
     dly=1
     max_dly = abs((num_channels-1) * dly)
     period = max_lag + max_dly
-    src = sources.PulseTrain(num_channels, amp, period, np.arange(num_channels)*dly)
+    src = sourcescollection.PulseTrain(num_channels, amp, period, np.arange(num_channels)*dly)
     num_samples = 5 * period
     sig = src.get_samples(num_samples)
 
@@ -90,7 +91,7 @@ def test_autocorr_mat_delayed_pulse_train(bs, max_lag, num_channels, amp):
     dly=1
     max_dly = abs((num_channels-1) * dly)
     period = max_lag + max_dly
-    src = sources.PulseTrain(num_channels, amp, period, np.arange(num_channels)*dly)
+    src = sourcescollection.PulseTrain(num_channels, amp, period, np.arange(num_channels)*dly)
     num_samples = 5 * period
     sig = src.get_samples(num_samples)
 
