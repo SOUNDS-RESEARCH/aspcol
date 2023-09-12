@@ -54,10 +54,21 @@ def pol2cart(r, angle):
     return (x, y)
 
 def cart2spherical(cart_coord):
-    """cartCoord is shape = (numPoints, 3)
-        returns (r, angle), defined as in spherical2cart"""
+    """
+    cart_coord : ndarray of shape (num_points, 3)
+    center : array_like of shape (3,)
+
+    Returns
+    -------
+    (r, angle), representing radius, angle[:,0] represents azimuth (angle in xy plane) 
+        and angle[:,1] represents zenith"""
     r = np.linalg.norm(cart_coord, axis=1)
-    raise NotImplementedError
+    r_xy = np.linalg.norm(cart_coord[:,:2], axis=1)
+
+    theta = np.arctan2(cart_coord[:,1], cart_coord[:,0])
+    phi = np.arctan2(r_xy, cart_coord[:,2])
+    angle = np.concatenate((theta[:,None], phi[:,None]), axis=1)
+    return (r, angle)
 
 def spherical2cart(r, angle):
     """r is shape (numPoints, 1) or (numPoints)
