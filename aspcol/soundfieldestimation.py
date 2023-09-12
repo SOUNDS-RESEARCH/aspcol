@@ -6,11 +6,36 @@ import scipy.special as spspec
 import aspcol.kernelinterpolation as ki
 import aspcol.utilities as util
 import aspcol.filterdesign as fd
-import est_sf
 import pseq
 
 
+
+# ===================================================
+# Sound field estimation using stationary microphones
+# ===================================================
+
 def pseq_nearest_neighbour(p, seq, pos, pos_eval):
+    """
+    Estimates the sound field at the evaluation points by simply selecting the value
+    associated with the nearest microphone position. 
+    Assumes that the sequence is a perfect periodic sequence.
+
+    Parameters
+    ----------
+    p : ndarray of shape (num_mic, seq_len)
+        sound pressure in time domain at num_mic microphone positions
+    seq : ndarray of shape (seq_len) or (1, seq_len)
+        training signal used for the measurements
+    pos : ndarray of shape (num_mic, 3)
+        positions of the microphones
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
+    """
     rir = pseq.decorrelate(p, seq)
     rir_freq = np.fft.rfft(rir, axis=-1).T
 
@@ -29,12 +54,26 @@ def est_ki_diffuse(p, seq, pos, pos_eval, samplerate, c, reg_param):
     Estimates the RIR in the frequency domain using kernel interpolation
     Assumes seq is a perfect periodic sequence
 
+    Parameters
+    ----------
     p : ndarray of shape (M, seq_len)
         sound pressure in time domain at M microphone positions
     seq : ndarray of shape (seq_len)
         the training signal used for the measurements
-        seq should be defined so that the following holds
-        p(n) = sum_{i=0}^{I-1} h(i) seq[n-i]
+    pos : ndarray of shape (num_mic, 3)
+        positions of the microphones
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+    samplerate : int
+    c : float
+        speed of sound
+    reg_param : float
+        regularization parameter for kernel interpolation
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
     """
     rir = pseq.decorrelate(p, seq)
 
@@ -46,6 +85,9 @@ def est_ki_diffuse(p, seq, pos, pos_eval, samplerate, c, reg_param):
 
 def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
     """
+    Estimates the RIR in the frequency domain using kernel interpolation
+    Uses the frequency domain sound pressure as input
+
     Parameters
     ----------
     p_freq : ndarray of shape ()
@@ -59,53 +101,91 @@ def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
 
 
 
+# ================================================
+# Sound field estimation using a moving microphone
+# ================================================
 
-def est_shd_dynamic_conjugate_symmetric(p, pos, pos_eval, sequence, samplerate, c, reg_param, verbose=False):
+
+def est_inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_param, verbose=False):
     """
-    more correct than the standard version
+    Estimates the RIR at evaluation positions using data from a moving microphone
+    using Bayesian inference of an infinite sequence of spherical harmonics
+
+    Implements the method in J. Brunnström, M.B. Moeller, M. Moonen, 
+    "Bayesian sound field estimation using moving microphones" 
+
+    Assumptions:
+    The microphones are omnidirectional
+    The noise covariance is a scaled identity matrix
+    The data is measured over an integer number of periods of the sequence
+        N = seq_len * M, where M is the number of periods that was measured
+    The length of sequence is the length of the estimated RIR
+
     Parameters
     ----------
-    p : ndarray of shape (M, B)
+    p : ndarray of shape (N)
+        sound pressure for each sample of the moving microphone
     pos : ndarray of shape (N, 3)
-    sequence : ndarray of shape (B)
-    sim_info : SimulatorInfo object
+        position of the trajectory for each sample
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+    sequence : ndarray of shape (seq_len) or (1, seq_len)
+        the training signal used for the measurements
+    samplerate : int
+    c : float
+        speed of sound
+    reg_param : float
+        regularization parameter
+    verbose : bool, optional
+        if True, returns diagnostics, by default False
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
     """
-    M = p.shape[0]
-    B = p.shape[1]
-    N = B * M
+    # ======= Argument parsing =======
+    if p.ndim >= 2:
+        p = np.squeeze(p)
 
-    p_vec = p.reshape(-1)
+    if sequence.ndim == 2:
+        sequence = np.squeeze(sequence, axis=0)
+    assert sequence.ndim == 1
 
-    k = fd.get_wavenum(B, samplerate, c)
-    real_freqs = fd.get_real_freqs(B, samplerate)
-    num_real_freqs = len(real_freqs)
+    N = p.shape[0]
+    seq_len = sequence.shape[0]
+    num_periods = N // seq_len
+    assert N % seq_len == 0
 
-    Phi = sequence_stft_multiperiod(sequence[:B], M)
+    k = fd.get_wavenum(seq_len, samplerate, c)
+    num_real_freqs = len(fd.get_real_freqs(seq_len, samplerate))
 
-    #division by pi is a correction for the sinc function
+    # ======= Estimation of spherical harmonic coefficients =======
+    Phi = _sequence_stft_multiperiod(sequence, num_periods)
+
+    #division by pi is a correction for the sinc function used later
     dist_mat = np.sqrt(np.sum((np.expand_dims(pos,1) - np.expand_dims(pos,0))**2, axis=-1))  / np.pi 
     
-    psi = np.zeros((N, N), dtype = complex)
+    psi = np.zeros((N, N), dtype = float)
 
-    psi += np.sinc(dist_mat * k[0]) * Phi[0,:,None] * Phi[0,None,:].conj()
-    psi += np.sinc(dist_mat * k[B//2]) * Phi[B//2,:,None] * Phi[B//2,None,:].conj()
-    assert B % 2 == 0 #last two lines is only correct if B is even
+    # no conjugation required for zeroth frequency and the Nyquist frequency, 
+    # since they will be real already for a real input sequence
+    psi += np.sinc(dist_mat * k[0]) * np.real_if_close(Phi[0,:,None] * Phi[0,None,:])
+    assert seq_len % 2 == 0 #following line is only correct if B is even
+    psi += np.sinc(dist_mat * k[seq_len//2]) * np.real_if_close(Phi[seq_len//2,:,None] * Phi[seq_len//2,None,:])
 
     for f in range(1, num_real_freqs-1):
         phi_rank1_matrix = Phi[f,:,None] * Phi[f,None,:].conj()
         psi += 2*np.real(np.sinc(dist_mat * k[f]) * phi_rank1_matrix)
 
     noise_cov = reg_param * np.eye(N)
-    #right_side = np.linalg.solve(psi + noise_cov, p_vec)
-    right_side = splin.solve(psi + noise_cov, p_vec, assume_a = "pos")
+    right_side = splin.solve(psi + noise_cov, p, assume_a = "pos")
 
     right_side = Phi.conj() * right_side[None,:]
 
+    # ======= Reconstruction of RIR =======
     est_sound_pressure = np.zeros((num_real_freqs, pos_eval.shape[0]), dtype=complex)
     for f in range(num_real_freqs):
-        #if f != 0 :
-        #print(f"Freq: {f}")
-        
         kernel_val = ki.kernel_helmholtz_3d(pos_eval, pos, k[f:f+1]).astype(complex)[0,:,:]
         est_sound_pressure[f, :] = np.sum(kernel_val * right_side[f,None,:], axis=-1)
 
@@ -121,117 +201,62 @@ def est_shd_dynamic_conjugate_symmetric(p, pos, pos_eval, sequence, samplerate, 
 
 
 
-
-
-def est_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_param, verbose=False):
-    """
-    probably wrong, should not sample all frequencies from 0 to I
-
-    Parameters
-    ----------
-    p : ndarray of shape (M, B)
-    pos : ndarray of shape (N, 3)
-    sequence : ndarray of shape (B)
-    sim_info : SimulatorInfo object
-    """
-    M = p.shape[0]
-    B = p.shape[1]
-    N = B * M
-
-    p_vec = p.reshape(-1)
-
-    k = fd.get_wavenum(B, samplerate, c)
-    real_freqs = fd.get_real_freqs(B, samplerate)
-    num_real_freqs = len(real_freqs)
-
-    Phi = sequence_stft_multiperiod(sequence[:B], M)
-
-    #division by pi is a correction for the sinc function
-    dist_mat = np.sqrt(np.sum((np.expand_dims(pos,1) - np.expand_dims(pos,0))**2, axis=-1))  / np.pi 
-    
-    psi = np.zeros((N, N), dtype = complex)
-    for f in range(B):
-        phi_rank1_matrix = Phi[f,:,None] * Phi[f,None,:].conj()
-        psi += np.sinc(dist_mat * k[f]) * phi_rank1_matrix
-
-    noise_cov = reg_param * np.eye(N)
-    #right_side = np.linalg.solve(psi + noise_cov, p_vec)
-    right_side = splin.solve(psi + noise_cov, p_vec, assume_a = "pos")
-
-    right_side = Phi.conj() * right_side[None,:]
-
-    est_sound_pressure = np.zeros((num_real_freqs, pos_eval.shape[0]), dtype=complex)
-    for f in range(num_real_freqs):
-        #if f != 0 :
-        #print(f"Freq: {f}")
-        
-        kernel_val = ki.kernel_helmholtz_3d(pos_eval, pos, k[f:f+1]).astype(complex)[0,:,:]
-        est_sound_pressure[f, :] = np.sum(kernel_val * right_side[f,None,:], axis=-1)
-
-    if verbose:
-        diagnostics = {}
-        diagnostics["condition number"] = np.linalg.cond(psi).tolist()
-        diagnostics["smallest eigenvalue"] = splin.eigh(psi, subset_by_index=(0,0), eigvals_only=True).tolist()
-        diagnostics["largest eigenvalue"] = splin.eigh(psi, subset_by_index=(N-1, N-1), eigvals_only=True).tolist()
-        return est_sound_pressure, diagnostics
-    else:
-        return est_sound_pressure
-
-
-
-
-
-def est_shd_dynamic_pressure_ip(p, pos, pos_eval, sequence, samplerate, c, reg_param):
-    """
-    First estimate sound pressure, and then decorrelate the pseq at each position. 
-
-
-    Parameters
-    ----------
-    p : ndarray of shape (M, B)
-    pos : ndarray of shape (N, 3)
-    sequence : ndarray of shape (B)
-    sim_info : SimulatorInfo object
-    """
-    est_freq = est_sf.est_shd_dynamic_conjugate_symmetric(p, pos, pos_eval, samplerate, c, reg_param)
-    est_time = np.fft.irfft(est_freq, axis=0).T
-    rir_est = pseq.decorrelate(est_time, sequence[:est_time.shape[-1]])
-    return np.fft.rfft(rir_est, axis=-1).T
-
-
-
-
-
 def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, r_max, verbose=False):
     """
-    Method from Katzberg et al. 
-    SPHERICAL HARMONIC REPRESENTATION FOR DYNAMIC SOUND-FIELD MEASUREMENTS
+    Estimates the RIR at evaluation positions using data from a moving microphone
+
+    Implements the method from Katzberg et al. "Spherical harmonic 
+    representation for dynamic sound-field measurements"
     
-    Assumes that the spherical harmonics should be expanded around the origin (0,0,0)
-    
+    Assumptions:
+    The spherical harmonics are expanded around the origin (0,0,0)
+    The sequence is periodic, and the pressure is measured for an integer number of periods
+    The length of sequence is the length of the estimated RIR
+
     Parameters
     ----------
-    p : ndarray of shape (M, B)
+    p : ndarray of shape (N)
+        sound pressure for each sample of the moving microphone
     pos : ndarray of shape (N, 3)
+        position of the trajectory for each sample
     pos_eval : ndarray of shape (num_eval, 3)
-    sequence : ndarray of shape (B)
-        Assumes the sequence is periodic
+        positions of the evaluation points
+    sequence : ndarray of shape (seq_len) or (1, seq_len)
+        the training signal used for the measurements
+    samplerate : int
+    c : float
+        speed of sound
+    r_max : float
+        radius of the sphere onto which the spatial spectrum is computed
+    verbose : bool, optional
+        if True, returns diagnostics, by default False
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
     """
-    M = p.shape[0]
-    B = p.shape[1]
-    N = B * M
+    # ======= Argument checking =======
+    if p.ndim >= 2:
+        p = np.squeeze(p)
+
+    if sequence.ndim == 2:
+        sequence = np.squeeze(sequence, axis=0)
+    assert sequence.ndim == 1
+
+    N = p.shape[0]
+    seq_len = sequence.shape[0]
+    num_periods = N // seq_len
+    assert N % seq_len == 0
     num_eval = pos_eval.shape[0]
 
-    p = p.reshape(-1)
-
-
-    k = fd.get_wavenum(B, samplerate, c)
+    k = fd.get_wavenum(seq_len, samplerate, c)
     num_freqs = len(k)
-    real_freqs = fd.get_real_freqs(B, samplerate)
-    num_real_freqs = len(real_freqs)
+    num_real_freqs = len(fd.get_real_freqs(seq_len, samplerate))
 
-    phi = sequence_stft_multiperiod(sequence[:B], M)
-    max_orders = min_order_spher_harm(k, r_max)
+    # ======= Estimation of spatial spectrum coefficients =======
+    phi = _sequence_stft_multiperiod(sequence, num_periods)
+    max_orders = shd_min_order(k, r_max)
     r, angles = util.cart2spherical(pos)
 
     Sigma = []
@@ -249,10 +274,10 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, r_ma
 
     Sigma = np.concatenate(Sigma, axis=-1)
 
-    a, residue, rank, singular_values = np.linalg.lstsq(Sigma + 0*np.eye(*Sigma.shape), p, rcond=None)
+    a, residue, rank, singular_values = np.linalg.lstsq(Sigma, p, rcond=None)
 
 
-    # reconstruction
+    # ======= Reconstruction of RIR =======
     rir_est = np.zeros((num_real_freqs, num_eval), dtype=complex)
     r_eval, angles_eval = util.cart2spherical(pos_eval)
     ord_idx = 0
@@ -266,7 +291,6 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, r_ma
         Y = spspec.sph_harm(modes[None,:], order[None,:], angles_eval[:,0:1], angles_eval[:,1:2])
         rir_est[f, :] = np.sum(a[None,ord_idx:ord_idx+num_ord] * Y * j_num / j_denom[None,:], axis=-1)
         ord_idx += num_ord
-    #assert ord_idx == len(a)
 
     if verbose:
         diagnostics = {}
@@ -277,6 +301,68 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, r_ma
         diagnostics["r_max"] = r_max
         return rir_est, diagnostics
     return rir_est
+
+
+
+def _sequence_stft_multiperiod(sequence, num_periods):
+    """
+    Assumes that the sequence is periodic.
+    Assumes that sequence argument only contains one period
+    
+    Parameters
+    ----------
+    sequence : ndarray of shape (seq_len,)
+    num_periods : int
+
+    Returns
+    -------
+    Phi : ndarray of shape (seq_len, num_periods*seq_len)
+    """
+    Phi = _sequence_stft(sequence)
+    return np.tile(Phi, (1, num_periods))
+
+def _sequence_stft(sequence):
+    """
+    Might not correspond to the definition in the paper
+
+    Parameters
+    ----------
+    sequence : ndarray of shape (seq_len,)
+
+    Assume the sequence is periodic with period B
+
+    Returns
+    -------
+    Phi : ndarray of shape (seq_len, seq_len)
+        first axis contains frequency bins
+        second axis contains time indices
+    
+    """
+    if sequence.ndim == 2:
+        sequence = np.squeeze(sequence, axis=0)
+    assert sequence.ndim == 1
+    B = sequence.shape[0]
+
+    Phi = np.zeros((B, B), dtype=complex)
+
+    for n in range(B):
+        seq_vec = np.roll(sequence, -n) #so that n is the first element
+        seq_vec = np.roll(seq_vec, -1) # so that n ends up last
+        seq_vec = np.flip(seq_vec) # so that we get n first and then n-i as we move later in the vector
+        for f in range(B):
+            exp_vec = fd.idft_vector(f, B)
+            Phi[f,n] = np.sum(exp_vec * seq_vec) 
+    # Fast version, not sure if correct
+    # for n in range(B):
+    #     Phi[:,n] = np.fft.fft(np.roll(sequence, -n), axis=-1)
+    return Phi
+
+
+
+
+# ======================================================
+# Useful functions for spherical harmonic decompositions
+# ======================================================
 
 
 def shd_num_degrees(max_order : int):
@@ -329,7 +415,7 @@ def shd_num_degrees_vector(max_order : int):
     order = np.concatenate(order)
     return order, degree
 
-def min_order_spher_harm(wavenumber, radius):
+def shd_min_order(wavenumber, radius):
     """
     Returns the minimum order of the spherical harmonics that should be used
     for a given wavenumber and radius
@@ -351,54 +437,6 @@ def min_order_spher_harm(wavenumber, radius):
     return np.ceil(wavenumber * radius).astype(int)
 
 
-
-def sequence_stft_multiperiod(sequence, num_periods):
-    """
-    Assumes that the sequence is periodic.
-    Assumes that sequence argument only contains one period
-    
-    Returns
-    -------
-    Phi : ndarray of shape (seq_len, num_periods*seq_len)
-    """
-    Phi = sequence_stft(sequence)
-    return np.tile(Phi, (1, num_periods))
-
-def sequence_stft(sequence):
-    """
-    Might not correspond to the definition in the paper
-
-    Parameters
-    ----------
-    sequence : ndarray of shape (seq_len,)
-
-    Assume the sequence is periodic with period B
-
-    Returns
-    -------
-    Phi : ndarray of shape (seq_len, seq_len)
-        first axis contains frequency bins
-        second axis contains time indices
-    
-    """
-    if sequence.ndim == 2:
-        sequence = np.squeeze(sequence, axis=0)
-    assert sequence.ndim == 1
-    B = sequence.shape[0]
-
-    Phi = np.zeros((B, B), dtype=complex)
-
-    for n in range(B):
-        seq_vec = np.roll(sequence, -n) #so that n is the first element
-        seq_vec = np.roll(seq_vec, -1) # so that n ends up last
-        seq_vec = np.flip(seq_vec) # so that we get n first and then n-i as we move later in the vector
-        for f in range(B):
-            exp_vec = fd.idft_vector(f, B)
-            Phi[f,n] = np.sum(exp_vec * seq_vec) 
-    # Fast version, not sure if correct
-    # for n in range(B):
-    #     Phi[:,n] = np.fft.fft(np.roll(sequence, -n), axis=-1)
-    return Phi
 
 
 
