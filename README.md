@@ -22,8 +22,8 @@ The package makes heavy use of numpy and scipy.
 * Sample covariance for vector-valued variable, including the non-zero mean case, even in a streaming processing.  
 * Covariance estimation with optimal linear shrinkage [1] and almost optimal non-linear shrinkage [2],
 
-[1] [Y. Chen, A. Wiesel, Y. C. Eldar, and A. O. Hero, “Shrinkage Algorithms for MMSE Covariance Estimation,” IEEE Trans. Signal Process., vol. 58, no. 10, pp. 5016–5029, Oct. 2010, doi: 10.1109/TSP.2010.2053029.](doi.org/10.1109/TSP.2010.2053029)
-[2] [O. Ledoit and M. Wolf, “Quadratic shrinkage for large covariance matrices,” Dec. 2020, doi: 10.5167/UZH-176887.](doi.org/10.5167/UZH-176887)
+[1] [Y. Chen, A. Wiesel, Y. C. Eldar, and A. O. Hero, “Shrinkage Algorithms for MMSE Covariance Estimation,” IEEE Trans. Signal Process., vol. 58, no. 10, pp. 5016–5029, Oct. 2010, doi: 10.1109/TSP.2010.2053029.](doi.org/10.1109/TSP.2010.2053029)  
+[2] [O. Ledoit and M. Wolf, “Quadratic shrinkage for large covariance matrices,” Dec. 2020, doi: 10.5167/UZH-176887.](doi.org/10.5167/UZH-176887)  
 
 ## distance
 A collection of distance measures for different types of quantities
@@ -36,11 +36,12 @@ A collection of distance measures for different types of quantities
 ##### PSD matrices:  
 * Correlation matrix distance [1]
 * Affine invariant Riemannian metric [2]
-* Kullback Leibler divergence between zero-mean Gaussian densities described by the compared matrices
+* Kullback Leibler divergence between zero-mean Gaussian densities described by the compared matrices [3]
 
 
 [1] [M. Herdin, N. Czink, H. Ozcelik, and E. Bonek, “Correlation matrix distance, a meaningful measure for evaluation of non-stationary MIMO channels,” in 2005 IEEE 61st Vehicular Technology Conference, May 2005, pp. 136-140 Vol. 1. doi: 10.1109/VETECS.2005.1543265.](https://doi.org/10.1109/VETECS.2005.1543265)  
 [2] [W. Förstner and B. Moonen, “A metric for covariance matrices,” in Geodesy-The Challenge of the 3rd Millennium, E. W. Grafarend, F. W. Krumm, and V. S. Schwarze, Eds., Berlin, Heidelberg: Springer Berlin Heidelberg, 2003, pp. 299–309. doi: 10.1007/978-3-662-05296-9_31.](doi.org/10.1007/978-3-662-05296-9_31)  
+[3] [J. Duchi, "Derivations for Linear Algebra and Optimization"](https://web.stanford.edu/~jduchi/projects/general_notes.pdf)  
 
 ## filterclasses
 * Weighted overlap-add (WOLA) [1,2]
@@ -89,4 +90,4 @@ Directionally weighted wave field estimation. Can be used for directional microp
 Relevant papers
 Ueno, Koyama, Saruwatari - Directionally weighted wave field estimation exploiting prior information on source direction
 ### utilities
-Helper functions for anything
+Helper functions for various tasks
