@@ -6,13 +6,8 @@ import scipy.special as spspec
 import aspcol.kernelinterpolation as ki
 import aspcol.utilities as util
 import aspcol.filterdesign as fd
-import pseq
+import aspcol.pseq as pseq
 
-
-
-# ===================================================
-# Sound field estimation using stationary microphones
-# ===================================================
 
 def pseq_nearest_neighbour(p, seq, pos, pos_eval):
     """
@@ -112,9 +107,6 @@ def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
 
 
 
-# ================================================
-# Sound field estimation using a moving microphone
-# ================================================
 
 
 def est_inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_param, verbose=False):
@@ -370,10 +362,6 @@ def _sequence_stft(sequence):
 
 
 
-
-# ======================================================
-# Useful functions for spherical harmonic decompositions
-# ======================================================
 
 
 def shd_num_degrees(max_order : int):

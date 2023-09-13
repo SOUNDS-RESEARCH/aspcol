@@ -21,3 +21,8 @@ slask/*/*
 aspcol.egg-info
 
 .gitignore.bak
+*.bak
+
+docs/source/_autosummary
+docs/source/_autosummary/*
+docs/build/*
