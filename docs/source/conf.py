@@ -37,7 +37,6 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
-    "sphinx_immaterial",
 ]
 napoleon_google_docstring = False
 autosummary_generate = True
