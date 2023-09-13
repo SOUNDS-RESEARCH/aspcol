@@ -174,10 +174,12 @@ class LMS(AdaptiveFilterBase):
 
 
 class BlockLMS(AdaptiveFilterBase):
-    """Block based processing and normalization
+    """
+    Block based processing and normalization
     Dimension of filter is (input channels, output channels, IR length)
-        Normalizes with a scalar, common for all channels
-        identical to FastBlockLMS with scalar normalization"""
+    Normalizes with a scalar, common for all channels
+    identical to FastBlockLMS with scalar normalization
+    """
 
     def __init__(
         self, ir_len, num_in, num_out, stepSize, regularization=1e-3, filter_type=None

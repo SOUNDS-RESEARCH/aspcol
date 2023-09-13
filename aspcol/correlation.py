@@ -133,9 +133,9 @@ class SampleCorrelation:
             For the recursive definition of covariance with sample mean, 
             take a look at 'Computing (co)variances recursively' - Thijs Knaap. 
 
-            Without mean we calculate 1/N sum_{n=1}^{N} x_n y_n*
+            Without mean we calculate 1/N sum_{n=1}^{N} x_n y_n\*
 
-            With mean we calculate 1/N sum_{n=1}^{N} (x_n - xbar_n)(y_n - ybar_n)*
+            With mean we calculate 1/N sum_{n=1}^{N} (x_n - xbar_n)(y_n - ybar_n)\*
             where the sample mean is xbar_n = 1/n sum_{i=1}^{n} x_i. The recursive calculation
             is exact (apart from possible numerical differences), there is no additional assumptions. 
 
@@ -144,8 +144,8 @@ class SampleCorrelation:
                 following code (the first index must be handled separately in this case as well)
             
                 np.matmul(vec1 - self.mean.state, (vec2 - self.mean2.state).T, out=self._preallocated_update)
-                self._preallocated_update *= 1 / self.n
-                self.corr *= self.n / (self.n + 1)
+                self._preallocated_update \*= 1 / self.n
+                self.corr \*= self.n / (self.n + 1)
         """
         if vec2 is None:
             vec2 = vec1
@@ -269,14 +269,14 @@ def sample_correlation(data, data2=None, estimate_mean=False):
     """
     data is a matrix of size (data_dim, num_samples)
     data2 is an optional matrix of size (data_dim2, num_samples)
-        the cross-correlation is calulcated if this is supplied
+    the cross-correlation is calulcated if this is supplied
 
     if estimate_mean is True, the sample mean is calculated xbar = 1/N sum_{n=1}^{N} x_n
-        where x_n is the nth column of the data matrix
-        the correlation is 1/(N-1) sum_{n=1}^{N} (x_n - xbar)(y_n - ybar)^H
+    where x_n is the nth column of the data matrix
+    the correlation is 1/(N-1) sum_{n=1}^{N} (x_n - xbar)(y_n - ybar)^H
 
     if estimate_mean is False, the data is assumed to be zero-mean
-        the correlation is 1/N sum_{n=1}^{N} x_n y_n^H
+    the correlation is 1/N sum_{n=1}^{N} x_n y_n^H
     
     """
     if data2 is None:
@@ -320,8 +320,8 @@ class Autocorrelation:
         """
         size : scalar integer, correlation matrix is size x size. 
         forget_factor : scalar between 0 and 1. 
-            1 is straight averaging, increasing time window
-            0 will make matrix only dependent on the last sample
+        1 is straight averaging, increasing time window
+        0 will make matrix only dependent on the last sample
         """
         self.forget_factor = forget_factor
         self.max_lag = max_lag
@@ -639,7 +639,7 @@ def get_filter_for_autocorrelation(autocorr):
 
 
 
-def autocorrelation(sig, max_lag, interval):
+def autocorrelation_old(sig, max_lag, interval):
     """
     I'm not sure I trust this one. Write some unit tests 
     against Autocorrelation class first. But the corr_matrix function

@@ -175,9 +175,9 @@ def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain
     see 'Spatial active noise control based on kernel interpolation of sound field' by Koyama et al.     
 
     Parameters
-        ----------
+    ----------
     kernel_func : function
-        with calling signature kernel_func(points1, points2, waveNum, *args)
+        with calling signature kernel_func(points1, points2, waveNum, \*args)
     reg_param : float
     mic_pos : ndarray of shape (num_mics, spatial_dim)
     integral_domain : instance of any Region object found is aspsim package
@@ -194,7 +194,8 @@ def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain
     ndarray of shape (num_freq, num_mics, num_mics)
     
     For both diffuse and directional kernel P^H = P, so the hermitian tranpose should not do anything
-    It is left in place in case a kernel function in the future changes that identity. """
+    It is left in place in case a kernel function in the future changes that identity. 
+    """
     freqs = fd.get_frequency_values(num_freq, samplerate)
     wave_num = 2 * np.pi * freqs / c
 
@@ -226,7 +227,7 @@ def get_krr_parameters(kernel_func, reg_param, output_arg, data_arg, *args):
     data_arg : ndarray (num_data_points, data_dim)
     output_arg : ndarray (num_out_points, data_dim)
     kernel_func : function 
-        with calling signature kernel_func(output_arg, data_arg, *args)
+        with calling signature kernel_func(output_arg, data_arg, \*args)
         should return ndarray (..., num_out_points, num_data_points)
     
     Returns

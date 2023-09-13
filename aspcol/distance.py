@@ -67,19 +67,19 @@ def corr_matrix_distance(mat1, mat2):
 def covariance_distance_riemannian(mat1, mat2):
     """
     Computes the covariance matrix distance as proposed in 
-        A Metric for Covariance Matrices - Wolfgang Förstner, Boudewijn Moonen
-        http://www.ipb.uni-bonn.de/pdfs/Forstner1999Metric.pdf
+    A Metric for Covariance Matrices - Wolfgang Förstner, Boudewijn Moonen
+    http://www.ipb.uni-bonn.de/pdfs/Forstner1999Metric.pdf
 
     It is the distance of a canonical invariant Riemannian metric on the space 
-        Sym+(n, R) of real symmetric positive definite matrices. 
+    Sym+(n, R) of real symmetric positive definite matrices. 
 
     When the metric of the space is the fisher information metric, this is the 
-        distance of the space. See COVARIANCE CLUSTERING ON RIEMANNIAN MANIFOLDS
-        FOR ACOUSTIC MODEL COMPRESSION - Shinohara, Masukp, Akamine
+    distance of the space. See COVARIANCE CLUSTERING ON RIEMANNIAN MANIFOLDS
+    FOR ACOUSTIC MODEL COMPRESSION - Shinohara, Masukp, Akamine
 
     Invariant to affine transformations and inversions. 
     It is a distance measure, so 0 means equal and then it goes to infinity
-        and the matrices become more unequal.
+    and the matrices become more unequal.
 
     """
     eigvals = splin.eigh(mat1, mat2, eigvals_only=True)
@@ -89,11 +89,11 @@ def covariance_distance_riemannian(mat1, mat2):
 def covariance_distance_kl_divergence(mat1, mat2):
     """
     It is the Kullback Leibler divergence between two Gaussian
-        distributions that has mat1 and mat2 as their covariance matrices. 
-        Assumes both of these distributions has zero mean
+    distributions that has mat1 and mat2 as their covariance matrices. 
+    Assumes both of these distributions has zero mean
 
     It is a distance measure, so 0 means equal and then it goes to infinity
-        and the matrices become more unequal.
+    and the matrices become more unequal.
     
     """
     assert mat1.shape == mat2.shape
