@@ -11,12 +11,18 @@ jobs:
       - name: Install dependencies
         run: |
           pip install sphinx sphinx_rtd_theme
+      - name: Install dependencies
+        run: |
+          pip install -r ./requirements.txt
+      - name: Installing the library
+        run: |
+          python setup.py install
       - name: Sphinx build
         run: |
           sphinx-build docs/source _build
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}

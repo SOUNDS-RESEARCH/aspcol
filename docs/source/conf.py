@@ -45,6 +45,7 @@ autodoc_inherit_docstrings = True
 set_type_checking_flag = True
 autosummary_imported_members = True
 
+autodoc_mock_imports = ["numpy", "scipy", "pandas, ""matplotlib", "samplerate", "numexpr", "numba", "tensorly", "hypothesis", "pytest", "aspcore", "aspsim"]
 
 
 # Add any paths that contain templates here, relative to this directory.
