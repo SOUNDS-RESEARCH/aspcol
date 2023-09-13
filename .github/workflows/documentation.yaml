@@ -8,10 +8,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
-      - name: Install dependencies
+      - name: Install doc dependencies
         run: |
-          pip install sphinx sphinx_rtd_theme
-      - name: Install dependencies
+          pip install -r docs/requirements.txt
+      - name: Install package dependencies
         run: |
           pip install -r ./requirements.txt
       - name: Installing the library
