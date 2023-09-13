@@ -14,6 +14,12 @@ jobs:
       - name: Sphinx build
         run: |
           sphinx-build docs/source _build
+      - name: Install dependencies
+        run: |
+          pip install -r ./requirements.txt
+      - name: Installing the library
+        run: |
+          python setup.py install
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
