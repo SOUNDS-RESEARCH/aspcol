@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.signal as spsig
-import pandas as pd
 
 import aspcol.matrices as mat
 import aspcol.filterclasses as fc
