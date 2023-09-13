@@ -57,31 +57,8 @@ templates_path = ['_templates']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = 'alabaster'
-html_theme = "sphinx_immaterial"
-#html_theme = 'pydata_sphinx_theme'
-#html_theme = 'sphinx_rtd_theme'
+html_theme = 'alabaster'
 
-html_theme_options = {
-    "repo_name": "aspcol",
-    "repo_url": "https://github.com/SOUNDS-RESEARCH/aspcol",
-    "features": [
-        "navigation.expand",
-        # "navigation.tabs",
-        # "toc.integrate",
-        "navigation.sections",
-        # "navigation.instant",
-        # "header.autohide",
-        "navigation.top",
-        # "navigation.tracking",
-        # "search.highlight",
-        "search.share",
-        "toc.follow",
-        "toc.sticky",
-        "content.tabs.link",
-        "announce.dismiss",
-    ],
-}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
