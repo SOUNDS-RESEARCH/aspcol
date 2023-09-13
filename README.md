@@ -91,9 +91,6 @@ Helper functions for dealing with matrices. Some examples include constructing a
 ## montecarlo
 Helper functions for naive monte carlo sampling of a given function
 
-## polynomialmatrix
-Implements Polynomial Eigenvalue Decomposition (PEVD). Currently not functioning.
-
 ## soundfieldestimation
 Directionally weighted wave field estimation. Can be used for directional microphones
 
