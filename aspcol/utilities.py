@@ -10,18 +10,23 @@ import aspcore.filterclasses as fc
 
 
 def power_of_filtered_signal(src, ir, num_samples):
-    """
-    Returns the average power of the signal after 
-        propagating through an impulse response
-        rir should be (num_sources, num_recievers, rir_len)
-
-    For stochastic signals, it is an estimate made from
-        num_samples. 
-    For periodic signals, set num_samples to the period
-        for the true average power (not an estimate)
-
-    Returns a non-negative array of shape (num_recievers,) 
-        which is the average power for each channel 
+    """Returns an estimate of average power of the signal after filtered through an impulse response
+        
+    Parameters
+    ----------
+    src : source object
+        The source generating the signal
+        Can be any object with a get_samples method that takes an integer num_samples as argument
+        and returns an ndarray of shape (num_channels, num_samples)
+    ir : ndarray of shape (num_channels, num_recievers, ir_len)
+        The impulse response to filter the signal with
+    num_samples : int
+        The number of samples to use for the estimate. If the signal is periodic, this should be the period length
+        
+    Returns
+    -------
+    avg_pow : ndarray of shape (num_recievers,)
+        The average power for each receiver channel. Will only have non-negative values.
     """
     assert ir.ndim == 3
     ir_len = ir.shape[-1]
@@ -36,32 +41,75 @@ def power_of_filtered_signal(src, ir, num_samples):
 
 # only scalar for now
 def is_power_of_2(x):
+    """Returns True if x is a power of 2, False otherwise
+    """
     return is_integer(np.log2(x))
 
 def is_integer(x):
+    """Returns True if x is an integer, False otherwise
+    """
     if np.all(np.isclose(x, x.astype(int))):
         return True
     return False
 
 def cart2pol(x, y):
+    """Transforms the provided cartesian coordinates to polar coordinates
+    
+    Parameters
+    ----------
+    x : float or ndarray of shape (num_points,)
+        x coordinate
+    y : float or ndarray of shape (num_points,)
+        y coordinate
+
+    Returns
+    -------
+    r : float or ndarray of shape (num_points,)
+        radius
+    angle : float or ndarray of shape (num_points,)
+        angle in radians. 0 is the x-direction, pi/2 is the y-direction
+    
+    """
     r = np.hypot(x, y)
     angle = np.arctan2(y, x)
     return (r, angle)
 
 def pol2cart(r, angle):
+    """Tranforms the provided polar coordinates to cartesian coordinates
+    
+    Parameters
+    ----------
+    r : float or ndarray of shape (num_points,)
+        radius
+    angle : float or ndarray of shape (num_points,)
+        angle in radians. 0 is the x-direction, pi/2 is the y-direction
+    
+    Returns
+    -------
+    x : float or ndarray of shape (num_points,)
+        x coordinate
+    y : float or ndarray of shape (num_points,)
+        y coordinate
+    """
     x = r * np.cos(angle)
     y = r * np.sin(angle)
     return (x, y)
 
 def cart2spherical(cart_coord):
-    """
+    """Transforms the provided cartesian coordinates to spherical coordinates
+
+    Parameters
+    ----------
     cart_coord : ndarray of shape (num_points, 3)
-    center : array_like of shape (3,)
 
     Returns
     -------
-    (r, angle), representing radius, angle[:,0] represents azimuth (angle in xy plane) 
-        and angle[:,1] represents zenith"""
+    r : ndarray of shape (num_points, 1)
+        radius of each point
+    angle : ndarray of shape (num_points, 2)
+        angle[:,0] is theta, the angle in the xy plane, where 0 is x direction, pi/2 is y direction
+        angle[:,1] is phi, the zenith angle, where 0 is z direction, pi is negative z direction
+    """
     r = np.linalg.norm(cart_coord, axis=1)
     r_xy = np.linalg.norm(cart_coord[:,:2], axis=1)
 
@@ -71,12 +119,22 @@ def cart2spherical(cart_coord):
     return (r, angle)
 
 def spherical2cart(r, angle):
-    """r is shape (numPoints, 1) or (numPoints)
-        angle is shape (numPoints, 2)
-        angle[:,0] is theta
-        angle[:,1] is phi
-        theta is normal polar coordinate angle, 0 is x direction, pi/2 is y direction
-        phi is azimuth, 0 is z direction, pi is negative z direction"""
+    """Transforms the provided spherical coordinates to cartesian coordinates
+    
+    Parameters
+    ----------
+    r : ndarray of shape (num_points, 1) or (num_points,)
+        radius of each point
+    angle : ndarray of shape (num_points, 2)
+        the angles in radians
+        angle[:,0] is theta, the angle in the xy plane, where 0 is x direction, pi/2 is y direction
+        angle[:,1] is phi, the zenith angle, where 0 is z direction, pi is negative z direction
+    
+    Returns
+    -------
+    cart_coord : ndarray of shape (num_points, 3)
+        the cartesian coordinates
+    """
     num_points = r.shape[0]
     cart_coord = np.zeros((num_points,3))
     cart_coord[:,0] = np.squeeze(r) * np.cos(angle[:,0]) * np.sin(angle[:,1])
@@ -85,34 +143,74 @@ def spherical2cart(r, angle):
     return cart_coord
 
 def get_smallest_coprime(N):
+    """Get the smallest value that is coprime with N
+    
+    Parameters
+    ----------
+    N : int
+        The number to find a coprime to
+    
+    Returns
+    -------
+    coprime : int
+        The smallest coprime to N
+    """
     assert N > 2 #don't have to deal with 1 and 2 at this point
     for i in range(2,N):
         if np.gcd(i,N):
             return i
 
 def next_divisible(divisor, min_value):
-    """Gives the smallest integer divisible by divisor, 
-        that is strictly larger than minValue"""
+    """Gives the smallest integer divisible by divisor, that is strictly larger than min_value
+    
+    Parameters
+    ----------
+    divisor : int
+        The number to be divisible by
+    min_value : int
+        The smallest acceptable value
+
+    Returns
+    -------
+    next_divisible_number   : int
+        The smallest integer satisfying the conditions
+    """
     rem = (min_value + divisor) % divisor
     return min_value + divisor - rem
 
 def db2mag(db):
+    """Transforms the provided decibel value to magnitude"""
     return 10 ** (db / 20)
 
 def mag2db(amp):
+    """Transforms the provided magnitude to decibel"""
     return 20 * np.log10(amp)
 
 def db2pow(db):
+    """Transforms the provided decibel value to power"""
     return 10 ** (db / 10)
 
 def pow2db(power):
+    """Transforms the provided power to decibel"""
     return 10 * np.log10(power)
 
 
 def simplify_ratio(a : int, b : int):
-    """
-    simplifies the ratio a/b into the simplest possible
-    ratio where both numerator and denominator are integers
+    """Simplifies the ratio a/b into the simplest possible ratio where both numerator and denominator are integers
+
+    Parameters
+    ----------
+    a : int
+        numerator
+    b : int
+        denominator
+
+    Returns
+    -------
+    a : int
+        simplified numerator
+    b : int
+        simplified denominator
     """
     d = np.gcd(a,b)
     while d != 1:
