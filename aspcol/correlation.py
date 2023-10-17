@@ -7,8 +7,8 @@
 
 References
 ----------
-[1](doi.org/10.1109/TSP.2010.2053029) Y. Chen, A. Wiesel, Y. C. Eldar, and A. O. Hero, “Shrinkage Algorithms for MMSE Covariance Estimation,” IEEE Trans. Signal Process., vol. 58, no. 10, pp. 5016–5029, Oct. 2010, doi: 10.1109/TSP.2010.2053029. 
-[2](doi.org/10.5167/UZH-176887) O. Ledoit and M. Wolf, “Quadratic shrinkage for large covariance matrices,” Dec. 2020, doi: 10.5167/UZH-176887. 
+`[1] <doi.org/10.1109/TSP.2010.2053029>`_ Y. Chen, A. Wiesel, Y. C. Eldar, and A. O. Hero, “Shrinkage Algorithms for MMSE Covariance Estimation,” IEEE Trans. Signal Process., vol. 58, no. 10, pp. 5016–5029, Oct. 2010, doi: 10.1109/TSP.2010.2053029. 
+`[2] <doi.org/10.5167/UZH-176887>`_ O. Ledoit and M. Wolf, “Quadratic shrinkage for large covariance matrices,” Dec. 2020, doi: 10.5167/UZH-176887. 
 """
 
 

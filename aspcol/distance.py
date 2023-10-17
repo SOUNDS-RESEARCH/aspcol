@@ -1,20 +1,22 @@
 """A collection of distance measures for different types of quantities
 
-##### Any array:  
+Any array: 
 * Mean square error
-##### Vectors:   
+
+Vectors:   
 * Angular distance
 * Cosine similarity 
-##### PSD matrices:  
+
+PSD matrices:  
 * Correlation matrix distance [1]
 * Affine invariant Riemannian metric [2]
 * Kullback Leibler divergence between zero-mean Gaussian densities described by the compared matrices [3]
 
 References
 ----------
-[1](https://doi.org/10.1109/VETECS.2005.1543265) M. Herdin, N. Czink, H. Ozcelik, and E. Bonek, “Correlation matrix distance, a meaningful measure for evaluation of non-stationary MIMO channels,” in 2005 IEEE 61st Vehicular Technology Conference, May 2005, pp. 136-140 Vol. 1. doi: 10.1109/VETECS.2005.1543265.
-[2](doi.org/10.1007/978-3-662-05296-9_31) W. Förstner and B. Moonen, “A metric for covariance matrices,” in Geodesy-The Challenge of the 3rd Millennium, E. W. Grafarend, F. W. Krumm, and V. S. Schwarze, Eds., Berlin, Heidelberg: Springer Berlin Heidelberg, 2003, pp. 299–309. doi: 10.1007/978-3-662-05296-9_31.  
-[3](https://web.stanford.edu/~jduchi/projects/general_notes.pdf) J. Duchi, "Derivations for Linear Algebra and Optimization"
+`[1] <https://doi.org/10.1109/VETECS.2005.1543265>`_ M. Herdin, N. Czink, H. Ozcelik, and E. Bonek, 'Correlation matrix distance, a meaningful measure for evaluation of non-stationary MIMO channels,' in 2005 IEEE 61st Vehicular Technology Conference, May 2005, pp. 136-140 Vol. 1. doi: 10.1109/VETECS.2005.1543265.
+`[2] <(doi.org/10.1007/978-3-662-05296-9_31>`_ W. Förstner and B. Moonen, 'A metric for covariance matrices,' in Geodesy-The Challenge of the 3rd Millennium, E. W. Grafarend, F. W. Krumm, and V. S. Schwarze, Eds., Berlin, Heidelberg: Springer Berlin Heidelberg, 2003, pp. 299–309. doi: 10.1007/978-3-662-05296-9_31.  
+`[3] <https://web.stanford.edu/~jduchi/projects/general_notes.pdf>`_ J. Duchi, 'Derivations for Linear Algebra and Optimization'
 """
 import numpy as np
 import scipy.linalg as splin

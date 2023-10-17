@@ -1,3 +1,7 @@
+"""Functions associated with perfect periodic sequences
+
+Such sequences are deterministic periodic sequences with an impulse as periodic autocorrelation. 
+"""
 import numpy as np
 import scipy.linalg as splin
 import matplotlib.pyplot as plt
