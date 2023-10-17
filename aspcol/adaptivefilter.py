@@ -7,7 +7,7 @@
 
 References
 ----------
-`[1]<https://link.springer.com/book/10.1007/978-3-030-29057-3>`_ P. S. R. Diniz, Adaptive filtering: algorithms and practical implementation. Cham: Springer International Publishing, 2020. doi: 10.1007/978-3-030-29057-3.
+`[1] <https://link.springer.com/book/10.1007/978-3-030-29057-3>`_ P. S. R. Diniz, Adaptive filtering: algorithms and practical implementation. Cham: Springer International Publishing, 2020. doi: 10.1007/978-3-030-29057-3.
 
 """
 import numpy as np
