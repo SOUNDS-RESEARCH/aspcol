@@ -286,9 +286,9 @@ class PhaseCounter:
     then must wait 5000 samples before beginning the real processing step.
     The class can then be used by providing
     phase_def = {
-        'init' : 2000,
-        'wait' : 5000,
-        'process' : np.inf
+    'init' : 2000,
+    'wait' : 5000,
+    'process' : np.inf
     }
     and then checking if phase_counter.phase == 'init'
     or if phase_counter.current_phase_is('init'):
@@ -377,7 +377,7 @@ class EventCounter:
 
     To be used as:
     if 'event_name' in event_counter.event:
-        do_thing()
+    do_thing()
 
     """
     def __init__(self, event_def):

@@ -35,8 +35,8 @@ def psd_real(draw, dim=None, rank=None):
     """
     dim is an integer
     rank is an integer between 1 and dim 
-        rank greater than dim is not strictly disallowed, 
-        but makes no practical difference
+    rank greater than dim is not strictly disallowed, 
+    but makes no practical difference
 
     return positive semidefinite matrix of shape (dim, dim)
     """

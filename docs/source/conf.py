@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../aspcol'))
+sys.path.insert(0, os.path.abspath('../..'))
 #sys.path.insert(0, os.path.abspath('.'))
 
 
@@ -37,7 +37,6 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
-    "sphinx_immaterial",
 ]
 napoleon_google_docstring = False
 autosummary_generate = True
@@ -46,6 +45,7 @@ autodoc_inherit_docstrings = True
 set_type_checking_flag = True
 autosummary_imported_members = True
 
+autodoc_mock_imports = ["numpy", "scipy", "matplotlib", "samplerate", "numexpr", "numba", "tensorly", "hypothesis", "pytest", "aspcore", "aspsim"]
 
 
 # Add any paths that contain templates here, relative to this directory.
@@ -58,30 +58,8 @@ templates_path = ['_templates']
 # a list of builtin themes.
 #
 #html_theme = 'alabaster'
-html_theme = "sphinx_immaterial"
-#html_theme = 'pydata_sphinx_theme'
-#html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
-html_theme_options = {
-    "repo_name": "aspcol",
-    "repo_url": "https://github.com/SOUNDS-RESEARCH/aspcol",
-    "features": [
-        "navigation.expand",
-        # "navigation.tabs",
-        # "toc.integrate",
-        "navigation.sections",
-        # "navigation.instant",
-        # "header.autohide",
-        "navigation.top",
-        # "navigation.tracking",
-        # "search.highlight",
-        "search.share",
-        "toc.follow",
-        "toc.sticky",
-        "content.tabs.link",
-        "announce.dismiss",
-    ],
-}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

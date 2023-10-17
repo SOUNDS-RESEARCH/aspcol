@@ -121,7 +121,7 @@ def est_inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, r
     The microphones are omnidirectional
     The noise covariance is a scaled identity matrix
     The data is measured over an integer number of periods of the sequence
-        N = seq_len * M, where M is the number of periods that was measured
+    N = seq_len * M, where M is the number of periods that was measured
     The length of sequence is the length of the estimated RIR
 
     Parameters
