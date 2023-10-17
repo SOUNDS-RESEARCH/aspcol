@@ -1,3 +1,8 @@
+"""Helper functions to design filters
+
+Can be used to obtain FIR filters from frequency responses. Also contains
+helper functions associated with the discrete Fourier transform. 
+"""
 import numpy as np
 import scipy.signal as signal
 import itertools as it

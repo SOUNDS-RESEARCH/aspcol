@@ -1,3 +1,7 @@
+"""Helper functions for dealing with matrices. 
+
+Some examples include constructing a block matrix, ensure positive definiteness, applying a function to individual blocks of a block matrix. 
+"""
 import numpy as np
 import scipy.signal as spsig
 import scipy.linalg as splin

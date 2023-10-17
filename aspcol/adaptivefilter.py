@@ -1,3 +1,16 @@
+"""Implements several basic adaptive filters
+
+* Least mean squares (LMS)
+* Recursive least squares (RLS)
+* Fast block LMS
+* Fast block weighted LMS
+
+References
+----------
+[1](https://link.springer.com/book/10.1007/978-3-030-29057-3) P. S. R. Diniz, Adaptive filtering: algorithms and practical implementation. Cham: Springer International Publishing, 2020. doi: 10.1007/978-3-030-29057-3.
+
+
+"""
 import numpy as np
 from abc import ABC, abstractmethod
 
