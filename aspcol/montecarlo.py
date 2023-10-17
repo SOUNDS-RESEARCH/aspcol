@@ -1,3 +1,5 @@
+"""Helper functions for naive monte carlo sampling of a given function
+"""
 import numpy as np
 
 

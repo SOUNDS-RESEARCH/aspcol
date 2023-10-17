@@ -1,3 +1,6 @@
+"""Helper functions for various tasks without a clear category
+
+"""
 import numpy as np
 import datetime
 import time

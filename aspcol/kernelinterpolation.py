@@ -1,3 +1,24 @@
+"""Interpolation of a sound field taking physical properties of sound into account. [1, 2]
+
+The estimation methods are written generally to allow for any kernel function to be given as argument, 
+and then functions implementing the kernel functions associated with the papers below are provided. 
+
+A number of kernels are implemented:
+* Gaussian kernel
+* Diffuse kernel in 2D [6] and 3D [1]
+* Directional kernel in 3D [2, 4]
+* Reciprocal kernel for RIR estimation [3]
+
+References
+----------
+`[1] <doi.org/10.1109/IWAENC.2018.8521334>`_  N. Ueno, S. Koyama, and H. Saruwatari, “Kernel ridge regression with constraint of Helmholtz equation for sound field interpolation,” in 2018 16th International Workshop on Acoustic Signal Enhancement (IWAENC), Tokyo, Japan: IEEE, Sep. 2018, pp. 436–440. doi: 10.1109/IWAENC.2018.8521334.
+`[2] <doi.org/10.1109/TSP.2021.3070228>`_ N. Ueno, S. Koyama, and H. Saruwatari, “Directionally weighted wave field estimation exploiting prior information on source direction,” IEEE Transactions on Signal Processing, vol. 69, pp. 2383–2395, Apr. 2021, doi: 10.1109/TSP.2021.3070228. 
+`[3] <doi.org/10.1109/SAM48682.2020.9104256>`_  J. G. C. Ribeiro, N. Ueno, S. Koyama, and H. Saruwatari, “Kernel interpolation of acoustic transfer function between regions considering reciprocity,” in 2020 IEEE 11th Sensor Array and Multichannel Signal Processing Workshop (SAM), Jun. 2020, pp. 1–5. doi: 10.1109/SAM48682.2020.9104256.
+`[4] <doi.org/10.1109/TASLP.2021.3107983>`_  S. Koyama, J. Brunnström, H. Ito, N. Ueno, and H. Saruwatari, “Spatial active noise control based on kernel interpolation of sound field,” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 29, pp. 3052–3063, Aug. 2021, doi: 10.1109/TASLP.2021.3107983.
+`[5] <doi.org/10.1109/ICASSP43922.2022.9746550>`_  J. Brunnström, S. Koyama, and M. Moonen, “Variable span trade-off filter for sound zone control with kernel interpolation weighting,” in ICASSP 2022 - 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), May 2022, pp. 1071–1075. doi: 10.1109/ICASSP43922.2022.9746550. 
+`[6] <doi.org/10.1109/ICASSP.2019.8683067>`_ H. Ito, S. Koyama, N. Ueno, and H. Saruwatari, “Feedforward spatial active noise control based on kernel interpolation of sound field,” in IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Brighton, United Kingdom: IEEE, May 2019, pp. 511–515. doi: 10.1109/ICASSP.2019.8683067.
+
+"""
 import numpy as np
 import scipy.spatial.distance as distfuncs
 import scipy.special as special
