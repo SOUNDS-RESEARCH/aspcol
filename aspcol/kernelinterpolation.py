@@ -259,7 +259,7 @@ def get_krr_parameters(kernel_func, reg_param, output_arg, data_arg, *args):
     K_reg = K + reg_param * np.eye(K.shape[-1])
     kappa = np.moveaxis(kernel_func(output_arg, data_arg, *args), -1, -2)
 
-    params = np.moveaxis(np.linalg.solve(K_reg, kappa), -1, -2)
+    params = np.moveaxis(np.linalg.solve(np.moveaxis(K_reg, -1, -2), kappa), -1, -2)
     return params
 
 
