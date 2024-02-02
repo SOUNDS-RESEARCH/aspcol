@@ -81,7 +81,7 @@ def corr_matrix_distance(mat1, mat2):
     norm2 = np.linalg.norm(mat2, ord="fro", axis=(-2,-1))
     if norm1 * norm2 == 0:
         return np.nan
-    return 1 - np.trace(mat1 @ mat2) / (norm1 * norm2)
+    return np.real_if_close(1 - np.trace(mat1 @ mat2) / (norm1 * norm2))
 
 
 def covariance_distance_riemannian(mat1, mat2):
@@ -103,7 +103,7 @@ def covariance_distance_riemannian(mat1, mat2):
 
     """
     eigvals = splin.eigh(mat1, mat2, eigvals_only=True)
-    return np.sqrt(np.sum(np.log(eigvals)**2))
+    return np.real_if_close(np.sqrt(np.sum(np.log(eigvals)**2)))
 
 
 def covariance_distance_kl_divergence(mat1, mat2):
@@ -125,5 +125,5 @@ def covariance_distance_kl_divergence(mat1, mat2):
     det1 = splin.det(mat1)
     det2 = splin.det(mat2)
     common_trace = np.sum(eigvals)
-    return np.sqrt((np.log(det2 / det1) + common_trace - N) / 2)
+    return np.real_if_close(np.sqrt((np.log(det2 / det1) + common_trace - N) / 2))
 
