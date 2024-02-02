@@ -114,8 +114,8 @@ def create_pseq_lowfreq(seq_len : int, sr : int, max_pseq_freq : int):
     seq_low_sr = np.tile(seq_low_sr, 3)
     seq_upsampled = sr_convert.resample(seq_low_sr, sampling_factor)
     
-    seq_len_upsampled = len(seq_upsampled) // 3
-    seq_upsampled = seq_upsampled[seq_len_upsampled:2*seq_len_upsampled]
+    #seq_len_upsampled = len(seq_upsampled) // 3
+    seq_upsampled = seq_upsampled[seq_len:2*seq_len]
     return seq_upsampled[None,:]
 
 def create_shifted_pseq(pseq, num_channels, rir_len):
