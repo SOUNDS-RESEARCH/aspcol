@@ -21,6 +21,106 @@ import aspcol.kernelinterpolation as ki
 import aspcol.utilities as util
 import aspcol.filterdesign as fd
 import aspcol.pseq as pseq
+import aspcol.sphericalharmonics as sph
+
+
+
+#============= FREQUENCY DOMAIN METHODS - STATIONARY MICROPHONES =============
+
+def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
+    """
+    Estimates the RIR in the frequency domain using kernel interpolation
+    Uses the frequency domain sound pressure as input
+
+    Parameters
+    ----------
+    p_freq : ndarray of shape (num_real_freqs, num_mics)
+        sound pressure in frequency domain at num_mic microphone positions
+    pos : ndarray of shape (num_mic, 3)
+        positions of the microphones
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+    k : ndarray of shape (num_freq)
+        wavenumbers
+    reg_param : float
+        regularization parameter for kernel interpolation
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
+    """
+    est_filt = ki.get_krr_parameters(ki.kernel_helmholtz_3d, reg_param, pos_eval, pos, k)
+    p_ki = est_filt @ p_freq[:,:,None]
+    return np.squeeze(p_ki, axis=-1)
+
+
+def nearest_neighbour_freq(p_freq, pos, pos_eval):
+    """
+    Estimates the sound field at the evaluation points by simply selecting the value
+    associated with the nearest microphone position. 
+
+    Parameters
+    ----------
+    p_freq : ndarray of shape (num_real_freqs, num_mics)
+        sound pressure in frequency domain at num_mic microphone positions
+    pos : ndarray of shape (num_mic, 3)
+        positions of the microphones
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
+    """
+    dist = spdist.cdist(pos, pos_eval)
+    min_idx = np.argmin(dist, axis=0)
+
+    num_real_freqs = p_freq.shape[0]
+    est_sound_pressure = np.zeros((num_real_freqs, pos_eval.shape[0]), dtype=complex)
+    for pos_idx in range(pos_eval.shape[0]):
+        est_sound_pressure[:,pos_idx] = p_freq[:,min_idx[pos_idx]]
+    return est_sound_pressure
+
+
+def inf_dim_shd_analysis(p_freq, pos, pos_eval, wave_num, dir_coeffs, reg_param):
+    """Estimates the sound field using directional microphones 
+
+    Since we reconstruct the sound pressure immediately, without explicitly computing
+    the spherical harmonic coefficients, no truncation or expansion center must be set.
+    
+    Parameters
+    ----------
+    p_freq : ndarray of shape (num_freqs, num_mics)
+        sound pressure in frequency domain at num_mic microphone positions
+    pos : ndarray of shape (num_mic, 3)
+        positions of the microphones
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+    wave_num : ndarray of shape (num_freq)
+        wavenumbers
+    dir_coeffs : ndarray of shape (num_freq, num_mic, num_coeffs)
+        harmonic coefficients of the directionality of the microphones
+    reg_param : float
+        regularization parameter. Must be non-negative
+    
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
+    """
+    num_mic = pos.shape[0]
+
+    psi = sph.translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, wave_num)
+    psi_plus_noise_cov = psi + np.eye(num_mic) * reg_param
+    regression_vec = np.linalg.solve(psi_plus_noise_cov, p_freq)[...,None]
+
+    omni_dir = sph.directivity_omni()
+    estimator_matrix = sph.translated_inner_product(pos_eval, pos, omni_dir, dir_coeffs, wave_num)
+    est_sound_pressure = np.squeeze(estimator_matrix @ regression_vec, axis=-1)
+    return est_sound_pressure
+# ============= TIME DOMAIN METHODS - STATIONARY MICROPHONES =============
 
 
 def pseq_nearest_neighbour(p, seq, pos, pos_eval):
@@ -92,35 +192,18 @@ def est_ki_diffuse(p, seq, pos, pos_eval, samplerate, c, reg_param):
 
     return est_ki_diffuse_freq(rir_freq, pos, pos_eval, k, reg_param)
 
-def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
-    """
-    Estimates the RIR in the frequency domain using kernel interpolation
-    Uses the frequency domain sound pressure as input
-
-    Parameters
-    ----------
-    p_freq : ndarray of shape (num_real_freqs, num_mics)
-        sound pressure in frequency domain at num_mic microphone positions
-    pos : ndarray of shape (num_mic, 3)
-        positions of the microphones
-    pos_eval : ndarray of shape (num_eval, 3)
-        positions of the evaluation points
-    k : ndarray of shape (num_freq)
-        wavenumbers
-    reg_param : float
-        regularization parameter for kernel interpolation
-
-    Returns
-    -------
-    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
-        estimated RIR per frequency at the evaluation points
-    """
-    est_filt = ki.get_krr_parameters(ki.kernel_helmholtz_3d, reg_param, pos_eval, pos, k)
-    p_ki = est_filt @ p_freq[:,:,None]
-    return np.squeeze(p_ki, axis=-1)
 
 
 
+
+
+
+
+
+
+
+
+#============= MOVING MICROPHONE ESTIMATION =============
 
 
 def est_inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_param, verbose=False):
@@ -196,25 +279,54 @@ def est_inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, r
         psi += 2*np.real(np.sinc(dist_mat * k[f]) * phi_rank1_matrix)
 
     noise_cov = reg_param * np.eye(N)
-    right_side = splin.solve(psi + noise_cov, p, assume_a = "pos")
+    regressor = splin.solve(psi + noise_cov, p, assume_a = "pos")
 
-    right_side = Phi.conj() * right_side[None,:]
+    regressor = Phi.conj() * regressor[None,:]
 
     # ======= Reconstruction of RIR =======
     est_sound_pressure = np.zeros((num_real_freqs, pos_eval.shape[0]), dtype=complex)
     for f in range(num_real_freqs):
         kernel_val = ki.kernel_helmholtz_3d(pos_eval, pos, k[f:f+1]).astype(complex)[0,:,:]
-        est_sound_pressure[f, :] = np.sum(kernel_val * right_side[f,None,:], axis=-1)
+        est_sound_pressure[f, :] = np.sum(kernel_val * regressor[f,None,:], axis=-1)
 
     if verbose:
-        diagnostics = {}
-        diagnostics["regularization parameter"] = reg_param
-        diagnostics["condition number"] = np.linalg.cond(psi).tolist()
-        diagnostics["smallest eigenvalue"] = splin.eigh(psi, subset_by_index=(0,0), eigvals_only=True).tolist()
-        diagnostics["largest eigenvalue"] = splin.eigh(psi, subset_by_index=(N-1, N-1), eigvals_only=True).tolist()
-        return est_sound_pressure, diagnostics
+        #diagnostics = {}
+        #diagnostics["regularization parameter"] = reg_param
+        #diagnostics["condition number"] = np.linalg.cond(psi).tolist()
+        #diagnostics["smallest eigenvalue"] = splin.eigh(psi, subset_by_index=(0,0), eigvals_only=True).tolist()
+        #diagnostics["largest eigenvalue"] = splin.eigh(psi, subset_by_index=(N-1, N-1), eigvals_only=True).tolist()
+        return est_sound_pressure, regressor, psi#, diagnostics
     else:
         return est_sound_pressure
+
+def reconstruct_inf_dimensional_shd_dynamic(regressor, pos_eval, pos, k):
+    """
+    Reconstructs the sound field at the evaluation points using the regressor matrix
+    from est_inf_dimensional_shd_dynamic
+
+    Parameters
+    ----------
+    regressor : ndarray of shape (num_real_freqs, N)
+        regressor matrix from est_inf_dimensional_shd_dynamic
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+    pos : ndarray of shape (N, 3)
+        positions of the trajectory for each sample
+    k : ndarray of shape (num_freq)
+        wavenumbers
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
+    """
+    num_real_freqs = regressor.shape[0]
+    est_sound_pressure = np.zeros((num_real_freqs, pos_eval.shape[0]), dtype=complex)
+    for f in range(num_real_freqs):
+        kernel_val = ki.kernel_helmholtz_3d(pos_eval, pos, k[f:f+1]).astype(complex)[0,:,:]
+        est_sound_pressure[f, :] = np.sum(kernel_val * regressor[f,None,:], axis=-1)
+    return est_sound_pressure
+
 
 
 
@@ -273,13 +385,13 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, r_ma
 
     # ======= Estimation of spatial spectrum coefficients =======
     phi = _sequence_stft_multiperiod(sequence, num_periods)
-    max_orders = shd_min_order(k, r_max)
+    max_orders = sph.shd_min_order(k, r_max)
     r, angles = util.cart2spherical(pos)
 
     Sigma = []
 
     for f in range(num_freqs):
-        order, modes = shd_num_degrees_vector(max_orders[f])
+        order, modes = sph.shd_num_degrees_vector(max_orders[f])
         Y_f = spspec.sph_harm(modes[None,:], order[None,:], angles[:,0:1], angles[:,1:2])
         B_f = spspec.spherical_jn(order[None,:], k[f]*r[:,None])
 
@@ -299,7 +411,7 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, r_ma
     r_eval, angles_eval = util.cart2spherical(pos_eval)
     ord_idx = 0
     for f in range(num_real_freqs):
-        order, modes = shd_num_degrees_vector(max_orders[f])
+        order, modes = sph.shd_num_degrees_vector(max_orders[f])
         num_ord = len(order)
         
         j_denom = spspec.spherical_jn(order, k[f]*r_max)
@@ -373,85 +485,6 @@ def _sequence_stft(sequence):
     # for n in range(B):
     #     Phi[:,n] = np.fft.fft(np.roll(sequence, -n), axis=-1)
     return Phi
-
-
-
-
-
-def shd_num_degrees(max_order : int):
-    """
-    Returns a list of mode indices for each order
-    when order = n, the degrees are only non-zero for -n <= degree <= n
-
-    Parameters
-    ----------
-    max_order : int
-        is the maximum order that is included
-
-    Returns
-    -------
-    degree : list of ndarrays of shape (2*order+1)
-        so the ndarrays will grow larger for higher list indices
-    """
-    degree = []
-    for n in range(max_order+1):
-        pos_degrees = np.arange(n+1)
-        degree_n = np.concatenate((-np.flip(pos_degrees[1:]), pos_degrees))
-        degree.append(degree_n)
-    return degree
-
-def shd_num_degrees_vector(max_order : int):
-    """
-    Constructs a vector with the index of each order and degree
-    when order = n, the degrees are only non-zero for -n <= degree <= n
-
-    Parameters
-    ----------
-    max_order : int
-        is the maximum order that is included
-
-    Returns
-    -------
-    order : ndarray of shape ()
-    degree : ndarray of shape ()
-    """
-    order = []
-    degree = []
-
-    for n in range(max_order+1):
-        pos_degrees = np.arange(n+1)
-        degree_n = np.concatenate((-np.flip(pos_degrees[1:]), pos_degrees))
-        degree.append(degree_n)
-
-        order.append(n*np.ones_like(degree_n))
-    degree = np.concatenate(degree)
-    order = np.concatenate(order)
-    return order, degree
-
-def shd_min_order(wavenumber, radius):
-    """
-    Returns the minimum order of the spherical harmonics that should be used
-    for a given wavenumber and radius
-
-    Here according to the definition in Katzberg et al., Spherical harmonic
-    representation for dynamic sound-field measurements
-
-    Parameters
-    ----------
-    wavenumber : ndarray of shape (num_freqs)
-    radius : float
-        represents r_max in the Katzberg paper
-
-    Returns
-    -------
-    M_f : ndarray of shape (num_freqs)
-        contains an integer which is the minimum order of the spherical harmonics
-    """
-    return np.ceil(wavenumber * radius).astype(int)
-
-
-
-
 
 
 
