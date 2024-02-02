@@ -51,6 +51,8 @@ def is_power_of_2(x):
 def is_integer(x):
     """Returns True if x is an integer, False otherwise
     """
+    if not isinstance(x, np.ndarray):
+        x = np.array(x)
     if np.all(np.isclose(x, x.astype(int))):
         return True
     return False
