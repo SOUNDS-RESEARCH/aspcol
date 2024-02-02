@@ -1,0 +1,6 @@
+aspcol.filterdesign.truncate\_filter
+====================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: truncate_filter

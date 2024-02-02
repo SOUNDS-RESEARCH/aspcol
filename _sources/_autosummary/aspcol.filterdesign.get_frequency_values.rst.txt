@@ -1,0 +1,6 @@
+aspcol.filterdesign.get\_frequency\_values
+==========================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: get_frequency_values

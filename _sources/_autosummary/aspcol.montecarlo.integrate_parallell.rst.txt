@@ -1,0 +1,6 @@
+aspcol.montecarlo.integrate\_parallell
+======================================
+
+.. currentmodule:: aspcol.montecarlo
+
+.. autofunction:: integrate_parallell

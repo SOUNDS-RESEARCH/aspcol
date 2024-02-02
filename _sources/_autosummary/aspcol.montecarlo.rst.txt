@@ -1,0 +1,33 @@
+aspcol.montecarlo
+=================
+
+.. automodule:: aspcol.montecarlo
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      diagnostics
+      integrate
+      integrate_fast
+      integrate_parallell
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

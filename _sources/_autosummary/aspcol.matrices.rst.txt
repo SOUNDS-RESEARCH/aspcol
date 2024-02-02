@@ -1,0 +1,43 @@
+aspcol.matrices
+===============
+
+.. automodule:: aspcol.matrices
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      apply_blockwise
+      block_diag
+      block_diag_multiply
+      block_of_toeplitz
+      block_transpose
+      broadcast_func
+      ensure_hermitian
+      ensure_pos_def_adhoc
+      ensure_pos_semidef
+      is_hermitian
+      is_hermitian_hardcoded
+      is_pos_def
+      is_pos_semidef
+      to_length
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,6 @@
+aspcol.filterdesign.insert\_negative\_frequencies
+=================================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: insert_negative_frequencies

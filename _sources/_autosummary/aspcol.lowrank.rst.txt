@@ -1,0 +1,32 @@
+aspcol.lowrank
+==============
+
+.. automodule:: aspcol.lowrank
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      create_filter
+      decompose_ir
+      reconstruct_ir
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,6 @@
+aspcol.lowrank.decompose\_ir
+============================
+
+.. currentmodule:: aspcol.lowrank
+
+.. autofunction:: decompose_ir

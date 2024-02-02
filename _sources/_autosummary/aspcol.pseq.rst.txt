@@ -1,0 +1,34 @@
+aspcol.pseq
+===========
+
+.. automodule:: aspcol.pseq
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      create_pseq
+      create_pseq_lowfreq
+      create_shifted_pseq
+      decorrelate
+      verify_pseq
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,6 @@
+aspcol.filterdesign.get\_angular\_freqs
+=======================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: get_angular_freqs

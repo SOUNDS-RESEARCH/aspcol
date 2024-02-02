@@ -1,0 +1,39 @@
+aspcol.kernelinterpolation
+==========================
+
+.. automodule:: aspcol.kernelinterpolation
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      analytic_kernel_weighting_disc_2d
+      get_kernel_weighting_filter
+      get_krr_parameters
+      kernel_directional_3d_slow
+      kernel_gaussian
+      kernel_helmholtz_2d
+      kernel_helmholtz_3d_slow
+      kernel_reciprocal_3d
+      soundfield_interpolation
+      soundfield_interpolation_fir
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

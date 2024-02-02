@@ -1,0 +1,6 @@
+aspcol.correlation.corr\_mat\_old\_first\_ref
+=============================================
+
+.. currentmodule:: aspcol.correlation
+
+.. autofunction:: corr_mat_old_first_ref

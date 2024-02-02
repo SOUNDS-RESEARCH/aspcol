@@ -1,0 +1,37 @@
+aspcol.unittests
+================
+
+.. automodule:: aspcol.unittests
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: new-module-template.rst
+   :recursive:
+
+   aspcol.unittests.conftest
+   aspcol.unittests.matrix_strategies
+   aspcol.unittests.test_correlation
+   aspcol.unittests.test_filterclasses
+   aspcol.unittests.test_integration
+   aspcol.unittests.test_lowrank
+

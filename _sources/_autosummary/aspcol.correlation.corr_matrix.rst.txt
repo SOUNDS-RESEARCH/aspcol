@@ -1,0 +1,6 @@
+aspcol.correlation.corr\_matrix
+===============================
+
+.. currentmodule:: aspcol.correlation
+
+.. autofunction:: corr_matrix

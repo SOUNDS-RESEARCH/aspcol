@@ -1,0 +1,45 @@
+aspcol.adaptivefilter
+=====================
+
+.. automodule:: aspcol.adaptivefilter
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      abstractmethod
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: new-class-template.rst
+   
+      ABC
+      AdaptiveFilterBase
+      AdaptiveFilterFreq
+      BlockLMS
+      FastBlockLMS
+      FastBlockWeightedLMS
+      LMS
+      RLS
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,28 @@
+aspcol.utilities.PhaseCounter
+=============================
+
+.. currentmodule:: aspcol.utilities
+
+.. autoclass:: PhaseCounter
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~PhaseCounter.__init__
+      ~PhaseCounter.current_phase_is
+      ~PhaseCounter.next_phase
+      ~PhaseCounter.progress
+   
+   
+
+   
+   
+   

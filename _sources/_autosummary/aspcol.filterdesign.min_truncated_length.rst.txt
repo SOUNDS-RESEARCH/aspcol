@@ -1,0 +1,6 @@
+aspcol.filterdesign.min\_truncated\_length
+==========================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: min_truncated_length

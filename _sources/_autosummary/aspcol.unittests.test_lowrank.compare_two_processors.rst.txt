@@ -1,0 +1,6 @@
+aspcol.unittests.test\_lowrank.compare\_two\_processors
+=======================================================
+
+.. currentmodule:: aspcol.unittests.test_lowrank
+
+.. autofunction:: compare_two_processors

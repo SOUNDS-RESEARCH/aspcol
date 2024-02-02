@@ -1,0 +1,6 @@
+aspcol.unittests.matrix\_strategies.psd\_real
+=============================================
+
+.. currentmodule:: aspcol.unittests.matrix_strategies
+
+.. autofunction:: psd_real

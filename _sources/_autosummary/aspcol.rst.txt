@@ -1,0 +1,44 @@
+﻿aspcol
+======
+
+.. automodule:: aspcol
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: new-module-template.rst
+   :recursive:
+
+   aspcol.adaptivefilter
+   aspcol.correlation
+   aspcol.distance
+   aspcol.filterclasses
+   aspcol.filterdesign
+   aspcol.kernelinterpolation
+   aspcol.lowrank
+   aspcol.matrices
+   aspcol.montecarlo
+   aspcol.pseq
+   aspcol.soundfieldestimation
+   aspcol.unittests
+   aspcol.utilities
+

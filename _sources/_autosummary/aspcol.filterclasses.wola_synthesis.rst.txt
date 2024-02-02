@@ -1,0 +1,6 @@
+aspcol.filterclasses.wola\_synthesis
+====================================
+
+.. currentmodule:: aspcol.filterclasses
+
+.. autofunction:: wola_synthesis

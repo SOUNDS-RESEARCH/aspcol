@@ -1,0 +1,6 @@
+aspcol.pseq.create\_shifted\_pseq
+=================================
+
+.. currentmodule:: aspcol.pseq
+
+.. autofunction:: create_shifted_pseq

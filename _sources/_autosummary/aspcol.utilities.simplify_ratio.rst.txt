@@ -1,0 +1,6 @@
+aspcol.utilities.simplify\_ratio
+================================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: simplify_ratio

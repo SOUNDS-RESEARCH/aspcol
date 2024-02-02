@@ -1,0 +1,6 @@
+aspcol.matrices.is\_hermitian\_hardcoded
+========================================
+
+.. currentmodule:: aspcol.matrices
+
+.. autofunction:: is_hermitian_hardcoded

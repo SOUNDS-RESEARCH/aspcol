@@ -1,0 +1,6 @@
+aspcol.matrices.apply\_blockwise
+================================
+
+.. currentmodule:: aspcol.matrices
+
+.. autofunction:: apply_blockwise

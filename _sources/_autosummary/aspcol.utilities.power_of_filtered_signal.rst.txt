@@ -1,0 +1,6 @@
+aspcol.utilities.power\_of\_filtered\_signal
+============================================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: power_of_filtered_signal

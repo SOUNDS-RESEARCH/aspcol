@@ -1,0 +1,27 @@
+aspcol.filterclasses.MovingAverage
+==================================
+
+.. currentmodule:: aspcol.filterclasses
+
+.. autoclass:: MovingAverage
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~MovingAverage.__init__
+      ~MovingAverage.reset
+      ~MovingAverage.update
+   
+   
+
+   
+   
+   

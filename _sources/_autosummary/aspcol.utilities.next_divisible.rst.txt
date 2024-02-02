@@ -1,0 +1,6 @@
+aspcol.utilities.next\_divisible
+================================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: next_divisible

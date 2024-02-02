@@ -1,0 +1,6 @@
+aspcol.filterdesign.dft\_vector
+===============================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: dft_vector

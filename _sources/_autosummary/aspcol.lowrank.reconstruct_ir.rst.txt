@@ -1,0 +1,6 @@
+aspcol.lowrank.reconstruct\_ir
+==============================
+
+.. currentmodule:: aspcol.lowrank
+
+.. autofunction:: reconstruct_ir

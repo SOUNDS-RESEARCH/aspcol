@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.shd\_num\_degrees\_vector
+=====================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: shd_num_degrees_vector

@@ -1,0 +1,6 @@
+aspcol.unittests.test\_integration.test\_constant\_scalar\_integral
+===================================================================
+
+.. currentmodule:: aspcol.unittests.test_integration
+
+.. autofunction:: test_constant_scalar_integral

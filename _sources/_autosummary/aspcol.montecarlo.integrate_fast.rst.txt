@@ -1,0 +1,6 @@
+aspcol.montecarlo.integrate\_fast
+=================================
+
+.. currentmodule:: aspcol.montecarlo
+
+.. autofunction:: integrate_fast
