@@ -5,8 +5,10 @@ import hypothesis.extra.numpy as hypnp
 import hypothesis as hyp
 
 import numpy as np
-import soundfieldcontrol.szc.sinr_opt as sinropt
-import soundfieldcontrol.szc.sinr_opt_time as sinrt
+#import soundfieldcontrol.szc.sinr_opt as sinropt
+#import soundfieldcontrol.szc.sinr_opt_time as sinrt
+
+import soundfieldcontrol as sfc
 
 import aspcol.unittests.matrix_strategies as mst
 
@@ -170,9 +172,9 @@ def test_sinr_uplink_specific_and_link_gain_formulation_equal(num_zones, num_ls)
     #w = sinropt.apply_power_vec(w_norm, p)
     #sinr_targets = get_random_sinr_targets(num_zones)
 
-    sinr_val = sinropt.sinr_uplink(p, w, R, noise_pow)
+    sinr_val = sfc.sinr_uplink(p, w, R, noise_pow)
     #sinr_val1 = sinropt._sinr_uplink_comparison(w_norm, R, p, noise_pow)
-    sinr_val2 = sinropt._sinr_uplink_comparison(p, w, R, noise_pow)
+    sinr_val2 = sfc._sinr_uplink_comparison(p, w, R, noise_pow)
     
     assert np.allclose(sinr_val, sinr_val2)
 
@@ -191,8 +193,8 @@ def test_sinr_downlink_specific_and_link_gain_formulation_equal(num_zones, num_l
     #w = sinropt.apply_power_vec(w_norm, p)
     #sinr_targets = get_random_sinr_targets(num_zones)
 
-    sinr_val = sinropt.sinr_downlink(p, w, R, noise_pow)
-    sinr_val2 = sinropt._sinr_downlink_comparison(sinropt.apply_power_vec(w, p), R, noise_pow)
+    sinr_val = sfc.sinr_downlink(p, w, R, noise_pow)
+    sinr_val2 = sfc._sinr_downlink_comparison(sfc.apply_power_vec(w, p), R, noise_pow)
     
     assert np.allclose(sinr_val, sinr_val2)
 
@@ -208,10 +210,10 @@ def test_power_alloc_minmax_equal_to_max_pow(num_zones, num_ls, max_pow):
     noise_pow = get_random_noise_pow(num_zones)
     sinr_targets = get_random_sinr_targets(num_zones)
 
-    p_dl, _ = sinropt.power_alloc_minmax_downlink(w, R, noise_pow, sinr_targets, max_pow)
+    p_dl, _ = sfc.power_alloc_minmax_downlink(w, R, noise_pow, sinr_targets, max_pow)
     assert np.allclose(np.sum(p_dl), max_pow)
 
-    p_ul, _ = sinropt.power_alloc_minmax_uplink(w, R, noise_pow, sinr_targets, max_pow)
+    p_ul, _ = sfc.power_alloc_minmax_uplink(w, R, noise_pow, sinr_targets, max_pow)
     assert np.allclose(np.sum(p_ul), max_pow)
 
 
@@ -230,13 +232,13 @@ def test_power_alloc_qos_zero_sinr_margin_downlink(num_zones, num_ls):
         noise_pow = get_random_noise_pow(num_zones)
         rng = np.random.default_rng(SEED+12)
         sinr_targets = rng.uniform(low=0.05, high=0.3, size=num_zones)
-        if sinropt._power_alloc_qos_is_feasible(sinropt.link_gain_downlink(w, R), sinr_targets):
+        if sfc._power_alloc_qos_is_feasible(sfc.link_gain_downlink(w, R), sinr_targets):
             feasible = True
             break
     assert feasible
     
-    p_dl = sinropt.power_alloc_qos_downlink(w, R, noise_pow, sinr_targets)
-    margin_dl = sinropt.sinr_margin_downlink(p_dl, w, R, noise_pow, sinr_targets)
+    p_dl = sfc.power_alloc_qos_downlink(w, R, noise_pow, sinr_targets)
+    margin_dl = sfc.sinr_margin_downlink(p_dl, w, R, noise_pow, sinr_targets)
     assert np.allclose(margin_dl, 0)
 
 @hyp.settings(deadline=None)
@@ -257,8 +259,8 @@ def test_power_alloc_qos_zero_sinr_margin_uplink(num_zones, num_ls):
 
     #R, noise_pow = sinropt.normalize_system(R, noise_pow)
 
-    p = sinropt.power_alloc_qos_uplink(w, R, noise_pow, sinr_targets)
-    margin = sinropt.sinr_margin_uplink(p, w,  R, noise_pow, sinr_targets)
+    p = sfc.power_alloc_qos_uplink(w, R, noise_pow, sinr_targets)
+    margin = sfc.sinr_margin_uplink(p, w,  R, noise_pow, sinr_targets)
     #sinr = sinropt._sinr_uplink_comparison(w, R, p, noise_pow)
     #sinr2 = sinropt.sinr_uplink(p, w, R, noise_pow)
     assert np.allclose(margin, 0)
@@ -284,8 +286,8 @@ def test_equal_capacity_uplink_downlink_duality(num_zones, num_ls, max_pow):
     #noise_pow = get_random_noise_pow(num_zones)
     sinr_targets = get_random_sinr_targets(num_zones)
 
-    q, c_ul = sinropt.power_alloc_minmax_uplink(w, R, ones, sinr_targets, max_pow)
-    p, c_dl = sinropt.power_alloc_minmax_downlink(w, R, ones, sinr_targets, max_pow)
+    q, c_ul = sfc.power_alloc_minmax_uplink(w, R, ones, sinr_targets, max_pow)
+    p, c_dl = sfc.power_alloc_minmax_downlink(w, R, ones, sinr_targets, max_pow)
     assert np.allclose(c_ul, c_dl)
 
 
@@ -300,11 +302,11 @@ def test_equal_feasibility_spectral_radius_uplink_downlink(num_zones, num_ls):
     R = get_random_spatial_cov(num_zones, num_ls)
     sinr_targets = get_random_sinr_targets(num_zones)
 
-    gain_ul = sinropt.link_gain_uplink(w, R)
-    spec_rad_ul = sinropt._power_alloc_qos_feasibility_spectral_radius(gain_ul, sinr_targets)
+    gain_ul = sfc.link_gain_uplink(w, R)
+    spec_rad_ul = sfc._power_alloc_qos_feasibility_spectral_radius(gain_ul, sinr_targets)
     
-    gain_dl = sinropt.link_gain_downlink(w, R)
-    spec_rad_dl = sinropt._power_alloc_qos_feasibility_spectral_radius(gain_dl, sinr_targets)
+    gain_dl = sfc.link_gain_downlink(w, R)
+    spec_rad_dl = sfc._power_alloc_qos_feasibility_spectral_radius(gain_dl, sinr_targets)
 
     assert np.allclose(spec_rad_ul, spec_rad_dl)
 
@@ -330,10 +332,10 @@ def test_uplink_capacity_equals_feasiblity_spectral_radius(num_zones, num_ls):
         #noise_pow = get_random_noise_pow(num_zones)
         sinr_targets = get_random_sinr_targets(num_zones)
 
-        gain_ul = sinropt.link_gain_uplink(w, R)
-        spec_rad_ul = sinropt._power_alloc_qos_feasibility_spectral_radius(gain_ul, sinr_targets)
+        gain_ul = sfc.link_gain_uplink(w, R)
+        spec_rad_ul = sfc._power_alloc_qos_feasibility_spectral_radius(gain_ul, sinr_targets)
         
-        q, c_ul = sinropt.power_alloc_minmax_uplink(w, R, noise_pow, sinr_targets, 1e6)
+        q, c_ul = sfc.power_alloc_minmax_uplink(w, R, noise_pow, sinr_targets, 1e6)
         
         print(c_ul > 1)
         if c_ul >= 1:
@@ -390,13 +392,13 @@ def test_strong_duality_holds_time_domain_sdr_vs_schubert(num_zones, bf_len):
     R = get_random_spatial_cov_td(num_zones, bf_len)
     noise_pow = np.ones(num_zones)
     sinr_targets = get_random_sinr_targets(num_zones)
-    w, q = sinropt.solve_qos_uplink(R, noise_pow, sinr_targets, 1e3)
+    w, q = sfc.solve_qos_uplink(R, noise_pow, sinr_targets, 1e3)
 
     audio_cov = np.stack([np.eye(bf_len) for _ in range(num_zones)], axis=0)
     
     W2 = sinrt.sinr_constrained_weighted_pow_min_downlink(R, noise_pow, sinr_targets, audio_cov)
-    w2 = sinropt.select_solution_eigenvalue(W2)
-    w2, p = sinropt.extract_power_vec(w2)
+    w2 = sfc.select_solution_eigenvalue(W2)
+    w2, p = sfc.extract_power_vec(w2)
     
     assert np.allclose(np.sum(q), np.sum(p))
 
@@ -411,13 +413,13 @@ def test_strong_duality_holds_weighted_time_domain_sdr_vs_schubert(num_zones, bf
     audio_cov = get_random_audio_cov(num_zones, bf_len)
     noise_pow = np.ones(num_zones)
     sinr_targets = get_random_sinr_targets(num_zones)
-    w, q = sinropt.solve_power_weighted_qos_uplink(R, noise_pow, sinr_targets, 1e3, audio_cov)
+    w, q = sfc.solve_power_weighted_qos_uplink(R, noise_pow, sinr_targets, 1e3, audio_cov)
 
     ul_objective = np.sum(q)
     
     W2 = sinrt.sinr_constrained_weighted_pow_min_downlink(R, noise_pow, sinr_targets, audio_cov)
-    w2 = sinropt.select_solution_eigenvalue(W2)
-    w2, p = sinropt.extract_power_vec(w2)
+    w2 = sfc.select_solution_eigenvalue(W2)
+    w2, p = sfc.extract_power_vec(w2)
 
     dl_objective = np.sum([p[k] * w2[k,:,None].T @ audio_cov[k,:,:] @ w2[k,:,None] for k in range(num_zones)])
     
@@ -435,9 +437,7 @@ def test_mwf_and_gevd_with_full_rank_are_equivalent(num_zones, num_ls, mu):
     Rb = get_random_spatial_cov_full_rank(num_zones, num_ls)
     Rd = get_random_spatial_cov_full_rank(num_zones, num_ls)
 
-    mwf = lst.szc_transform_mwf(Rb, Rd, mu)
-    gevd = lst.szc_transform_mwf_gevd(Rb, Rd, num_ls, mu)
-
-
+    mwf = sfc.szc_transform_mwf(Rb, Rd, mu)
+    gevd = sfc.szc_transform_mwf_gevd(Rb, Rd, num_ls, mu)
     assert np.allclose(mwf, gevd)
 
