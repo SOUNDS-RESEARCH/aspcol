@@ -11,14 +11,21 @@ References
 
 """
 import numpy as np
-from abc import ABC, abstractmethod
-
-import aspcore.filterclasses as fc
-import aspcore.freqdomainfiltering as fdf
+from abc import abstractmethod
 import aspcol.utilities as util
 
+try:
+    import aspcore.filterclasses as fc
+except ImportError:
+    fc = None
 
-class AdaptiveFilterBase(ABC):
+try:
+    import aspcore.freqdomainfiltering as fdf
+except ImportError:
+    fdf = None
+
+
+class AdaptiveFilterBase():
     def __init__(self, ir_len, num_in, num_out, filter_type=None):
         filter_dim = (num_in, num_out, ir_len)
         self.num_in = num_in
@@ -68,7 +75,7 @@ class AdaptiveFilterBase(ABC):
 
 
 
-class AdaptiveFilterFreq(ABC):
+class AdaptiveFilterFreq():
     def __init__(self, num_freq, num_in, num_out):
         assert num_freq % 2 == 0
         self.num_in = num_in

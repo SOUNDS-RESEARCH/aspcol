@@ -8,13 +8,13 @@ from functools import wraps
 import numpy as np
 import copy
 
-import aspcore.filterclasses as fc
-
 
 
 def power_of_filtered_signal(src, ir, num_samples):
     """Returns an estimate of average power of the signal after filtered through an impulse response
         
+    Requires non-standard dependency aspcore
+
     Parameters
     ----------
     src : source object
@@ -31,6 +31,7 @@ def power_of_filtered_signal(src, ir, num_samples):
     avg_pow : ndarray of shape (num_recievers,)
         The average power for each receiver channel. Will only have non-negative values.
     """
+    import aspcore.filterclasses as fc
     assert ir.ndim == 3
     ir_len = ir.shape[-1]
     src_copy = copy.deepcopy(src)
