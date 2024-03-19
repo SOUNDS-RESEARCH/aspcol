@@ -48,6 +48,11 @@ def is_power_of_2(x):
     """
     return is_integer(np.log2(x))
 
+def next_power_of_two(x):
+    """ Returns the smallest number that is both a power of two and larger or equal to x. 
+    """
+    return int(2**(np.ceil(np.log2(x))))
+
 def is_integer(x):
     """Returns True if x is an integer, False otherwise
     """
