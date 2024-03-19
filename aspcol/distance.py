@@ -80,7 +80,7 @@ def corr_matrix_distance(mat1, mat2):
     norm1 = np.linalg.norm(mat1, ord="fro", axis=(-2,-1))
     norm2 = np.linalg.norm(mat2, ord="fro", axis=(-2,-1))
     if norm1 * norm2 == 0:
-        return np.nan
+        return np.array(np.nan)
     return np.real_if_close(1 - np.trace(mat1 @ mat2) / (norm1 * norm2))
 
 
