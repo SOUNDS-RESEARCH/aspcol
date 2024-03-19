@@ -133,7 +133,15 @@ def get_fpaths(arrays, num_freqs, samplerate):
     fpaths = {}
     for src, mic, path in arrays.iter_paths():
         fpaths.setdefault(src.name, {})
-        fpaths[src.name][mic.name] = np.moveaxis(fdf.fft_transpose(path, n=num_freqs),1,2)[:num_real_freqs,...]
+
+        path_freq = np.fft.fft(path, n=num_freqs, axis=-1)
+
+        new_axis_order = np.concatenate(
+            ([path.ndim - 1], np.arange(path.ndim - 1))
+        )
+        path_freq = np.transpose(path_freq, new_axis_order)
+
+        fpaths[src.name][mic.name] = np.moveaxis(path_freq,1,2)[:num_real_freqs,...]
     return fpaths, freqs
 
 
