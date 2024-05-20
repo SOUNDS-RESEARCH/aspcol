@@ -125,3 +125,26 @@ def diagnostics(new_val, old_val, block_idx):
     print("Max Value: " + "{:2.12E}".format(max_val))
     print()
     return max_rel_change
+
+
+
+
+
+
+
+def uniform_random_on_sphere(num_points, rng):
+    """Generate uniformly random points on the unit sphere.
+
+    num_points : int
+        The number of points to generate
+    rng : numpy.random.Generator
+        The random number generator to use
+
+    Returns
+    -------
+    points : ndarray of shape (num_points, 3)
+        The points on the unit sphere
+    """
+    points = rng.normal(size=(num_points, 3))
+    points = points / np.linalg.norm(points, axis=-1)[:,None]
+    return points
