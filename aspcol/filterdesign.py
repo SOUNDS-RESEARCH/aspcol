@@ -6,6 +6,7 @@ helper functions associated with the discrete Fourier transform.
 import numpy as np
 import scipy.signal as signal
 import itertools as it
+import matplotlib.pyplot as plt
 
 
 # ================== BASIC DFT FUNCTIONS =============================
@@ -322,3 +323,71 @@ def min_truncated_length(ir, two_sided=True, max_rel_trunc_error=1e-3):
     if two_sided:
         req_filter_length = 2 * req_filter_length + 1
     return req_filter_length
+
+
+
+
+
+
+# ===================== FILTERING FUNCTIONS ============================
+def filterbank_third_octave(sig, sr, min_freq = 40, plot=False):
+    """Filters the provided signal into third-octave bands using butterworth filters
+    
+    Parameters
+    ----------
+    sig : ndarray of shape (num_channels, num_samples)
+        the signal to filter
+    sr : int
+        the sampling rate of the signal
+    min_freq : int
+        the minimum frequency of the lowest band
+    plot : bool
+        if True, plots the frequency response of the filters
+
+    Returns
+    -------
+    sig_filtered : ndarray of shape (num_bands, num_channels, num_samples)
+        the filtered signal
+    freq_lims : ndarray of shape (num_bands, 2)
+        the frequency limits of the bands
+    
+    References
+    ----------
+    The frequency bands are based on ANSI S1.11: Specification for Octave, Half-Octave, and Third Octave Band Filter Sets
+    https://law.resource.org/pub/us/cfr/ibr/002/ansi.s1.11.2004.pdf
+    
+    """
+    max_freq = sr / 2
+    ref_freq = 1000 # from ANSI S1.11
+    G = 2 # from ANSI S1.11
+    b = 3 # third octave band
+    num_prototype_bands = 100
+    midband_freq = G ** ((np.arange(num_prototype_bands) - 30) / b) * ref_freq
+    #assert np.all(midband_freq > min_freq) and np.all(midband_freq < max_freq) 
+    assert min_freq < max_freq
+    assert min_freq > midband_freq[0], "Gives incorrect results for too small min_freq"
+
+    freq_lims = np.zeros((num_prototype_bands, 2))
+    freq_lims[:,0] = G ** (-1 / (2*b)) * midband_freq
+    freq_lims[:,1] = G ** (1 / (2*b)) * midband_freq
+
+    freq_idxs = np.logical_and(freq_lims[:,0] > min_freq, freq_lims[:,1] < max_freq)
+    freq_lims = freq_lims[freq_idxs,:]
+
+    num_bands = freq_lims.shape[0]
+    sos = [signal.butter(N=4, Wn=freq_lims[i,:], btype='bandpass', analog=False, output='sos', fs = sr) for i in range(num_bands)]
+
+    if plot:
+        freq_response = [signal.sosfreqz(sos[i]) for i in range(num_bands)]
+        fig, ax = plt.subplots(1,1, figsize=(8,6))
+        for i in range(num_bands):
+            w, h = freq_response[i]
+            f = w * sr / (2 * np.pi)
+            ax.plot(f, 20 * np.log10(abs(h)), 'b')
+        ax.set_xlabel('Frequency [Hz]')
+        ax.set_ylabel('Amplitude [dB]')
+        ax.set_title('Frequency response of the filter')
+        plt.show()
+
+    sig_filtered = np.stack([signal.sosfiltfilt(sos[i], sig) for i in range(num_bands)], axis=0)
+    return sig_filtered, freq_lims
