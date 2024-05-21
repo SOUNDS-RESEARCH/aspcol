@@ -1,18 +1,18 @@
 """Implements algorithms related to low-rank tensor approximations of impulse responses
 
-* Decomposes and reconstructs any impulse response with singular value decomposition or canonical polyadic decomposition for a low-rank approximation [1,2]
-* Implements a low-cost convolution by directly using the low-rank representation [3,4]
+* Decomposes and reconstructs any impulse response with singular value decomposition or canonical polyadic decomposition for a low-rank approximation [jalmbyLowrank2021, paleologuLinear2018]
+* Implements a low-cost convolution by directly using the low-rank representation [atkinsApproximate2013, jalmbyFast2023]
 
 References
 ----------
-`[1] <doi.org/10.23919/EUSIPCO54536.2021.9616075>`_ M. Jälmby, F. Elvander, and T. van Waterschoot, “Low-rank tensor modeling of room impulse responses,” 
-in 2021 29th European Signal Processing Conference (EUSIPCO), Aug. 2021, pp. 111–115. doi: 10.23919/EUSIPCO54536.2021.9616075.
-`[2] <doi.org/10.1109/TASLP.2018.2842146>`_ C. Paleologu, J. Benesty, and S. Ciochină, “Linear system identification based on a Kronecker product decomposition,” 
-IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 26, no. 10, pp. 1793–1808, Oct. 2018, doi: 10.1109/TASLP.2018.2842146.
-`[3] <doi.org/10.1109/ICASSP.2013.6637632>`_ J. Atkins, A. Strauss, and C. Zhang, “Approximate convolution using partitioned truncated singular value decomposition filtering,” 
-in 2013 IEEE International Conference on Acoustics, Speech and Signal Processing, May 2013, pp. 176–180. doi: 10.1109/ICASSP.2013.6637632.
-`[4] <doi.org/10.1109/ICASSP49357.2023.10095908>`_ M. Jälmby, F. Elvander, and T. van Waterschoot, “Fast low-latency convolution by low-rank tensor approximation,” 
-in ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Rhodes, Greece, Jun. 2023.
+`[jalmbyLowrank2021] <doi.org/10.23919/EUSIPCO54536.2021.9616075>`_ M. Jälmby, F. Elvander, and T. van Waterschoot, “Low-rank tensor modeling of room impulse responses,” 
+in 2021 29th European Signal Processing Conference (EUSIPCO), Aug. 2021, pp. 111–115. doi: 10.23919/EUSIPCO54536.2021.9616075. \n
+`[paleologuLinear2018] <doi.org/10.1109/TASLP.2018.2842146>`_ C. Paleologu, J. Benesty, and S. Ciochină, “Linear system identification based on a Kronecker product decomposition,” 
+IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 26, no. 10, pp. 1793–1808, Oct. 2018, doi: 10.1109/TASLP.2018.2842146. \n
+`[atkinsApproximate2013] <doi.org/10.1109/ICASSP.2013.6637632>`_ J. Atkins, A. Strauss, and C. Zhang, “Approximate convolution using partitioned truncated singular value decomposition filtering,” 
+in 2013 IEEE International Conference on Acoustics, Speech and Signal Processing, May 2013, pp. 176–180. doi: 10.1109/ICASSP.2013.6637632. \n
+`[jalmbyFast2023] <doi.org/10.1109/ICASSP49357.2023.10095908>`_ M. Jälmby, F. Elvander, and T. van Waterschoot, “Fast low-latency convolution by low-rank tensor approximation,” 
+in ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Rhodes, Greece, Jun. 2023. \n
 """
 import numpy as np
 import numba as nb
@@ -64,13 +64,12 @@ def reconstruct_ir(ir_decomp, out=None):
     return ir
 
 def decompose_ir(ir, dims, rank):
-    """
-    Decomposes an IR into a Kronecker / Tensor product decomposition of rank rank. 
-    The IR is assumed to be of shape (..., ir_len), where the product of dims must equal ir_len. 
+    """Decomposes an IR into a Kronecker / Tensor product decomposition of rank rank. 
 
     Parameters
     ----------
     ir : ndarray of shape (..., ir_len)
+        The IR is assumed to be of shape (..., ir_len), where the product of dims must equal ir_len. 
     dims : tuple of ints
         the product of these values must equal ir_len
     rank : int
@@ -79,7 +78,6 @@ def decompose_ir(ir, dims, rank):
     ------
     ir_decomp : tuple of ndarrays which are shorter IRs, the i:th entry has shape (..., rank, dims[i])
     len(decomposed_ir) == len(dims)
-    
     """
     num_dims = len(dims)
     ir_len = ir.shape[-1]
@@ -119,8 +117,7 @@ def create_filter(
     rank = None, 
     ir_len=None
     ):
-    """
-    Returns the appropriate low rank filter. 
+    """Returns the appropriate low rank filter. 
     
     The use of the filters are identical to the filter classes of aspcore.filterclasses. 
     Under an assumption that the keywords were default, meaning sum_over_input=True, 
@@ -207,7 +204,8 @@ class LowRankFilter2D:
         #self.filters = [[fc.create_filter(self.ir[0][ch_in:ch_in+1, :,r,:]) for ch_in in range(self.num_in)] for r in range(self.rank)]
 
     def process(self, sig):
-        """
+        """Filters the signal used as argument with the impulse response. 
+
         Parameters
         ----------
         sig : ndarray of shape (num_in, num_samples)
@@ -250,14 +248,18 @@ class LowRankFilter2D:
         return out_sig
     
     def process_nosum(self, sig):
-        """
+        """Filters the signal used as argument with the impulse response.
+
+        Does not sum over the input dimension. If the output of this function is summed
+        of the first axis, it will be the same as the output of process.
+
         Parameters
         ----------
         sig : ndarray of shape (num_in, num_samples)
 
         Returns
         -------
-        out_sig : ndarray of shape (num_out, num_samples)
+        out_sig : ndarray of shape (num_in, num_out, num_samples)
         
         """
         num_samples = sig.shape[1]
@@ -350,7 +352,8 @@ class LowRankFilter3D:
 
 
     def process(self, sig):
-        """
+        """Filters the signal used as argument with the impulse response. 
+
         Parameters
         ----------
         sig : ndarray of shape (num_in, num_samples)
@@ -401,14 +404,18 @@ class LowRankFilter3D:
         return out_sig
     
     def process_nosum(self, sig):
-        """
+        """Filters the signal used as argument with the impulse response.
+
+        Does not sum over the input dimension. If the output of this function is summed
+        of the first axis, it will be the same as the output of process.
+
         Parameters
         ----------
         sig : ndarray of shape (num_in, num_samples)
 
         Returns
         -------
-        out_sig : ndarray of shape (num_out, num_samples)
+        out_sig : ndarray of shape (num_in, num_out, num_samples)
         
         """
         num_samples = sig.shape[1]

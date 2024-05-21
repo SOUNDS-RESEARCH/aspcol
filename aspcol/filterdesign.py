@@ -1,4 +1,4 @@
-"""Helper functions to design filters
+"""Functions to design and compute filters
 
 Can be used to obtain FIR filters from frequency responses. Also contains
 helper functions associated with the discrete Fourier transform. 
@@ -11,8 +11,7 @@ import itertools as it
 # ================== BASIC DFT FUNCTIONS =============================
 
 def get_frequency_values(num_freq, samplerate):
-    """
-    Deprecated, use get_real_freqs instead
+    """Deprecated, use get_real_freqs instead
     
     Get the frequency values of all positive frequency bins in Hz
     numFreq is the number of frequency bins INCLUDING negative frequencies
@@ -29,8 +28,7 @@ def get_frequency_values(num_freq, samplerate):
         raise ValueError
 
 def get_freqs(num_freq : int, samplerate : int):
-    """
-    Returns the sampled frequencies in Hz for a discrete Fourier transform
+    """Returns the sampled frequencies in Hz for a discrete Fourier transform
 
     Parameters
     ----------
@@ -46,26 +44,21 @@ def get_freqs(num_freq : int, samplerate : int):
     return np.arange(num_freq) * samplerate / num_freq
 
 def get_wavenum(num_freq : int, samplerate : int, c : float):
-    """
-    Returns the wave numbers associated with the sampled frequencies
-    of the DFT
+    """Returns the wave numbers associated with the sampled frequencies of the DFT
 
     See documentation for get_freqs
     """
     return get_angular_freqs(num_freq, samplerate) / c
 
 def get_angular_freqs(num_freq : int, samplerate : int):
-    """
-    Returns the angular frequencies associated with the sampled frequencies
-    of the DFT
+    """Returns the angular frequencies associated with the sampled frequencies of the DFT
 
     See documentation for get_freqs
     """
     return 2 * np.pi * get_freqs(num_freq, samplerate)
 
 def get_real_freqs(num_freq : int, samplerate : int):
-    """
-    Returns the real sampled frequencies in Hz for a discrete Fourier transform
+    """Returns the real sampled frequencies in Hz for a discrete Fourier transform
 
     Parameters
     ----------
@@ -88,18 +81,14 @@ def get_real_freqs(num_freq : int, samplerate : int):
         raise ValueError
 
 def get_real_wavenum(num_freq : int, samplerate : int, c : float):
-    """
-    Get wave numbers associated with the real frequencies
-    of the DFT
+    """Get wave numbers associated with the real frequencies of the DFT
 
     See documentation for get_real_freqs
     """
     return get_real_angular_freqs(num_freq, samplerate) / c
 
 def get_real_angular_freqs(num_freq : int, samplerate : int):
-    """
-    Returns angular frequencies associated with the real frequencies 
-    of the DFT
+    """Returns angular frequencies associated with the real frequencies of the DFT
 
     See documentation for get_real_freqs
     """
@@ -107,9 +96,7 @@ def get_real_angular_freqs(num_freq : int, samplerate : int):
 
 
 def insert_negative_frequencies(freq_signal, even):
-    """
-    Inserts all negative frequency values under the
-    assumption of conjugate symmetry, i.e. a real impulse response.
+    """Inserts all negative frequency values under the assumption of conjugate symmetry, i.e. a real impulse response.
 
     To be used in conjunction with get_real_freqs
     
@@ -135,9 +122,7 @@ def insert_negative_frequencies(freq_signal, even):
 
 
 def dft_vector (freq_idx : int, dft_len : int):
-    """
-    Returns the vector with all complex exponential values used
-    to calculate the DFT
+    """Returns the vector with all complex exponential values used to calculate the DFT
 
     Parameters
     ----------
@@ -154,8 +139,7 @@ def dft_vector (freq_idx : int, dft_len : int):
     return np.exp(np.arange(dft_len) * exp_factor)
 
 def idft_vector (freq_idx : int, dft_len : int):
-    """
-    See documentation fpr dft_vector
+    """See documentation for dft_vector
     """
     exp_factor = 2 * np.pi * 1j * freq_idx / dft_len
     return np.exp(np.arange(dft_len) * exp_factor) / dft_len
@@ -166,8 +150,7 @@ def idft_vector (freq_idx : int, dft_len : int):
 # ============== DESIGN FIR FILTERS ====================
 
 def fir_from_freqs_window(freq_filter, ir_len, two_sided=True, window="hamming"):
-    """
-    Constructs a FIR filter from frequency values
+    """Constructs a FIR filter from frequency values
     
     Currently works only for two_sided=True and odd ir_len
 
@@ -217,8 +200,7 @@ def fir_from_freqs_window(freq_filter, ir_len, two_sided=True, window="hamming")
     return trunc_filter, trunc_error
 
 def truncate_filter(ir, ir_len, two_sided):
-    """
-    Truncates the impulse response to the desired length
+    """Truncates the impulse response to the desired length
     Currently only works for two_sided=True and odd ir_len
 
     Parameters

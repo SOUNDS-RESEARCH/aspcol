@@ -43,9 +43,19 @@ def power_of_filtered_signal(src, ir, num_samples):
     avg_pow = np.mean(filt_sig**2, axis=-1)
     return avg_pow
 
-# only scalar for now
+
 def is_power_of_2(x):
     """Returns True if x is a power of 2, False otherwise
+
+    Parameters
+    ----------
+    x : int
+        The number to check
+
+    Returns
+    -------
+    is_power_of_2 : bool
+        True if x is a power of 2, False otherwise
     """
     return is_integer(np.log2(x))
 

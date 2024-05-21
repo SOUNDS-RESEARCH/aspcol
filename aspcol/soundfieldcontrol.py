@@ -1,4 +1,11 @@
-"""Collection of algorithms for sound field control, in particular sound zone control
+"""Algorithms for sound field control, in particular sound zone control. 
+
+
+References
+----------
+[brunnstromSound2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Sound zone control for arbitrary sound field reproduction methods,” in European Signal Processing Conference (EUSIPCO), Helsinki, Finland, Sep. 2023. \n
+[brunnstromSignaltointerferenceplusnoise2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Signal-to-interference-plus-noise ratio based optimization for sound zone control,” IEEE Open Journal of Signal Processing, vol. 4, pp. 257–266, 2023, doi: 10.1109/OJSP.2023.3246398. \n
+[leeFast2020] T. Lee, L. Shi, J. K. Nielsen, and M. G. Christensen, “Fast generation of sound zones using variable span trade-off filters in the DFT-domain,” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 29, pp. 363–378, Dec. 2020, doi: 10.1109/TASLP.2020.3042701. \n
 
 
 """
@@ -121,8 +128,7 @@ def fpaths_to_spatial_cov(arrays, fpaths, source_name, zone_names):
     return R
 
 def get_fpaths(arrays, num_freqs, samplerate):
-    """
-    utility function to be used with aspsim package
+    """utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
 
     returns a dictionary with frequency domain RIRs 
         each entry has shape 
@@ -147,7 +153,7 @@ def get_fpaths(arrays, num_freqs, samplerate):
 
 def paths_to_spatial_cov(arrays, source_name, zone_names, sources, filt_len, num_samples, margin=None):
     """
-    utility function to be used with aspsim package
+    utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
 
     sources should be a list of the audio sources associated with each zone
         naturally the list of zone names and sources should be of the same length
@@ -175,7 +181,7 @@ def paths_to_spatial_cov(arrays, source_name, zone_names, sources, filt_len, num
 
 def paths_to_spatial_cov_delta(arrays, source_name, zone_names, filt_len):
     """
-    utility function to be used with aspsim package
+    utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
 
     See info for paths_to_spatial_cov
     """
@@ -194,10 +200,9 @@ def rir_to_szc_cov(rir, ctrlfilt_len):
     turns it into the time domain sound zone control spatial
     covariance matrix made up of the blocks R_l1l2 = H_l1^T H_l2, 
     where H_l is a convolution matrix with RIRs associated with
-     loudspeaker l
+    loudspeaker l
 
     output is of shape (num_ls*ctrlfilt_len, num_ls*ctrlfilt_len)
-    
     """
     num_ls = rir.shape[0]
     num_mics = rir.shape[1]
@@ -271,7 +276,20 @@ def acc(Rb, Rd, reg=0):
 
     Will calculate the principal generalized eigenvector of (Rb, Rd+reg*I)
 
-    Rb and Rd are of shapes (num_freq, num_ls, num_ls)
+    Parameters
+    ----------
+    Rb : ndarray of shape (num_freq, num_ls, num_ls)
+        spatial covariance associated with the bright zone
+    Rd : ndarray of shape (num_freq, num_ls, num_ls)
+        spatial covariance associated with the dark zones
+    reg : float
+        non-negative, applies l2 regularization to the loudspeaker effort, by adding
+        reg * np.eye() to the dark zone spatial covariance. 
+
+    Returns
+    -------
+    w : ndarray of shape (num_freq, num_ls)
+        the control filter used to generate loudspeaker signals.
     """
     assert Rb.shape == Rd.shape
     assert Rb.shape[-1] == Rb.shape[-2]
@@ -293,7 +311,24 @@ def acc(Rb, Rd, reg=0):
 def pressure_matching_szc(Rb, Rd, rb, mu, reg=0):
     """Frequency-domain pressure matching for sound zone control
     
-    
+    Parameters
+    ----------
+    Rb : ndarray of shape (num_freq, num_ls, num_ls)
+        spatial covariance associated with the bright zone
+    Rd : ndarray of shape (num_freq, num_ls, num_ls)
+        spatial covariance associated with the dark zones
+    rb : ndarray of shape (num_freq, num_ls, num_virt_src)
+        cross correlation between paths to bright zone and virtual source paths
+    mu : int
+        non-negative, weights effort between error in dark and bright zones
+    reg : float
+        non-negative, applies l2 regularization to the loudspeaker effort, by adding
+        reg * np.eye() to the dark zone spatial covariance
+
+    Returns
+    -------
+    w : ndarray of shape (num_freq, num_ls, num_virt_src)
+        the control filter used to generate loudspeaker signals.
     """
     assert Rb.shape == Rd.shape
     assert Rb.shape[-1] == Rb.shape[-2]
@@ -337,7 +372,7 @@ def vast(Rb, Rd, rb, mu, rank, reg=0):
 
     References
     ----------
-    T. Lee, L. Shi, J. K. Nielsen, and M. G. Christensen, “Fast generation of sound zones using variable span trade-off filters in the DFT-domain,” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 29, pp. 363–378, Dec. 2020, doi: 10.1109/TASLP.2020.3042701.
+    [leeFast2020] T. Lee, L. Shi, J. K. Nielsen, and M. G. Christensen, “Fast generation of sound zones using variable span trade-off filters in the DFT-domain,” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 29, pp. 363–378, Dec. 2020, doi: 10.1109/TASLP.2020.3042701.
     """
     assert Rb.shape == Rd.shape
     assert Rb.shape[-1] == Rb.shape[-2]
@@ -375,11 +410,10 @@ def acc_time(Rb, Rd, reg_param=0):
     
     Will calculate the principal generalized eigenvector of (Rb, Rd+reg*I)
 
-
     OLD DOCUMENTATION:
     cov_bright and cov_dark is the szc spatial covariance matrices
-     = H.T @ H, where H is a convolution matrix made up of the RIR, 
-     summed over the appropriate microphones for bright and dark zones. 
+    = H.T @ H, where H is a convolution matrix made up of the RIR, 
+    summed over the appropriate microphones for bright and dark zones. 
 
     num_ls is the number of loudspeakers, and therefore the number 
     of blocks (in each axis) that the cov matrices consists of
@@ -405,13 +439,13 @@ def acc_time_all_zones(R, reg_param=0):
 
     Parameters
     ----------
-    R is of shape (num_zones, num_zones, bf_len, bf_len)
-    R[k,i,:,:] means spatial covariance associated with RIRs 
+    R : ndarray of shape (num_zones, num_zones, bf_len, bf_len)
+        R[k,i,:,:] means spatial covariance associated with RIRs 
         of zone k, and audio signal of zone i
     
     Returns
     -------
-    returns beamformer vector of shape (num_zones, bf_len)
+    beamformer vector : ndarray of shape (num_zones, bf_len)
     """
     num_zones = R.shape[0]
     bf_len = R.shape[-1]
@@ -435,13 +469,28 @@ def acc_time_all_zones(R, reg_param=0):
 
 # ================== LOUDSPEAKER SIGNAL TRANSFORM ================
 def szc_transform_mwf(Rb, Rd, mu=1):
-    """
-    Rb and Rd are formatted as (num_freqs, num_ls, num_ls)
-    gives back W = (Rb + mu*Rd)^{-1} Rb
+    """Calculates the linear transformation to apply to loudspeaker signals to obtain sound zones. 
+
+    A special case of szc_transform_mwf_gevd, where rank is equal to the number of loudspeakers
+
+    Parameters
+    ----------
+    Rb : ndarray of shape (num_freqs, num_ls, num_ls)
+        spatial covariance associated with the bright zone
+    Rd : ndarray of shape (num_freqs, num_ls, num_ls)
+        spatial covariance associated with the dark zones
+    mu : int
+        non-negative, weights effort between error in dark and bright zones
+
+    Returns
+    -------
+    W : ndarray of shape (num_freqs, num_ls, num_ls)
+        The matrix representing the linear transformation of the loudspeaker signals. 
+        Calculated as W = (Rb + mu*Rd)^{-1} Rb
 
     References
     ----------
-    J. Brunnström, T. van Waterschoot, and M. Moonen, “Sound zone control for arbitrary sound field reproduction methods,” in European Signal Processing Conference (EUSIPCO), Helsinki, Finland, Sep. 2023.
+    [brunnstromSound2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Sound zone control for arbitrary sound field reproduction methods,” in European Signal Processing Conference (EUSIPCO), Helsinki, Finland, Sep. 2023.
     """
 
     mat_to_invert = Rb + mu*Rd
@@ -449,15 +498,28 @@ def szc_transform_mwf(Rb, Rd, mu=1):
     return W
 
 def szc_transform_mwf_gevd(Rb, Rd, rank, mu=1):
-    """
+    """Calculates the linear transformation to apply to loudspeaker signals to obtain sound zones. 
+
     Parameters
     ----------
-    Rb and Rd are formatted as (num_freqs, num_ls, num_ls)
-    rank is an integer between 1 and num_ls
+    Rb : ndarray of shape (num_freqs, num_ls, num_ls)
+        spatial covariance associated with the bright zone
+    Rd : ndarray of shape (num_freqs, num_ls, num_ls)
+        spatial covariance associated with the dark zones
+    mu : int
+        non-negative, weights effort between error in dark and bright zones
+    rank : int
+        between 1 and num_ls. Applies low-rank approximation via GEVD. 
+        Lower rank gives higher acoustic contrast, higher rank gives lower distortion
+
+    Returns
+    -------
+    W : ndarray of shape (num_freqs, num_ls, num_ls)
+        The matrix representing the linear transformation of the loudspeaker signals
     
     References
     ----------
-    J. Brunnström, T. van Waterschoot, and M. Moonen, “Sound zone control for arbitrary sound field reproduction methods,” in European Signal Processing Conference (EUSIPCO), Helsinki, Finland, Sep. 2023.
+    [brunnstromSound2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Sound zone control for arbitrary sound field reproduction methods,” in European Signal Processing Conference (EUSIPCO), Helsinki, Finland, Sep. 2023.
     """
     num_freqs = Rb.shape[0]
     W = np.zeros(Rb.shape, dtype=Rb.dtype)
@@ -475,8 +537,7 @@ def szc_transform_mwf_gevd(Rb, Rd, rank, mu=1):
 
 # ================== SPATIAL AUDIO ===============================
 def pressure_matching_sa(Hv, Hc):
-    """Frequency domain pressure matching to generate loudspeaker signals
-        minimizes lVert Hv - Hc w rVert^2 with regards to w
+    """Frequency domain pressure matching to generate loudspeaker signals from virtual source signals
 
     v is the virtual source sound pressure (num_freq, num_virtual_src, 1)
     
@@ -492,6 +553,14 @@ def pressure_matching_sa(Hv, Hc):
     beamformer w : ndarray of shape (num_freq, num_ls, num_virtual_source) 
         which should be applied to the virutal source sound pressure 
         as w @ v, where v : (num_freq, num_virtual_src, 1)
+
+    Notes
+    -----
+    The beamformer is calculated as w = (H_c^H H_c)^{-1} H_c^H H_v. Definition can be found in (15) in [brunnstromSound2023]
+
+    References
+    ----------
+    [brunnstromSound2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Sound zone control for arbitrary sound field reproduction methods,” in European Signal Processing Conference (EUSIPCO), Helsinki, Finland, Sep. 2023.
     """
     w = np.linalg.solve(np.moveaxis(Hc.conj(),-1,-2) @ Hc, np.moveaxis(Hc.conj(),-1,-2) @ Hv)
     return w
@@ -533,7 +602,7 @@ def solve_power_weighted_qos_uplink(R, noise_pow, sinr_targets, max_pow, audio_c
     
     The control filter is SINR-optimal and takes the spectral characteristics of the audio signal into account. In order to use it 
     for sound zone control it should first be power-normalized with normalize_beamformer, and then scaled according to power_alloc_qos_downlink
-    It is the proposed method of the paper cited below. 
+    It is the proposed method of [brunnstromSignaltointerferenceplusnoise2023]. 
     
     Parameters
     ----------
@@ -563,7 +632,7 @@ def solve_power_weighted_qos_uplink(R, noise_pow, sinr_targets, max_pow, audio_c
     
     References
     ----------
-    J. Brunnström, T. van Waterschoot, and M. Moonen, “Signal-to-interference-plus-noise ratio based optimization for sound zone control,” IEEE Open Journal of Signal Processing, vol. 4, pp. 257–266, 2023, doi: 10.1109/OJSP.2023.3246398.
+    [brunnstromSignaltointerferenceplusnoise2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Signal-to-interference-plus-noise ratio based optimization for sound zone control,” IEEE Open Journal of Signal Processing, vol. 4, pp. 257–266, 2023, doi: 10.1109/OJSP.2023.3246398.
     """
     num_zones = R.shape[0]
 
