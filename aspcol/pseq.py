@@ -5,9 +5,9 @@ Such sequences are deterministic periodic sequences with an impulse as periodic 
 
 References
 ----------
-[antweilerNLMStype2008] C. Antweiler, A. Telle, and P. Vary, “NLMS-type system identification of MISO systems with shifted perfect sequences,” Proceedings of the International Workshop on Acoustic Echo and Noise Control (IWAENC), Seattle, WA, Sep. 2008.\n
+[antweilerNLMStype2008] C. Antweiler, A. Telle, and P. Vary, “NLMS-type system identification of MISO systems with shifted perfect sequences,” Proceedings of the International Workshop on Acoustic Echo and Noise Control (IWAENC), Seattle, WA, Sep. 2008. \n
 [antweilerSystem2014] C. Antweiler, S. Kuehl, B. Sauert, and P. Vary, “System identification with perfect sequence excitation - efficient NLMS vs. inverse cyclic convolution,” in Speech Communication; 11. ITG Symposium, Sep. 2014, pp. 1–4.\n
-[hahnSimultaneous2018] N. Hahn and S. Spors, “Simultaneous measurement of spatial room impulse responses from multiple sound sources using a continuously moving microphone,” in 2018 26th European Signal Processing Conference (EUSIPCO), Sep. 2018, pp. 2180–2184. doi: 10.23919/EUSIPCO.2018.8553532. \n
+[hahnSimultaneous2018] N. Hahn and S. Spors, “Simultaneous measurement of spatial room impulse responses from multiple sound sources using a continuously moving microphone,” in 2018 26th European Signal Processing Conference (EUSIPCO), Sep. 2018, pp. 2180–2184. doi: 10.23919/EUSIPCO.2018.8553532. `[link] <https://doi.org/10.23919/EUSIPCO.2018.8553532>`_\n
 """
 import numpy as np
 import scipy.linalg as splin

@@ -3,9 +3,9 @@
 
 References
 ----------
-[brunnstromSound2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Sound zone control for arbitrary sound field reproduction methods,” in European Signal Processing Conference (EUSIPCO), Helsinki, Finland, Sep. 2023. \n
-[brunnstromSignaltointerferenceplusnoise2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Signal-to-interference-plus-noise ratio based optimization for sound zone control,” IEEE Open Journal of Signal Processing, vol. 4, pp. 257–266, 2023, doi: 10.1109/OJSP.2023.3246398. \n
-[leeFast2020] T. Lee, L. Shi, J. K. Nielsen, and M. G. Christensen, “Fast generation of sound zones using variable span trade-off filters in the DFT-domain,” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 29, pp. 363–378, Dec. 2020, doi: 10.1109/TASLP.2020.3042701. \n
+[brunnstromSound2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Sound zone control for arbitrary sound field reproduction methods,” in European Signal Processing Conference (EUSIPCO), Helsinki, Finland, Sep. 2023. `[link] <https://doi.org/10.23919/EUSIPCO58844.2023.10289995>`_ \n
+[brunnstromSignaltointerferenceplusnoise2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Signal-to-interference-plus-noise ratio based optimization for sound zone control,” IEEE Open Journal of Signal Processing, vol. 4, pp. 257–266, 2023, doi: 10.1109/OJSP.2023.3246398. `[link] <https://doi.org/10.1109/OJSP.2023.3246398>`_ \n
+[leeFast2020] T. Lee, L. Shi, J. K. Nielsen, and M. G. Christensen, “Fast generation of sound zones using variable span trade-off filters in the DFT-domain,” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 29, pp. 363–378, Dec. 2020, doi: 10.1109/TASLP.2020.3042701. `[link] <https://doi.org/10.1109/TASLP.2020.3042701>`_ \n 
 
 
 """
