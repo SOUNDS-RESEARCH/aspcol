@@ -27,6 +27,13 @@ API Reference
    aspcol.soundfieldestimation
    aspcol.utilities
 
+Reference list
+==============
+A full list of the papers relevant to the implemented algorithms in this package can be found at the following link. 
+
+.. toctree::
+
+   references
 
 License
 =======
