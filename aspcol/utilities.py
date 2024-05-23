@@ -444,3 +444,69 @@ def restack_dict(dict_to_stack, sep="~"):
         extracted_data[key_list[0]][key_list[1]] = dict_to_stack[multi_key]
     return extracted_data
 
+
+
+def get_time_string(detailed=False):
+    """Returns a string with the current time in the format 'year_month_day_hour_minute'
+    
+    Parameters
+    ----------
+    detailed : bool
+        If True, seconds and microseconds will be included in the string
+
+    Returns
+    -------
+    time_str : str
+        The time string
+    """
+    tm = datetime.datetime.now()
+    time_str = (
+        str(tm.year)
+        + "_"
+        + str(tm.month).zfill(2)
+        + "_"
+        + str(tm.day).zfill(2)
+        + "_"
+        + str(tm.hour).zfill(2)
+        + "_"
+        + str(tm.minute).zfill(2)
+    )
+    if detailed:
+        time_str += "_" + str(tm.second).zfill(2)
+        time_str += "_" + str(tm.microsecond).zfill(2)
+    return time_str
+
+
+def get_unique_folder(prefix, parent_folder, detailed_naming=False):
+    """Returns a unique folder name in the parent folder with the prefix and the current time
+
+    The folder name has the form parent_folder / prefix_year_month_day_hour_minute_0. If multiple folders are created
+    within the same minute, the number is incremented by 1 for each new folder. 
+
+    Parameters
+    ----------
+    prefix : str
+        The prefix for the folder name
+    parent_folder : Path
+        The parent folder where the new folder should be created, as a Path object (from pathlib)
+    detailed_naming : bool
+        If True, the folder name will include seconds and microseconds. 
+        If used with multithreading, it is a good idea to set this to True. 
+        In that case, uniqueness is not guaranteed, but it reduces the risk of clashes significantly.
+    
+    Returns
+    -------
+    folder_name : Path
+        The full path to the new folder. The folder is not created by this function.
+    """
+    file_name = prefix + get_time_string(detailed=detailed_naming)
+    file_name += "_0"
+    folder_name = parent_folder / file_name
+    if folder_name.exists():
+        idx = 1
+        folder_name_len = len(folder_name.name) - 2
+        while folder_name.exists():
+            new_name = folder_name.name[:folder_name_len] + "_" + str(idx)
+            folder_name = folder_name.parent / new_name
+            idx += 1
+    return folder_name

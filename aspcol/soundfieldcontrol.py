@@ -105,7 +105,7 @@ def spatial_cov_freq_superpos(Hb, Hd, d=None):
 def fpaths_to_spatial_cov(arrays, fpaths, source_name, zone_names):
     """
 
-    utility function to be used with aspsim package
+    utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
 
     - arrays is ArrayCollection object
     - fpaths is the frequency domain RIRs, see function get_fpaths() in this module
