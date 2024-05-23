@@ -13,6 +13,10 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../..'))
+sys.path.append(os.path.abspath("./_ext"))
+os.environ["NUMBA_DISABLE_JIT"] = '1'
+
+
 #sys.path.insert(0, os.path.abspath('.'))
 
 
@@ -37,6 +41,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
+    'numbadoc',
+    #'numpydoc',
 ]
 napoleon_google_docstring = False
 autosummary_generate = True
@@ -45,7 +51,7 @@ autodoc_inherit_docstrings = True
 set_type_checking_flag = True
 autosummary_imported_members = True
 
-autodoc_mock_imports = ["numpy", "scipy", "matplotlib", "samplerate", "numexpr", "numba", "tensorly", "hypothesis", "pytest", "aspcore", "aspsim"]
+autodoc_mock_imports = ["numpy", "scipy", "matplotlib", "samplerate", "numexpr", "numba", "tensorly", "hypothesis", "pytest", "aspcore", "aspsim", "abc"]
 
 
 # Add any paths that contain templates here, relative to this directory.

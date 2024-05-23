@@ -1,4 +1,4 @@
-"""Helper functions for naive monte carlo sampling of a given function
+"""Functions for Monte Carlo integration
 """
 import numpy as np
 

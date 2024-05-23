@@ -1,6 +1,13 @@
 """Functions associated with perfect periodic sequences
 
-Such sequences are deterministic periodic sequences with an impulse as periodic autocorrelation. 
+Such sequences are deterministic periodic sequences with an impulse as periodic autocorrelation. When used for system identification, which in an audio context often is room impulse response estimation, the deconvolution is particularly simple. For an ideal LTI system without noise, the impulse response can be identified perfectly after only one period of the signal, by cross-correlating the output signal with the perfect sequence. In addition, it is possible to identify the impulse response of a MISO system by using a shifted version of the same sequence for each source.
+
+
+References
+----------
+[antweilerNLMStype2008] C. Antweiler, A. Telle, and P. Vary, “NLMS-type system identification of MISO systems with shifted perfect sequences,” Proceedings of the International Workshop on Acoustic Echo and Noise Control (IWAENC), Seattle, WA, Sep. 2008. \n
+[antweilerSystem2014] C. Antweiler, S. Kuehl, B. Sauert, and P. Vary, “System identification with perfect sequence excitation - efficient NLMS vs. inverse cyclic convolution,” in Speech Communication; 11. ITG Symposium, Sep. 2014, pp. 1–4.\n
+[hahnSimultaneous2018] N. Hahn and S. Spors, “Simultaneous measurement of spatial room impulse responses from multiple sound sources using a continuously moving microphone,” in 2018 26th European Signal Processing Conference (EUSIPCO), Sep. 2018, pp. 2180–2184. doi: 10.23919/EUSIPCO.2018.8553532. `[link] <https://doi.org/10.23919/EUSIPCO.2018.8553532>`_\n
 """
 import numpy as np
 import scipy.linalg as splin
@@ -12,8 +19,7 @@ import aspcol.correlation as cr
 
 
 def decorrelate(sig, pseq, v=0):
-    """
-    Can be used to identify a LTI system from a PSEQ input signal
+    """Can be used to identify a LTI system from a PSEQ input signal
 
     Parameters
     ----------
@@ -46,8 +52,7 @@ def decorrelate(sig, pseq, v=0):
 
 
 def create_pseq(seq_len : int):
-    """
-    Creates a perfect sweep with constant magnitude spectrum
+    """Creates a perfect sweep with constant magnitude spectrum
     Adapted from MATLAB code by Aulis Telle, IND, 2008
 
     Parameters
@@ -80,8 +85,7 @@ def create_pseq(seq_len : int):
     return s[None,:]
     
 def create_pseq_lowfreq(seq_len : int, sr : int, max_pseq_freq : int):
-    """
-    Creates pseq with a maximum frequency to be used at a higher samplerate
+    """Creates pseq with a maximum frequency to be used at a higher samplerate
 
     Parameters
     ----------
@@ -94,8 +98,6 @@ def create_pseq_lowfreq(seq_len : int, sr : int, max_pseq_freq : int):
     Returns
     -------
     seq : ndarray of shape (short_seq_len, )
-    
-    
     """
     import samplerate as sr_convert
     low_sr = 2 * max_pseq_freq
@@ -119,8 +121,7 @@ def create_pseq_lowfreq(seq_len : int, sr : int, max_pseq_freq : int):
     return seq_upsampled[None,:]
 
 def create_shifted_pseq(pseq, num_channels, rir_len):
-    """
-    For system identification of MISO system, each source should be
+    """For system identification of MISO system, each source should be
     given a shifted version of the same sequence to be able to 
     perfectly identify each channel.
 
@@ -135,6 +136,10 @@ def create_shifted_pseq(pseq, num_channels, rir_len):
     -------
     shifted_pseq : ndarray of shape (num_channels, rir_len*num_channels)
         source l should be assigned the signal shifted_pseq[l,:]
+
+    References
+    ----------
+    [antweilerNLMStype2008] [hahnSimultaneous2018]
     """
     if pseq.ndim == 1:
         pseq = pseq[None,:]

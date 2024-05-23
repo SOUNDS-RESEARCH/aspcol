@@ -1,4 +1,4 @@
-"""Helper functions for dealing with matrices. 
+"""Functions for common operations on matrices.
 
 Some examples include constructing a block matrix, ensure positive definiteness, applying a function to individual blocks of a block matrix. 
 """
@@ -106,10 +106,9 @@ def block_of_toeplitz(block_of_col, block_of_row=None):
     return block_mat
 
 def block_transpose(matrix, block_size, out=None):
-    """
-    This function can easily be replaced by apply_blockwise. 
+    """Transposes each block individually in a block matrix. 
 
-    Transposes each block individually in a block matrix. 
+    This function can easily be replaced by apply_blockwise. 
     Requires square blocks, but not a square block matrix. 
     B = [A_11^T, ..., A_1r^T
 

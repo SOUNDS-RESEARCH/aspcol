@@ -1,13 +1,15 @@
-"""Utility classes for filtering
+"""Implementations of various types of filters
 
-Implementations for standard linear convolution can be found in scipy.signal and aspcore. 
+Implementations for standard linear convolution can be found in `scipy.signal <doi.org/10.23919/EUSIPCO54536.2021.9616352>`_ and `aspcore <doi.org/10.23919/EUSIPCO54536.2021.9616352>`_. 
 
-* Weighted overlap-add (WOLA) [1,2]
-* IIR filter
-* Mean with forgetting factor
+- Weighted overlap-add (WOLA) [crochiereWeighted1980, ruizComparison2021]
+- IIR filter
+- Mean with forgetting factor
 
-`[1] <doi.org/10.1109/TASSP.1980.1163353>`_ R. Crochiere, “A weighted overlap-add method of short-time Fourier analysis/synthesis,” IEEE Transactions on Acoustics, Speech, and Signal Processing, vol. 28, no. 1, pp. 99–102, Feb. 1980, doi: 10.1109/TASSP.1980.1163353.
-`[2] <doi.org/10.23919/EUSIPCO54536.2021.9616352>`_ S. Ruiz, T. Dietzen, T. van Waterschoot, and M. Moonen, “A comparison between overlap-save and weighted overlap-add filter banks for multi-channel Wiener filter based noise reduction,” in 2021 29th European Signal Processing Conference (EUSIPCO), Aug. 2021, pp. 336–340. doi: 10.23919/EUSIPCO54536.2021.9616352. 
+References
+----------
+[crochiereWeighted1980] R. Crochiere, “A weighted overlap-add method of short-time Fourier analysis/synthesis,” IEEE Transactions on Acoustics, Speech, and Signal Processing, vol. 28, no. 1, pp. 99–102, Feb. 1980, doi: 10.1109/TASSP.1980.1163353. `[link] <https://doi.org/10.1109/TASSP.1980.1163353>`_ \n
+[ruizComparison2021] S. Ruiz, T. Dietzen, T. van Waterschoot, and M. Moonen, “A comparison between overlap-save and weighted overlap-add filter banks for multi-channel Wiener filter based noise reduction,” in 2021 29th European Signal Processing Conference (EUSIPCO), Aug. 2021, pp. 336–340. doi: 10.23919/EUSIPCO54536.2021.9616352. `[link] <https://doi.org/10.23919/EUSIPCO54536.2021.9616352>`_ \n
 """
 import numpy as np
 import scipy.signal as spsig

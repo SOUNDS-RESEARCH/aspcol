@@ -1,16 +1,14 @@
 """Collection of algorithms for sound field estimation
 
-* Kernel interpolation [1]
-* Infinite dimensional spherical harmonic analysis for moving microphones [2]
-* Spatial spectrum estimation for moving microphones [3]
+* Kernel interpolation [uenoKernel2018]
+* Infinite dimensional spherical harmonic analysis for moving microphones [brunnstromBayesianSubmitted]
+* Spatial spectrum estimation for moving microphones [katzbergSpherical2021]
 
 References
 ----------
-`[1] <doi.org/10.1109/IWAENC.2018.8521334>`_ N. Ueno, S. Koyama, and H. Saruwatari, “Kernel ridge regression with constraint of Helmholtz equation for sound field interpolation,” in 2018 16th International Workshop on Acoustic Signal Enhancement (IWAENC), Tokyo, Japan: IEEE, Sep. 2018, pp. 436–440. doi: 10.1109/IWAENC.2018.8521334.
-[2] J. Brunnström, M. B. Mo/ller, and M. Moonen, “Bayesian sound field estimation using moving microphones,” IEEE Open Journal of Signal Processing, submitted.
-`[3] <doi.org/10.1109/ICASSP39728.2021.9413708>`_ F. Katzberg, M. Maass, and A. Mertins, “Spherical harmonic representation for dynamic sound-field measurements,” in ICASSP 2021 - 2021 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Jun. 2021, pp. 426–430. doi: 10.1109/ICASSP39728.2021.9413708.
-
-
+[uenoKernel2018] N. Ueno, S. Koyama, and H. Saruwatari, “Kernel ridge regression with constraint of Helmholtz equation for sound field interpolation,” in 2018 16th International Workshop on Acoustic Signal Enhancement (IWAENC), Tokyo, Japan: IEEE, Sep. 2018, pp. 436–440. doi: 10.1109/IWAENC.2018.8521334. `[link] <https://doi.org/10.1109/IWAENC.2018.8521334>`_ \n
+[brunnstromBayesianSubmitted] J. Brunnström, M. B. Møller, and M. Moonen, “Bayesian sound field estimation using moving microphones,” IEEE Open Journal of Signal Processing, submitted. \n
+[katzbergSpherical2021] F. Katzberg, M. Maass, and A. Mertins, “Spherical harmonic representation for dynamic sound-field measurements,” in ICASSP 2021 - 2021 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Jun. 2021, pp. 426–430. doi: 10.1109/ICASSP39728.2021.9413708. `[link] <https://doi.org/10.1109/ICASSP39728.2021.9413708>`_ \n
 """
 import numpy as np
 import scipy.linalg as splin
@@ -26,10 +24,9 @@ import aspcol.sphericalharmonics as sph
 
 
 #============= FREQUENCY DOMAIN METHODS - STATIONARY MICROPHONES =============
-
 def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
-    """
-    Estimates the RIR in the frequency domain using kernel interpolation
+    """Estimates the RIR in the frequency domain using kernel interpolation
+    
     Uses the frequency domain sound pressure as input
 
     Parameters
@@ -49,6 +46,10 @@ def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
     -------
     est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
         estimated RIR per frequency at the evaluation points
+
+    References
+    ----------
+    [uenoKernel2018]
     """
     est_filt = ki.get_krr_parameters(ki.kernel_helmholtz_3d, reg_param, pos_eval, pos, k)
     p_ki = est_filt @ p_freq[:,:,None]
@@ -183,6 +184,10 @@ def est_ki_diffuse(p, seq, pos, pos_eval, samplerate, c, reg_param):
     -------
     est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
         estimated RIR per frequency at the evaluation points
+
+    References
+    ----------
+    [uenoKernel2018]
     """
     rir = pseq.decorrelate(p, seq)
 
@@ -202,17 +207,12 @@ def est_ki_diffuse(p, seq, pos, pos_eval, samplerate, c, reg_param):
 
 
 
-
 #============= MOVING MICROPHONE ESTIMATION =============
 
 
 def est_inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_param, verbose=False):
-    """
-    Estimates the RIR at evaluation positions using data from a moving microphone
+    """Estimates the RIR at evaluation positions using data from a moving microphone
     using Bayesian inference of an infinite sequence of spherical harmonics
-
-    Implements the method in J. Brunnström, M.B. Moeller, M. Moonen, 
-    "Bayesian sound field estimation using moving microphones" 
 
     Assumptions:
     The microphones are omnidirectional
@@ -243,6 +243,10 @@ def est_inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, r
     -------
     est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
         estimated RIR per frequency at the evaluation points
+
+    References
+    ----------
+    [brunnstromBayesianSubmitted]
     """
     # ======= Argument parsing =======
     if p.ndim >= 2:

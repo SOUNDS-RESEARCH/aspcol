@@ -1,14 +1,16 @@
 """Implements autocorrelation and cross-correlation estimators, as well as related useful calculations. 
 
-* Estimation of correlation function and covariance matrix of signal.  
-* Sample covariance for vector-valued variable, including the non-zero mean case, even in a streaming processing.  
-* Covariance estimation with optimal linear shrinkage [1] and almost optimal non-linear shrinkage [2],
+- Estimation of correlation function and covariance matrix of signal.  
+
+- Sample covariance for vector-valued variable, including the non-zero mean case, even for processing a streaming signal, where the full signal is not available at once.  
+
+- Covariance estimation with optimal linear shrinkage [chenShrinkage2010] and almost optimal non-linear shrinkage [ledoitQuadratic2020].
 
 
 References
 ----------
-`[1] <doi.org/10.1109/TSP.2010.2053029>`_ Y. Chen, A. Wiesel, Y. C. Eldar, and A. O. Hero, “Shrinkage Algorithms for MMSE Covariance Estimation,” IEEE Trans. Signal Process., vol. 58, no. 10, pp. 5016–5029, Oct. 2010, doi: 10.1109/TSP.2010.2053029. 
-`[2] <doi.org/10.5167/UZH-176887>`_ O. Ledoit and M. Wolf, “Quadratic shrinkage for large covariance matrices,” Dec. 2020, doi: 10.5167/UZH-176887. 
+[chenShrinkage2010] Y. Chen, A. Wiesel, Y. C. Eldar, and A. O. Hero, “Shrinkage Algorithms for MMSE Covariance Estimation,” IEEE Trans. Signal Process., vol. 58, no. 10, pp. 5016–5029, Oct. 2010, doi: 10.1109/TSP.2010.2053029. `[link] <https://doi.org/10.1109/TSP.2010.2053029>`_ \n
+[ledoitQuadratic2020] O. Ledoit and M. Wolf, “Quadratic shrinkage for large covariance matrices,” Dec. 2020, doi: 10.5167/UZH-176887. `[link] <https://doi.org/10.5167/UZH-176887>`_ \n
 """
 
 

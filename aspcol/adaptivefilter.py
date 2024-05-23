@@ -1,24 +1,27 @@
-"""Implements several basic adaptive filters
+"""Implements several basic adaptive filters. Including least mean squares (LMS), recursive least squares (RLS), and fast block LMS.
 
-* Least mean squares (LMS)
-* Recursive least squares (RLS)
-* Fast block LMS
-* Fast block weighted LMS
+These are all constructed for an abritrary number of input and output channels. In addition, the filters work for streaming input, where not the full signals are availabe at once. The adaptive filters have not be heavily optimized, and can likely be improved a lot with regards to computational cost.  
 
 References
 ----------
-`[1] <https://link.springer.com/book/10.1007/978-3-030-29057-3>`_ P. S. R. Diniz, Adaptive filtering: algorithms and practical implementation. Cham: Springer International Publishing, 2020. doi: 10.1007/978-3-030-29057-3.
-
+[dinizAdaptive2020] P. S. R. Diniz, Adaptive filtering: algorithms and practical implementation. Cham: Springer International Publishing, 2020. doi: 10.1007/978-3-030-29057-3. `[link] <https://link.springer.com/book/10.1007/978-3-030-29057-3>`_
 """
 import numpy as np
-from abc import ABC, abstractmethod
-
-import aspcore.filterclasses as fc
-import aspcore.freqdomainfiltering as fdf
+from abc import abstractmethod
 import aspcol.utilities as util
 
+try:
+    import aspcore.filterclasses as fc
+except ImportError:
+    fc = None
 
-class AdaptiveFilterBase(ABC):
+try:
+    import aspcore.freqdomainfiltering as fdf
+except ImportError:
+    fdf = None
+
+
+class AdaptiveFilterBase():
     def __init__(self, ir_len, num_in, num_out, filter_type=None):
         filter_dim = (num_in, num_out, ir_len)
         self.num_in = num_in
@@ -68,7 +71,7 @@ class AdaptiveFilterBase(ABC):
 
 
 
-class AdaptiveFilterFreq(ABC):
+class AdaptiveFilterFreq():
     def __init__(self, num_freq, num_in, num_out):
         assert num_freq % 2 == 0
         self.num_in = num_in
