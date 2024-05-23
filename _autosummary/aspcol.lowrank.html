@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.lowrank &mdash; aspcol 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.lowrank.create_filter" href="aspcol.lowrank.create_filter.html" />
+    <link rel="prev" title="aspcol.kernelinterpolation.soundfield_interpolation_fir" href="aspcol.kernelinterpolation.soundfield_interpolation_fir.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.adaptivefilter.html">aspcol.adaptivefilter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.correlation.html">aspcol.correlation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.filterclasses.html">aspcol.filterclasses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.filterdesign.html">aspcol.filterdesign</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">aspcol.lowrank</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.lowrank.create_filter.html">aspcol.lowrank.create_filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.lowrank.decompose_ir.html">aspcol.lowrank.decompose_ir</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.lowrank.reconstruct_ir.html">aspcol.lowrank.reconstruct_ir</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.lowrank.LowRankFilter2D.html">aspcol.lowrank.LowRankFilter2D</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.lowrank.LowRankFilter3D.html">aspcol.lowrank.LowRankFilter3D</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.matrices.html">aspcol.matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.montecarlo.html">aspcol.montecarlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.pseq.html">aspcol.pseq</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">aspcol.lowrank</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.lowrank.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-aspcol.lowrank">
+<span id="aspcol-lowrank"></span><h1>aspcol.lowrank<a class="headerlink" href="#module-aspcol.lowrank" title="Link to this heading"></a></h1>
+<p>Implements algorithms related to low-rank tensor approximations of impulse responses</p>
+<ul class="simple">
+<li><p>Decomposes and reconstructs any impulse response with singular value decomposition or canonical polyadic decomposition for a low-rank approximation [jalmbyLowrank2021, paleologuLinear2018]</p></li>
+<li><p>Implements a low-cost convolution by directly using the low-rank representation [atkinsApproximate2013, jalmbyFast2023]</p></li>
+</ul>
+<p class="rubric">References</p>
+<p>[jalmbyLowrank2021] M. Jälmby, F. Elvander, and T. van Waterschoot, “Low-rank tensor modeling of room impulse responses,”
+in 2021 29th European Signal Processing Conference (EUSIPCO), Aug. 2021, pp. 111–115. doi: 10.23919/EUSIPCO54536.2021.9616075. <a class="reference external" href="https://doi.org/10.23919/EUSIPCO54536.2021.9616075">[link]</a></p>
+<p>[paleologuLinear2018] C. Paleologu, J. Benesty, and S. Ciochină, “Linear system identification based on a Kronecker product decomposition,”
+IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 26, no. 10, pp. 1793–1808, Oct. 2018, doi: 10.1109/TASLP.2018.2842146. <a class="reference external" href="https://doi.org/10.1109/TASLP.2018.2842146">[link]</a></p>
+<p>[atkinsApproximate2013] J. Atkins, A. Strauss, and C. Zhang, “Approximate convolution using partitioned truncated singular value decomposition filtering,”
+in 2013 IEEE International Conference on Acoustics, Speech and Signal Processing, May 2013, pp. 176–180. doi: 10.1109/ICASSP.2013.6637632. <a class="reference external" href="https://doi.org/10.1109/ICASSP.2013.6637632">[link]</a></p>
+<p>[jalmbyFast2023] M. Jälmby, F. Elvander, and T. van Waterschoot, “Fast low-latency convolution by low-rank tensor approximation,”
+in ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Rhodes, Greece, Jun. 2023. <a class="reference external" href="https://doi.org/10.1109/ICASSP49357.2023.10095908">[link]</a></p>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.lowrank.create_filter.html#aspcol.lowrank.create_filter" title="aspcol.lowrank.create_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_filter</span></code></a>([ir, num_in, num_out, rank, ...])</p></td>
+<td><p>Returns the appropriate low rank filter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.lowrank.decompose_ir.html#aspcol.lowrank.decompose_ir" title="aspcol.lowrank.decompose_ir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decompose_ir</span></code></a>(ir, dims, rank)</p></td>
+<td><p>Decomposes an IR into a Kronecker / Tensor product decomposition of rank rank.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.lowrank.reconstruct_ir.html#aspcol.lowrank.reconstruct_ir" title="aspcol.lowrank.reconstruct_ir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reconstruct_ir</span></code></a>(ir_decomp[, out])</p></td>
+<td><p>Takes a decomposition of an IR and reconstructs the IR.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.lowrank.LowRankFilter2D.html#aspcol.lowrank.LowRankFilter2D" title="aspcol.lowrank.LowRankFilter2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LowRankFilter2D</span></code></a>(ir1, ir2)</p></td>
+<td><p>Computes the linear convolution directly using a low-rank representation of the impulse response.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.lowrank.LowRankFilter3D.html#aspcol.lowrank.LowRankFilter3D" title="aspcol.lowrank.LowRankFilter3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LowRankFilter3D</span></code></a>(ir1, ir2, ir3)</p></td>
+<td><p>Computes the linear convolution directly using a low-rank representation of the impulse response.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.kernelinterpolation.soundfield_interpolation_fir.html" class="btn btn-neutral float-left" title="aspcol.kernelinterpolation.soundfield_interpolation_fir" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.lowrank.create_filter.html" class="btn btn-neutral float-right" title="aspcol.lowrank.create_filter" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

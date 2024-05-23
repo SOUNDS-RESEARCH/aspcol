@@ -1,0 +1,59 @@
+﻿aspcol.utilities
+================
+
+.. automodule:: aspcol.utilities
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      block_process_idxs
+      cart2pol
+      cart2spherical
+      db2mag
+      db2pow
+      flatten_dict
+      get_smallest_coprime
+      get_time_string
+      get_unique_folder
+      is_integer
+      is_power_of_2
+      mag2db
+      measure_time
+      next_divisible
+      pol2cart
+      pow2db
+      power_of_filtered_signal
+      restack_dict
+      simplify_ratio
+      spherical2cart
+      wraps
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: new-class-template.rst
+   
+      EventCounter
+      PhaseCounter
+   
+   
+
+   
+   
+   
+
+
+

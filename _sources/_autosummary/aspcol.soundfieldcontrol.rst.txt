@@ -1,0 +1,76 @@
+﻿aspcol.soundfieldcontrol
+========================
+
+.. automodule:: aspcol.soundfieldcontrol
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      acc
+      acc_time
+      acc_time_all_zones
+      apply_power_vec
+      beamformer_vec_to_ir
+      extract_power_vec
+      fpaths_to_spatial_cov
+      freq_to_time_beamformer
+      get_fpaths
+      link_gain_downlink
+      link_gain_uplink
+      normalize_beamformer
+      normalize_system
+      paths_to_spatial_cov
+      paths_to_spatial_cov_delta
+      power_alloc_minmax_downlink
+      power_alloc_minmax_uplink
+      power_alloc_qos_downlink
+      power_alloc_qos_uplink
+      pressure_matching_sa
+      pressure_matching_szc
+      rir_to_szc_cov
+      select_solution_eigenvalue
+      sinr_balance_difference_downlink
+      sinr_balance_difference_uplink
+      sinr_downlink
+      sinr_margin_downlink
+      sinr_margin_uplink
+      sinr_uplink
+      solve_power_weighted_qos_uplink
+      spatial_cov
+      spatial_cov_delta
+      spatial_cov_freq_superpos
+      sum_pow_of_mat
+      sum_pow_of_vec
+      sum_weighted_pow
+      szc_transform_mwf
+      szc_transform_mwf_gevd
+      vast
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: new-class-template.rst
+   
+      PressureMatchingWOLA
+   
+   
+
+   
+   
+   
+
+
+

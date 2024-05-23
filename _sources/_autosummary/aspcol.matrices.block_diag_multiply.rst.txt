@@ -1,0 +1,6 @@
+aspcol.matrices.block\_diag\_multiply
+=====================================
+
+.. currentmodule:: aspcol.matrices
+
+.. autofunction:: block_diag_multiply

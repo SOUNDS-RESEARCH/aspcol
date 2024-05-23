@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.sinr\_balance\_difference\_downlink
+============================================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: sinr_balance_difference_downlink

@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.select\_solution\_eigenvalue
+=====================================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: select_solution_eigenvalue

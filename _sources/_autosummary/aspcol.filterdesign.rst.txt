@@ -1,0 +1,43 @@
+﻿aspcol.filterdesign
+===================
+
+.. automodule:: aspcol.filterdesign
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      calc_truncation_error
+      dft_vector
+      fir_from_freqs_window
+      get_angular_freqs
+      get_freqs
+      get_frequency_values
+      get_real_angular_freqs
+      get_real_freqs
+      get_real_wavenum
+      get_wavenum
+      idft_vector
+      insert_negative_frequencies
+      min_truncated_length
+      truncate_filter
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

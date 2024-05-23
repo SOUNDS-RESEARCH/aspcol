@@ -1,0 +1,6 @@
+aspcol.distance.covariance\_distance\_riemannian
+================================================
+
+.. currentmodule:: aspcol.distance
+
+.. autofunction:: covariance_distance_riemannian

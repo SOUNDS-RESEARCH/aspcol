@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.shd\_min\_order
+===========================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: shd_min_order

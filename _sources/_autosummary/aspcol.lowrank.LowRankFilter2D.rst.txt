@@ -1,0 +1,27 @@
+aspcol.lowrank.LowRankFilter2D
+==============================
+
+.. currentmodule:: aspcol.lowrank
+
+.. autoclass:: LowRankFilter2D
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~LowRankFilter2D.__init__
+      ~LowRankFilter2D.process
+      ~LowRankFilter2D.process_nosum
+   
+   
+
+   
+   
+   

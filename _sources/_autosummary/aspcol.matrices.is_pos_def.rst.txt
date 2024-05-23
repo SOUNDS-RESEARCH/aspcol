@@ -1,0 +1,6 @@
+aspcol.matrices.is\_pos\_def
+============================
+
+.. currentmodule:: aspcol.matrices
+
+.. autofunction:: is_pos_def

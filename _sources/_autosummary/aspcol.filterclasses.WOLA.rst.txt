@@ -1,0 +1,27 @@
+aspcol.filterclasses.WOLA
+=========================
+
+.. currentmodule:: aspcol.filterclasses
+
+.. autoclass:: WOLA
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~WOLA.__init__
+      ~WOLA.analysis
+      ~WOLA.synthesis
+   
+   
+
+   
+   
+   

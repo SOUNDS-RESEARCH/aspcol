@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.acc\_time
+==================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: acc_time

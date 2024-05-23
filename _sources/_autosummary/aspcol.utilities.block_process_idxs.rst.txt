@@ -1,0 +1,6 @@
+aspcol.utilities.block\_process\_idxs
+=====================================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: block_process_idxs

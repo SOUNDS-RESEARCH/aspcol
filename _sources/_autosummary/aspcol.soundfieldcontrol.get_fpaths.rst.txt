@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.get\_fpaths
+====================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: get_fpaths

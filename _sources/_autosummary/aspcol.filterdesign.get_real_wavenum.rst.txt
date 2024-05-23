@@ -1,0 +1,6 @@
+aspcol.filterdesign.get\_real\_wavenum
+======================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: get_real_wavenum

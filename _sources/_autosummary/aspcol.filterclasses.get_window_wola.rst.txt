@@ -1,0 +1,6 @@
+aspcol.filterclasses.get\_window\_wola
+======================================
+
+.. currentmodule:: aspcol.filterclasses
+
+.. autofunction:: get_window_wola

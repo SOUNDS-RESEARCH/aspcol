@@ -1,0 +1,36 @@
+aspcol.adaptivefilter.BlockLMS
+==============================
+
+.. currentmodule:: aspcol.adaptivefilter
+
+.. autoclass:: BlockLMS
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~BlockLMS.__init__
+      ~BlockLMS.insert_in_signal
+      ~BlockLMS.prepare
+      ~BlockLMS.process
+      ~BlockLMS.set_ir
+      ~BlockLMS.update
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~BlockLMS.ir
+   
+   

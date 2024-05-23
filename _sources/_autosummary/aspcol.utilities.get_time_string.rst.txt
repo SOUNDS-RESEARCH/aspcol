@@ -1,0 +1,6 @@
+aspcol.utilities.get\_time\_string
+==================================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: get_time_string

@@ -1,0 +1,6 @@
+aspcol.adaptivefilter.abstractmethod
+====================================
+
+.. currentmodule:: aspcol.adaptivefilter
+
+.. autofunction:: abstractmethod

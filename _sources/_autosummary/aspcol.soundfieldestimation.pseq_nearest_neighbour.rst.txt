@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.pseq\_nearest\_neighbour
+====================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: pseq_nearest_neighbour

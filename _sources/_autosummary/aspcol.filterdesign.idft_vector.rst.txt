@@ -1,0 +1,6 @@
+aspcol.filterdesign.idft\_vector
+================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: idft_vector

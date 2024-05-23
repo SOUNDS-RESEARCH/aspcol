@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.link\_gain\_uplink
+===========================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: link_gain_uplink

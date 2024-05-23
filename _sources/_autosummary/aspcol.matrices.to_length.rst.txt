@@ -1,0 +1,6 @@
+aspcol.matrices.to\_length
+==========================
+
+.. currentmodule:: aspcol.matrices
+
+.. autofunction:: to_length

@@ -1,0 +1,6 @@
+aspcol.utilities.is\_integer
+============================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: is_integer

@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.solve\_power\_weighted\_qos\_uplink
+============================================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: solve_power_weighted_qos_uplink

@@ -1,0 +1,6 @@
+aspcol.matrices.is\_hermitian
+=============================
+
+.. currentmodule:: aspcol.matrices
+
+.. autofunction:: is_hermitian

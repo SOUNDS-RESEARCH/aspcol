@@ -1,0 +1,6 @@
+aspcol.filterdesign.calc\_truncation\_error
+===========================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: calc_truncation_error

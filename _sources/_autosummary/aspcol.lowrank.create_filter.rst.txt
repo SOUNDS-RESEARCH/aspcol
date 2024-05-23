@@ -1,0 +1,6 @@
+aspcol.lowrank.create\_filter
+=============================
+
+.. currentmodule:: aspcol.lowrank
+
+.. autofunction:: create_filter

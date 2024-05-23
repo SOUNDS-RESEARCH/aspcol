@@ -1,0 +1,6 @@
+aspcol.correlation.autocorrelation\_old
+=======================================
+
+.. currentmodule:: aspcol.correlation
+
+.. autofunction:: autocorrelation_old

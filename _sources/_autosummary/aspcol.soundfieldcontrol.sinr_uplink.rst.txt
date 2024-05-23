@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.sinr\_uplink
+=====================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: sinr_uplink

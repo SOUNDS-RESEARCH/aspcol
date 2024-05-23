@@ -1,0 +1,6 @@
+aspcol.pseq.decorrelate
+=======================
+
+.. currentmodule:: aspcol.pseq
+
+.. autofunction:: decorrelate

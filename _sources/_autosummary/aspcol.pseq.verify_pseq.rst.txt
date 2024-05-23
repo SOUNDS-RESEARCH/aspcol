@@ -1,0 +1,6 @@
+aspcol.pseq.verify\_pseq
+========================
+
+.. currentmodule:: aspcol.pseq
+
+.. autofunction:: verify_pseq

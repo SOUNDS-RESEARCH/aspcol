@@ -1,0 +1,6 @@
+aspcol.filterdesign.get\_real\_freqs
+====================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: get_real_freqs

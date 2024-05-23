@@ -1,0 +1,6 @@
+aspcol.correlation.sample\_correlation
+======================================
+
+.. currentmodule:: aspcol.correlation
+
+.. autofunction:: sample_correlation

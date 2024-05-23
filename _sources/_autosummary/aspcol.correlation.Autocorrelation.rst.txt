@@ -1,0 +1,27 @@
+aspcol.correlation.Autocorrelation
+==================================
+
+.. currentmodule:: aspcol.correlation
+
+.. autoclass:: Autocorrelation
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Autocorrelation.__init__
+      ~Autocorrelation.get_corr_mat
+      ~Autocorrelation.update
+   
+   
+
+   
+   
+   

@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.power\_alloc\_minmax\_uplink
+=====================================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: power_alloc_minmax_uplink
