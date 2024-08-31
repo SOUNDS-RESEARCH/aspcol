@@ -1,3 +1,29 @@
+"""Functions for handling spherical harmonic wave function
+
+Notes
+-----
+The scipy spherical harmonic implementation is 
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.sph_harm.html
+
+All math and translation theorems are taken from Martin - Multiple scattering: 
+Interaction of time-harmonic waves with N obstacles
+
+The Legendre polynomial (referred to as Legendre function of the first kind in Scipy documentation)
+definition given in Scipy is (37) after inserting the definition of the Hypergeometric function. 
+The definition used in Martin is (30), the Rodrigues formula.
+The two definitions are equivalent, therefore the Legendre polynomial is consistent. 
+https://mathworld.wolfram.com/LegendrePolynomial.html
+
+Martins definition of the Associated Legendre Polynomial P_n^m(t), found in (A.1) in the book
+is P_n^m(t) = (1-t^2)^{m/2} \\frac{d^m}{dt^m} P_n(t)
+Scipy gives almost the same definition, S_n^m(t) = (-1)^m P_n^m(t)
+where S_n^m(t) denotes the Scipy definition. Therefore they are equivalent except for that Scipy includes
+the Condon-Shortley phase in the ALP. 
+
+The definition of the spherical harmonics in Martin, given in (3.6) is equivalent to Scipys definition
+except for the inclusion of an additional factor (-1)^m, i.e. the Condon-Shortley phase. Because the 
+same factor is included in Scipy's ALP but not Martin ALP, the spherical harmonic definitions are equivalent. 
+"""
 import numpy as np
 import itertools as it
 import scipy.linalg as splin
@@ -7,8 +33,7 @@ import scipy.spatial.distance as distance
 import aspcol.kernelinterpolation as ki
 import aspcol.utilities as utils
 import aspcol.filterdesign as fd
-
-import aspcol.sf_analysis_ueno as sau
+import aspcol.fouriertransform as ft
 
 import wigners
 
@@ -45,7 +70,7 @@ def shd_num_coeffs(max_order):
     num_coeffs : int
         number of coefficients required to represent a spherical harmonic function of the given order
     """
-    return (max_order+1)**2
+    return int((max_order+1)**2)
 
 
 def shd_num_degrees(max_order : int):
@@ -119,7 +144,8 @@ def shd_min_order(wavenumber, radius):
     """
     return np.ceil(wavenumber * radius).astype(int)
 
-
+def shd_coeffs_order_degree_to_index(order, degree):
+    return order**2 + order + degree
 
 
 
@@ -198,6 +224,13 @@ def reconstruct_pressure(shd_coeffs, pos, expansion_center, wavenum):
     p_est : ndarray of shape (num_freq, num_pos,)
         complex sound pressure at the evaluation points
     """
+    if not shd_coeffs.ndim == 2:
+        shd_coeffs = shd_coeffs[None, ...]
+        wavenum = np.array([wavenum])
+    assert shd_coeffs.ndim == 2
+    assert wavenum.ndim == 1
+    assert shd_coeffs.shape[0] == wavenum.shape[0]
+
     num_coeffs = shd_coeffs.shape[1]
     max_order = shd_max_order(num_coeffs)
 
@@ -220,14 +253,58 @@ def reconstruct_pressure(shd_coeffs, pos, expansion_center, wavenum):
 
 
 # ==================== TRANSLATION OF SHD COEFFICIENTS ====================
-
-def translation(pos, wave_num, max_order_input, max_order_output):
-    """Creates a translation operator for a sequence of spherical harmonic coefficients to another expansion center
+def translate_shd_coeffs(shd_coeffs, pos, wave_num, max_order_output):
+    """Translates the provided shd_coeffs to another expansion center
     
-    The operator can be applied to a sequence of spherical harmonic coefficients to translate
-    the expansion center of the sequence. 
-    shd_coeffs(pos) = T(pos - pos_orig) @ shd_coeffs(pos_orig)
+    shd_coeffs(pos_orig + pos) = translate(pos) shd_coeffs(pos_orig)
+    
+    Parameters
+    ----------
+    shd_coeffs : ndarray of shape (num_freqs, num_coeffs,) or (num_freqs, num_pos, num_coeffs,)
+        coefficients of the sequence
+    pos : ndarray of shape (num_pos, 3)
+        position argument to the translation operator
+    wave_num : ndarray of shape (num_freq,)
+        wavenumber, defined as w / c where w is the angular frequency
+        and c is the speed of sound.
+    max_order_output : int
+        maximum order of the translated coefficients
 
+    Returns
+    -------
+    shd_coeffs_translated : ndarray of shape (num_freqs, num_pos, num_coeffs,)
+        translated coefficients
+        if num_pos == 1, the returned array will have shape (num_freqs, num_coeffs,)
+    """
+    if shd_coeffs.ndim == 2:
+        shd_coeffs = shd_coeffs[:,None,:]
+    assert pos.ndim == 2
+    assert pos.shape[1] == 3
+    assert wave_num.ndim == 1
+    assert shd_coeffs.ndim == 3
+    assert shd_coeffs.shape[0] == wave_num.shape[0] or shd_coeffs.shape[0] == 1
+    assert shd_coeffs.shape[1] == pos.shape[0] or shd_coeffs.shape[1] == 1
+    num_coeffs = shd_coeffs.shape[-1]
+
+    max_order_input = shd_max_order(num_coeffs)
+
+    T_all = translation_operator(pos, wave_num, max_order_input, max_order_output)
+    translated_coeffs = T_all @ shd_coeffs[...,None]
+
+    num_pos = pos.shape[0]
+    if num_pos == 1:
+        translated_coeffs = np.squeeze(translated_coeffs, axis=1)
+    return np.squeeze(translated_coeffs, axis=-1)
+
+def translation_operator(pos, wave_num, max_order_input, max_order_output):
+    """Translation operator for harmonic coefficients, such that 
+    shd_coeffs(pos_orig + pos) = T(pos) @ shd_coeffs(pos_orig)
+
+    Defined according to T = hat{S}^T, where hat{S} is the basis translation matrix defined in
+    P. Martin, Multiple scattering: Interaction of time-harmonic waves with N obstacles.
+    This definition is consistent with the definition (6) in Ueno et al., Sound Field Recording Using
+    Distributed Microphones Based on Harmonic Analysis of Infinite Order. 
+    
     Parameters
     ----------
     pos : ndarray of shape (num_pos, 3)
@@ -239,60 +316,165 @@ def translation(pos, wave_num, max_order_input, max_order_output):
         maximum order of the coefficients that should be translated
     max_order_output : int
         maximum order of the translated coefficients
-        
+
     Returns
     -------
-    shd_coeffs_translated : ndarray of shape (num_freq, num_pos, num_coeffs_output, num_coeffs_input)
-        translated coefficients
+    T : ndarray of shape (num_freqs, num_pos, num_coeffs_output, num_coeffs_input)
+        translation operator, such that shd_coeffs(pos_orig + pos) = T(pos) @ shd_coeffs(pos_orig)
     """
-    test_mat = sau.trjmat3d(max_order_output, max_order_input, pos[0,0], pos[0,1], pos[0, 2], wave_num[0])
-    num_freqs = wave_num.shape[0]
-    num_pos = pos.shape[0]
 
-    T_all = np.zeros((num_freqs, num_pos, test_mat.shape[0], test_mat.shape[1]), dtype=complex)
-    for m in range(num_pos):
-        for f in range(num_freqs):
-            T_all[f, m, :, :] = sau.trjmat3d(max_order_output, max_order_input, pos[m,0], pos[m,1], pos[m, 2], wave_num[f])
-    return T_all
+    S = basis_translation_3_80(pos, wave_num, max_order_output, max_order_input)
+    T = np.moveaxis(S, -1, -2)
+    return T
 
+def basis_translation_3_80(pos, wave_num, max_order_input, max_order_output):
+    """Translation operator for shd basis function, such that 
+    shd_basis(pos_orig + pos) = T(pos) @ shd_basis(pos_orig)x
 
-def translate_shd_coeffs(shd_coeffs, pos, wave_num, max_order_input, max_order_output):
-    """Translates the provided shd_coeffs to another expansion center
-    
-    shd_coeffs(pos_orig + pos) = translate(pos) shd_coeffs(pos_orig)
+    Implemented according to equation 3.80 in 
+    P. Martin, Multiple scattering: Interaction of time-harmonic waves with N obstacles.
     
     Parameters
     ----------
-    shd_coeffs : ndarray of shape (num_freqs, num_coeffs,)
-        coefficients of the sequence
     pos : ndarray of shape (num_pos, 3)
         position argument to the translation operator
     wave_num : ndarray of shape (num_freq,)
         wavenumber, defined as w / c where w is the angular frequency
         and c is the speed of sound.
-    max_order_output : int
+    max_order_input : int
         maximum order of the coefficients that should be translated
     max_order_output : int
         maximum order of the translated coefficients
 
     Returns
     -------
-    shd_coeffs_translated : ndarray of shape (num_freqs, num_pos, num_coeffs,)
-        translated coefficients
-        if num_pos == 1, the returned array will have shape (num_freqs, num_coeffs,)
+    T : ndarray of shape (num_freqs, num_pos, num_coeffs_output, num_coeffs_input)
+        translation operator, such that shd_basis(pos_orig + pos) = T(pos) @ shd_basis(pos_orig)
     """
-    T_all = translation(pos, wave_num, max_order_input, max_order_output)
-    translated_coeffs = T_all @ shd_coeffs[:,None,:,None]
-
+    num_coeffs_input = shd_num_coeffs(max_order_input)
+    num_coeffs_output = shd_num_coeffs(max_order_output)
     num_pos = pos.shape[0]
-    if num_pos == 1:
-        translated_coeffs = np.squeeze(translated_coeffs, axis=1)
-    return np.squeeze(translated_coeffs, axis=-1)
+    num_freq = wave_num.shape[0]
+
+    tr_op = np.zeros((num_freq, num_pos, num_coeffs_output, num_coeffs_input), dtype=complex)
+    orders_input, degrees_input = shd_num_degrees_vector(max_order_input)
+    orders_output, degrees_output = shd_num_degrees_vector(max_order_output)
+
+    gaunt_set = _calculate_gaunt_set(max_order_input, max_order_output)
+
+    max_tot_order = int(max_order_input + max_order_output)
+    orders_tot, degrees_tot = shd_num_degrees_vector(max_tot_order)
+    all_q = np.arange(max_tot_order+1)
+    #nu_plus_n = orders_output[:,None] + orders_input[None,:]
+    #mu_minus_m = degrees_output[:,None] - degrees_input[None,:]
+    # all_q = np.arange(nu_plus_n)[nu_plus_n >= all_q]
+    
+    radius, angles = utils.cart2spherical(pos)
+    radius = radius[None, None, ...]
+    angles = angles[None, ...]
+
+    orders_tot = orders_tot[:, None]
+    degrees_tot = degrees_tot[:, None]
+
+    wave_num = wave_num[:, None, None]
+    all_q = all_q[None,:,None]
+
+    bessel = special.spherical_jn(all_q, wave_num * radius) # ordered as (num_freq, num_q, num_pos)
+    harm = np.conj(special.sph_harm(degrees_tot, orders_tot, angles[...,0], angles[...,1])) # ordered as (num_coeffs_tot, num_pos)
+
+    for out_idx, (n, m) in enumerate(zip(orders_output, degrees_output)):
+        for in_idx, (nu, mu) in enumerate(zip(orders_input, degrees_input)):
+            q_array = np.arange(np.abs(mu-m), n+nu+1)
+            harm_idxs = shd_coeffs_order_degree_to_index(q_array, mu-m)
+
+            basis_val = bessel[:,q_array,:] * harm[None,harm_idxs, :]
+            g = (1j)**q_array[None,:,None] * gaunt_set[out_idx, in_idx, q_array][None,:,None]
+            factor = 4*np.pi * (1j)**(nu-n) * (-1.0)**(m)
+            sum_val = factor * np.sum(basis_val * g, axis=1)
+            tr_op[..., out_idx, in_idx] = sum_val
+
+    for p in range(num_pos):
+        if np.sum(np.abs(pos[p,:])) == 0: 
+            tr_op[:, p, :, :] = np.eye(num_coeffs_output, num_coeffs_input)[None,:,:]
+    return tr_op
+
+def _calculate_gaunt_set(max_order_input, max_order_output):
+    """Numpy function for precaculating the Gaunt coefficients for the translation operator.
+
+    Used to avoid having to write a jax implementation of wigner coefficients. 
+    """
+    num_coeffs_input = shd_num_coeffs(max_order_input)
+    num_coeffs_output = shd_num_coeffs(max_order_output)
+    orders_input, degrees_input = shd_num_degrees_vector(max_order_input)
+    orders_output, degrees_output = shd_num_degrees_vector(max_order_output)
+    gaunt = np.zeros((num_coeffs_output, num_coeffs_input, max_order_input+max_order_output+1), dtype=float)
+    for out_idx, (n, m) in enumerate(zip(orders_output, degrees_output)):
+        for in_idx, (nu, mu) in enumerate(zip(orders_input, degrees_input)):
+            for q in range(n+nu+1):
+                if np.abs(mu-m) <= q:
+                    g = gaunt_coefficient(n, m, nu, -mu, q)
+                    gaunt[out_idx, in_idx, q] = g
+    return gaunt
+
+# def basis_translation_3_80(pos, wave_num, max_order_input, max_order_output):
+#     """Translation operator for shd basis function, such that 
+#     shd_basis(pos_orig + pos) = T(pos) @ shd_basis(pos_orig)x
+
+#     Implemented according to equation 3.80 in 
+#     P. Martin, Multiple scattering: Interaction of time-harmonic waves with N obstacles.
+    
+#     Parameters
+#     ----------
+#     pos : ndarray of shape (num_pos, 3)
+#         position argument to the translation operator
+#     wave_num : ndarray of shape (num_freq,)
+#         wavenumber, defined as w / c where w is the angular frequency
+#         and c is the speed of sound.
+#     max_order_input : int
+#         maximum order of the coefficients that should be translated
+#     max_order_output : int
+#         maximum order of the translated coefficients
+
+#     Returns
+#     -------
+#     T : ndarray of shape (num_freqs, num_pos, num_coeffs_output, num_coeffs_input)
+#         translation operator, such that shd_basis(pos_orig + pos) = T(pos) @ shd_basis(pos_orig)
+#     """
+#     num_coeffs_input = shd_num_coeffs(max_order_input)
+#     num_coeffs_output = shd_num_coeffs(max_order_output)
+#     num_pos = pos.shape[0]
+#     num_freq = wave_num.shape[0]
+
+#     tr_op = np.zeros((num_freq, num_pos, num_coeffs_output, num_coeffs_input), dtype=complex)
+
+#     orders_input, degrees_input = shd_num_degrees_vector(max_order_input)
+#     orders_output, degrees_output = shd_num_degrees_vector(max_order_output)
+#     for out_idx, (n, m) in enumerate(zip(orders_output, degrees_output)):
+#         for in_idx, (nu, mu) in enumerate(zip(orders_input, degrees_input)):
+#             sum_val = 0
+#             for q in range(n+nu+1):
+#                 if np.abs(mu-m) <= q:
+#                     basis_val = np.squeeze(shd_basis(pos, np.array([q]), np.array([mu-m]), wave_num), axis=1)
+#                     g = gaunt_coefficient(n, m, nu, -mu, q)
+#                     sum_val += (1j)**q * (-1.0)**(m) * np.conj(basis_val) * g
+
+#             sum_val *= np.sqrt(4*np.pi) * (1j)**(nu-n)
+#             tr_op[..., out_idx, in_idx] = sum_val
+
+#     for p in range(num_pos):
+#         if np.sum(np.abs(pos[p,:])) == 0:
+#             tr_op[:, p, :, :] = np.eye(num_coeffs_output, num_coeffs_input)[None,:,:]
+#     return tr_op
 
 
-def translation_operator(pos, wave_num, max_order_input, max_order_output):
-    """Translation operator for harmonic coefficients, such that 
-    shd_coeffs(pos_orig + pos) = T(pos) @ shd_coeffs(pos_orig)
+
+def basis_translation_3_92(pos, wave_num, max_order_input, max_order_output):
+    """Translation operator for harmonic basis functions, such that 
+    shd_basis(pos_orig + pos) = T(pos) @ shd_basis(pos_orig)
+
+    Taken directly from 3.92 in P. Martin, Multiple scattering: Interaction of 
+    time-harmonic waves with N obstacles
+
     
     Parameters
     ----------
@@ -321,21 +503,45 @@ def translation_operator(pos, wave_num, max_order_input, max_order_output):
     orders_input, degrees_input = shd_num_degrees_vector(max_order_input)
     orders_output, degrees_output = shd_num_degrees_vector(max_order_output)
     for f in range(num_freq):
-        for m in range(num_pos):
-            for out_idx, (l1, m1) in enumerate(zip(orders_output, degrees_output)):
-                for in_idx, (l2, m2) in enumerate(zip(orders_input, degrees_input)):
-                    sum_val = 0
-                    for q in range(l1+l2+1):
-                        if np.abs(m2-m1) <= q:
-                            basis_val = np.conj(shd_basis(pos[m:m+1,:], np.array([q]), np.array([m2-m1]), wave_num[f]))
-                            g = gaunt_coefficient(l1, m1, l2, -m2, q)
-                            new_val = (1j)**q * basis_val * g
-                            new_val *= (-1.0)**(m1) * (1j)**(l2-l1)
-                            sum_val += new_val
-
-                tr_op[f, m, out_idx, in_idx] = np.squeeze(sum_val)
-    tr_op *= np.sqrt(4*np.pi)
+        for p in range(num_pos):
+            if np.sum(np.abs(pos[p,:])) == 0:
+                tr_op[f, p, :, :] = np.eye(num_coeffs_output, num_coeffs_input)
+            else:
+                for out_idx, (n, m) in enumerate(zip(orders_output, degrees_output)):
+                    for in_idx, (nu, mu) in enumerate(zip(orders_input, degrees_input)):
+                        sum_val = 0
+                        q0 = _linearity_formula_lower_limit(n, nu, m, -mu)
+                        Q = (n + nu - q0) / 2
+                        assert Q == int(Q)
+                        Q = int(Q)
+                        for q in range(Q+1):
+                        #for q in range(n+nu+1):
+                            if np.abs(m-mu) <= (q0+2*q):
+                                basis_val = shd_basis(pos[p:p+1,:], np.array([q0+2*q]), np.array([m-mu]), wave_num[f])
+                                #basis_val = shd_basis(pos[p:p+1,:], np.array([q]), np.array([mu-m]), wave_num[f])
+                                g = gaunt_coefficient(n, m, nu, -mu, q0+2*q)
+                                sum_val += (-1)**q * basis_val * g
+                        sum_val *= np.sqrt(4*np.pi) * (-1)**(nu + mu + Q)
+                        tr_op[f, p, out_idx, in_idx] = np.squeeze(sum_val)
     return tr_op
+
+def _linearity_formula_lower_limit(l1, l2, m1, m2):
+    """ Lower limit of the sum in the linearity formula for the Gaunt coefficient
+    described in (3.74) in Multiple scattering: Interaction of time-harmonic waves with N obstacles.
+
+    func(l1, l2, m1, m2) is equivalent to func(l1, l1, m2, m1)
+    """
+    if np.abs(l1 - l2) >= np.abs(m1 + m2):
+        return np.abs(l1 - l2)
+    elif np.abs(l1 - l2) < np.abs(m1 + m2) and ((l1 + l2 + np.abs(m1 + m2)) % 2 == 0):
+        return np.abs(m1 + m2)
+    elif np.abs(l1 - l2) < np.abs(m1 + m2) and ((l1 + l2 + np.abs(m1 + m2)) % 2 == 1):
+        return np.abs(m1 + m2) + 1
+    else:
+        raise ValueError("Something went wrong")
+
+
+
 
 def gaunt_coefficient(l1, m1, l2, m2, l3):
     """Gaunt coefficient G(l1, m1, l2, m2, l3)
@@ -429,7 +635,20 @@ def _all_gaunt_parameters(max_order):
 
 def directivity_omni(max_order = 0):
     """Harmonic coefficients of an omnidirectional directivity function
-    
+
+    Parameters
+    ----------
+    max_order : int
+        maximum order of the spherical harmonics. If set higher than 0, the coefficients of the higher orders will be zero.
+
+    Returns
+    -------
+    dir_coeffs : ndarray of shape (1, num_coeffs)
+        coefficients of the directivity function
+
+    Notes
+    -----
+    The directivity coefficients are defined in more detail in the supplementary notes of [uenoSound2018] and in [brunnstromBayesian2024]
     """
     if max_order == 0:
         return np.ones((1,1), complex)
@@ -453,29 +672,43 @@ def directivity_linear(A, d_mic, max_order = 1):
     ----------
     A : float
         directivity parameter. Must be between 0 and 1. 
-    d_mic : ndarray of shape (1, 3)
-        direction of the microphone. It is the angle at which a cardioid microphone would give the strongest response
+    d_mic : ndarray of shape (num_mic, 3)
+        direction of the microphone(s). It is the angle at which a cardioid microphone would give the strongest response
         It is the outward direction, so from the center of the microphone towards the sources
         Must be a unit vector
     max_order : int
-        maximum order of the spherical harmonics. If set higher to 1, 
+        maximum order of the spherical harmonics. If set higher than 1, 
         the coefficients of the higher orders will be zero. 
     
     Returns
     -------
-    dir_coeffs : ndarray of shape (1, num_coeffs)
+    dir_coeffs : ndarray of shape (num_mic, num_coeffs)
         coefficients of the directivity function
+
+    Notes
+    -----
+    The directivity coefficients are defined in more detail in the supplementary notes of [uenoSound2018] and in [brunnstromBayesian2024]
     """
+    num_mic = d_mic.shape[0]
+    assert d_mic.shape == (num_mic, 3)
     assert max_order >= 1
     assert 0 <= A <= 1
-    radius, angles = utils.cart2spherical(-d_mic)
-    assert np.isclose(radius, 1)
-    dir_coeffs = np.zeros((1, shd_num_coeffs(max_order)), dtype=complex)
-    dir_coeffs[0,0] = 1 - A
+    radius, angles = utils.cart2spherical(d_mic)
+    assert np.allclose(radius, 1)
+    
+    dir_coeffs = np.zeros((num_mic, shd_num_coeffs(max_order)), dtype=complex)
+    order, degree = shd_num_degrees_vector(max_order) 
 
-    harm = special.sph_harm(np.array([-1,0,1]), 1, angles[...,0], angles[...,1])
+    dir_coeffs[:, order == 0] = 1 - A
+    
+    #harm = special.sph_harm(np.array([-1,0,1]), 1, angles[...,0], angles[...,1])
+    degrees_to_set = degree[order == 1]
+    harm = special.sph_harm(degrees_to_set[None,:], 1, angles[...,0:1], angles[...,1:2])
 
-    dir_coeffs[0,1:4] = (-1j * A / 3) * np.sqrt(4*np.pi) * harm.conj()
+    dir_coeffs[:, order == 1] = (-1j * A / 3) * np.sqrt(4*np.pi) * harm.conj()
+    #dir_coeffs[0,1:4] = (1j * A / 3) * np.sqrt(4*np.pi) * np.conj(harm)
+    #dir_coeffs[0,1] *= -1
+    #dir_coeffs[0,3] *= -1
     return dir_coeffs
 
 
@@ -496,7 +729,7 @@ def directivity_linear(A, d_mic, max_order = 1):
 # ====================== SHD ESTIMATION ======================
 
 def measurement_omni(pos, exp_center, max_order, wave_num):
-    T = translation(pos - exp_center, wave_num, max_order, 0)
+    T = translation_operator(pos - exp_center, wave_num, max_order, 0)
     T = np.sum(T, axis=-2) # inner product with omni directionality
     return T
 
@@ -523,11 +756,11 @@ def measurement_conj_omni(pos, exp_center, max_order, wave_num):
     operator : ndarray of shape (num_freqs, num_coeffs, num_pos)
         adjoint of the measurement operator
     """
-    T = translation(exp_center - pos, wave_num, 0, max_order)
+    T = translation_operator(exp_center - pos, wave_num, 0, max_order)
     T = np.sum(T, axis=-1) # inner product with omni directionality
     return np.moveaxis(T, 1,2)
 
-def apply_measurement_omni(shd_coeffs, pos, exp_center, max_order, wave_num):
+def apply_measurement_omni(shd_coeffs, pos, exp_center, wave_num):
     """Applies the measurement operator to a sequence of spherical harmonic coefficients
     
     The operator is a function from a complex infinite (l2) sequence to a complex vector
@@ -541,9 +774,6 @@ def apply_measurement_omni(shd_coeffs, pos, exp_center, max_order, wave_num):
         positions of the measurement points where the sound pressure should be estimated
     exp_center : ndarray of shape (1, 3)
         expansion center of the spherical harmonics
-    max_order = int
-        maximum order of the spherical harmonics that is input by the operator. Is in theory 
-        redundant information and could be removed in a future version of the function.
     wave_num : ndarray of shape (num_freq,)
         wavenumber, defined as w / c where w is the angular frequency
         and c is the speed of sound.
@@ -554,7 +784,9 @@ def apply_measurement_omni(shd_coeffs, pos, exp_center, max_order, wave_num):
         complex sound pressure at the measurement points
     """
     rel_pos = pos - exp_center
-    shd_translated = translate_shd_coeffs(shd_coeffs, rel_pos, wave_num, max_order, 0)
+    #num_coeffs = shd_coeffs.shape[1]
+    #max_order = shd_max_order(num_coeffs) 
+    shd_translated = translate_shd_coeffs(shd_coeffs, rel_pos, wave_num, 0)
     p_est = np.sum(shd_translated, axis=-1) # must be multiplied by dir.conj() when not omnidirectional
     return p_est
 
@@ -586,8 +818,65 @@ def apply_measurement_conj_omni(vec, pos, exp_center, max_order, wave_num):
     """
     rel_pos = exp_center - pos
     directivity = directivity_omni()
-    dir_translated = translate_shd_coeffs(directivity, rel_pos, wave_num, 0, max_order)
+    dir_translated = translate_shd_coeffs(directivity, rel_pos, wave_num, max_order)
     return np.sum(dir_translated * vec[:,:,None], axis=1)
+
+def apply_measurement(shd_coeffs, pos, exp_center, wave_num, dir_coeffs=None):
+    """Applies the measurement operator to a sequence of spherical harmonic coefficients
+    
+    The operator is a function from a complex infinite (l2) sequence to a complex vector
+    Xi : l^2(C) -> C^M
+
+    Assumes for now that the same directivity is used for all microphones
+    
+    Parameters
+    ----------
+    shd_coeffs : ndarray of shape (num_freq, num_coeffs,)
+        spherical harmonic coefficients representing the sound field being measured
+    pos : ndarray of shape (num_mic, 3)
+        positions of the measurement points where the sound pressure should be estimated
+    exp_center : ndarray of shape (1, 3)
+        expansion center of the spherical harmonics
+    wave_num : ndarray of shape (num_freq,)
+        wavenumber, defined as w / c where w is the angular frequency
+        and c is the speed of sound.
+    dir_coeffs : ndarray of shape (num_freqs, num_coeffs) or (num_freqs, num_mic, num_coeffs), optional
+        coefficients of the directivity function. 
+        If None, the directivity is assumed to be omnidirectional
+
+    Returns
+    -------
+    p_est : ndarray of shape (num_freq, num_mic,)
+        complex sound pressure at the measurement points
+    """
+    num_mic = pos.shape[0]
+    num_freq = wave_num.shape[0]
+    num_coeffs = shd_coeffs.shape[1]
+    assert shd_coeffs.shape == (num_freq, num_coeffs,)
+    assert pos.shape == (num_mic, 3)
+    assert exp_center.shape == (1, 3)
+    assert wave_num.shape == (num_freq,)
+
+    rel_pos = pos - exp_center
+    if dir_coeffs is None:
+        directivity = directivity_omni()
+    else:
+        directivity = dir_coeffs
+
+    if directivity.ndim == 2:
+        directivity = directivity[:,None,:]
+    assert directivity.ndim == 3
+    assert directivity.shape[0] == num_freq or directivity.shape[0] == 1
+    assert directivity.shape[1] == num_mic or directivity.shape[1] == 1
+
+    max_order_dir = shd_max_order(directivity.shape[-1])
+    #max_order = shd_max_order(num_coeffs)
+    shd_translated = translate_shd_coeffs(shd_coeffs, rel_pos, wave_num, max_order_dir)
+    if shd_translated.ndim == 2:
+        shd_translated = shd_translated[:,None,:]
+
+    p_est = np.sum(shd_translated * np.conj(directivity), axis=-1)
+    return p_est
 
 
 def apply_measurement_conj(vec, pos, exp_center, max_order, wave_num, dir_coeffs=None):
@@ -609,7 +898,7 @@ def apply_measurement_conj(vec, pos, exp_center, max_order, wave_num, dir_coeffs
     wave_num : ndarray of shape (num_freqs,)
         wavenumber, defined as w / c where w is the angular frequency
         and c is the speed of sound. 
-    dir_coeffs : ndarray of shape (num_freqs, num_coeffs)
+    dir_coeffs : ndarray of shape (num_freqs, num_coeffs) or (num_freqs, num_pos, num_coeffs), optional
         coefficients of the directivity function. If None, the directivity is assumed to be omnidirectional
     
     Returns
@@ -622,9 +911,9 @@ def apply_measurement_conj(vec, pos, exp_center, max_order, wave_num, dir_coeffs
         directivity = directivity_omni()
     else:
         directivity = dir_coeffs
-    max_order_dir = shd_max_order(directivity.shape[1])
+    max_order_dir = shd_max_order(directivity.shape[-1])
     
-    dir_translated = translate_shd_coeffs(directivity, rel_pos, wave_num, max_order_dir, max_order)
+    dir_translated = translate_shd_coeffs(directivity, rel_pos, wave_num, max_order)
     return np.sum(dir_translated * vec[:,:,None], axis=1)
 
 def translated_inner_product(pos1, pos2, dir_coeffs1, dir_coeffs2, wave_num):
@@ -638,10 +927,10 @@ def translated_inner_product(pos1, pos2, dir_coeffs1, dir_coeffs2, wave_num):
         positions of the first set of measurement points
     pos2 : ndarray of shape (num_pos2, 3)
         positions of the second set of measurement points
-    dir_coeffs1 : ndarray of shape (num_freqs, num_coeffs1)
+    dir_coeffs1 : ndarray of shape (num_freqs, num_coeffs1) or (num_freqs, num_pos1, num_coeffs1)
         coefficients of the directivity function for the first set of measurement points
-    dir_coeffs2 : ndarray of shape (num_freqs, num_coeffs2)
-        coefficients of the directivity function for the second set of measurement points
+    dir_coeffs2 : ndarray of shape (num_freqs, num_coeffs2) or (num_freqs, num_pos1, num_coeffs1)
+        coefficients of the directivity function for the second set of mea surement points
     wave_num : ndarray of shape (num_freqs,)
         wavenumber, defined as w / c where w is the angular frequency
         and c is the speed of sound.
@@ -651,19 +940,34 @@ def translated_inner_product(pos1, pos2, dir_coeffs1, dir_coeffs2, wave_num):
     psi : ndarray of shape (num_freqs, num_pos1, num_pos2)
         inner product of the translated directivity functions
     """
-    max_order1 = shd_max_order(dir_coeffs1.shape[1])
-    max_order2 = shd_max_order(dir_coeffs2.shape[1])
+    assert pos1.ndim == 2 and pos2.ndim == 2
+    assert pos1.shape[-1] == 3 and pos2.shape[-1] == 3
     num_pos1 = pos1.shape[0]
     num_pos2 = pos2.shape[0]
-    num_freqs = len(wave_num)
+
+    assert wave_num.ndim == 1
+    num_freqs = wave_num.shape[0]
+    
+    if dir_coeffs1.ndim == 2:
+        dir_coeffs1 = dir_coeffs1[:,None,:]
+    if dir_coeffs2.ndim == 2:
+        dir_coeffs2 = dir_coeffs2[:,None,:]
+    assert dir_coeffs1.ndim == 3 and dir_coeffs2.ndim == 3
+    assert dir_coeffs1.shape[1] == num_pos1 or dir_coeffs1.shape[1] == 1
+    assert dir_coeffs2.shape[1] == num_pos2 or dir_coeffs2.shape[1] == 1
+    assert dir_coeffs1.shape[0] == num_freqs or dir_coeffs1.shape[0] == 1
+    assert dir_coeffs2.shape[0] == num_freqs or dir_coeffs2.shape[0] == 1
+
+    max_order1 = shd_max_order(dir_coeffs1.shape[-1])
+    #max_order2 = shd_max_order(dir_coeffs2.shape[-1])
 
     pos_diff = pos1[:,None,:] - pos2[None,:,:]
-    pos_diff = pos_diff.reshape(-1, 3)
+    #pos_diff = pos_diff.reshape(-1, 3)
 
-    translated_coeffs2 = translate_shd_coeffs(dir_coeffs2, pos_diff, wave_num, max_order2, max_order1)
-    translated_coeffs2 = translated_coeffs2.reshape(num_freqs, num_pos1, num_pos2, -1)
+    translated_coeffs2 = np.stack([translate_shd_coeffs(dir_coeffs2, pos_diff[m,:,:], wave_num, max_order1) for m in range(num_pos1)], axis=1)
+    #translated_coeffs2 = translated_coeffs2.reshape(num_freqs, num_pos1, num_pos2, -1)
 
-    inner_product_matrix = np.sum(translated_coeffs2 * dir_coeffs1.conj()[:,None,None,:], axis=-1)
+    inner_product_matrix = np.sum(translated_coeffs2 * dir_coeffs1.conj()[:,:,None,:], axis=-1)
     return inner_product_matrix
 
 def inf_dimensional_shd(p, pos, exp_center, max_order, wave_num, reg_param, dir_coeffs=None):
@@ -687,14 +991,16 @@ def inf_dimensional_shd(p, pos, exp_center, max_order, wave_num, reg_param, dir_
         and c is the speed of sound
     reg_param : float
         regularization parameter. Must be non-negative
-    dir_coeffs : ndarray of shape (num_real_freqs, num_coeffs)
+    dir_coeffs : ndarray of shape (num_real_freqs, num_coeffs) or (num_real_freqs, num_mics, num_coeffs)
         coefficients of the directivity function. If None, the directivity is assumed to be omnidirectional
+        if the array is 2-dimensional, the same directivity is assumed for all microphones
     
     Returns
     -------
     shd_coeffs : complex ndarray of shape (num_real_freqs, num_coeffs)
         harmonic coefficients of the estimated sound field
     """
+    assert exp_center.shape == (3,) or exp_center.shape == (1, 3)
     num_mic = pos.shape[0]
 
     psi = translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, wave_num)
@@ -708,10 +1014,9 @@ def inf_dimensional_shd(p, pos, exp_center, max_order, wave_num, reg_param, dir_
 def inf_dimensional_shd_omni(p, pos, exp_center, max_order, wave_num, reg_param):
     """Estimates the spherical harmonic coefficients with Bayesian inference
     
-    Implements the method in Natsuki Ueno, Shoichi Koyama, Hiroshi Saruwatai,
-    'Sound Field Recording Using Distributed Microphones Based on Harmonic Analysis of Infinite Order'
-
-    Assumes all microphones are omnidirectional
+    Assumes all microphones are omnidirectional.
+    Is identical to posterior_mean_omni, if reg_param = noise_power / prior_variance. So 
+    this function should be a wrapper for posterior_mean_omni or removed. 
 
     Parameters
     ----------
@@ -723,22 +1028,44 @@ def inf_dimensional_shd_omni(p, pos, exp_center, max_order, wave_num, reg_param)
         expansion center of the spherical harmonics
     max_order : int
         maximum order of the spherical harmonics
-    wave_num : float
+    wave_num : ndarray of shape (num_real_freqs,)
         wavenumber, defined as w / c where w is the angular frequency
         and c is the speed of sound
-    reg_param : float
+    reg_param : float or ndarray of shape (num_real_freqs,)
         regularization parameter. Must be non-negative
     
     Returns
     -------
     shd_coeffs : complex ndarray of shape (num_real_freqs, num_coeffs)
         harmonic coefficients of the estimated sound field
+
+    References
+    ----------
+    Natsuki Ueno, Shoichi Koyama, Hiroshi Saruwatai, 'Sound Field Recording Using Distributed 
+    Microphones Based on Harmonic Analysis of Infinite Order'
     """
     num_mic = pos.shape[0]
+    num_freq = wave_num.shape[0]
 
-    psi = ki.kernel_helmholtz_3d(pos, pos, wave_num) 
-    psi_plus_noise_cov = psi + np.eye(num_mic) * reg_param
+    if isinstance(reg_param, np.ndarray):
+        assert reg_param.ndim == 1
+        assert reg_param.shape[0] == num_freq
+        assert np.all(reg_param >= 0)
+    else:
+        assert reg_param >= 0
+        reg_param = np.ones(num_freq) * reg_param
+    noise_cov = np.eye(num_mic)[None,...] * reg_param[:,None,None]
+
+    psi = ki.kernel_helmholtz_3d(pos, pos, wave_num)
+    psi_plus_noise_cov = psi + noise_cov
     regression_vec = np.linalg.solve(psi_plus_noise_cov,  p)
+
+
+    # regression_vec = []
+    # for i in range(psi.shape[0]):
+    #     res, _, _, _ = np.linalg.lstsq(psi_plus_noise_cov[i,...],  p[i,...], rcond = 1e-10)
+    #     regression_vec.append(res)
+    # regression_vec = np.stack(regression_vec, axis=0)
 
     shd_coeffs = apply_measurement_conj_omni(regression_vec, pos, exp_center, max_order, wave_num)
     return shd_coeffs
@@ -785,27 +1112,91 @@ def inf_dimensional_shd_omni_prior(p, pos, exp_center, max_order, wave_num, reg_
 
 
 
-def posterior_mean_omni_arbitrary_cov(p, pos, exp_center, max_order, wave_num, noise_power, prior_mean, prior_covariance):
+def posterior_mean_omni(p, pos, exp_center, max_order, wave_num, prior_covariance, noise_power, prior_mean=None):
+    """Computes the posterior mean of the spherical harmonic coefficients, under a Gaussian assumption
+    
+    Parameters
+    ----------
+    p : ndarray of shape (num_real_freqs, num_mics)
+        complex sound pressure for each microphone and frequency
+    pos : ndarray of shape (num_mics, 3)
+        positions of the microphones
+    exp_center : ndarray of shape (1, 3)
+        expansion center of the spherical harmonics
+    max_order : int
+        maximum order of the spherical harmonics
+    wave_num : ndarray of shape (num_real_freqs,)
+        wavenumber, defined as w / c where w is the angular frequency
+        and c is the speed of sound
+    noise_power : float
+        variance of the noise in the measurement equation. The noise covariance matrix
+        is assumed to be a identity matrix scaled by this value
+    prior_mean : ndarray of shape (num_real_freqs, num_coeffs), optional
+        mean of the prior distribution for the sherical harmonic coefficients
+        If not provided, the prior mean is assumed to be zero
+    prior_covariance : ndarray of shape (num_real_freqs, num_coeffs, num_coeffs), 
+        or ndarray of shape (num_real_freqs,) if the covariance is a scalar matrix
+        or float if the covariance is a scalar matrix, identical for all frequencies. 
+
+    Returns
+    -------
+    shd_coeffs : complex ndarray of shape (num_real_freqs, num_coeffs)
+        posterior mean of the harmonic coefficients
+    """
     num_mic = pos.shape[0]
+    num_freq = wave_num.shape[0]
+    num_coeffs = shd_num_coeffs(max_order)
+    assert p.shape == (num_freq, num_mic)
+    assert wave_num.ndim == 1
+
     measure = measurement_omni(pos, exp_center, max_order, wave_num)
     measure_conj = measurement_conj_omni(pos, exp_center, max_order, wave_num)
 
+    # Prior mean
     if prior_mean is not None:
        p_prior = measure @ prior_mean[...,None]
        p = p - p_prior[...,0]
 
-    psi = measure @ prior_covariance @ measure_conj
-    psi_plus_noise_cov = psi + np.eye(num_mic) * noise_power 
+    # Prior covariance
+    if isinstance(prior_covariance, (int, float)):
+        assert prior_covariance >= 0
+        prior_covariance = np.ones(num_freq) * prior_covariance
+    if prior_covariance.ndim == 1:
+        assert prior_covariance.shape[0] == num_freq
+        assert np.all(prior_covariance >= 0)
+        psi = ki.kernel_helmholtz_3d(pos, pos, wave_num) * prior_covariance[:,None,None]
+    elif prior_covariance.ndim == 3:
+        assert prior_covariance.shape == (num_freq, num_coeffs, num_coeffs)
+        psi = measure @ prior_covariance @ measure_conj
+    else:
+        raise ValueError("Invalid shape of prior covariance")
+  
+    # Noise covariance
+    if isinstance(noise_power, (int, float)):
+        assert noise_power >= 0
+        noise_cov = np.eye(num_mic)[None,...] * noise_power
+    elif isinstance(noise_power, np.ndarray):
+        assert noise_power.ndim == 1
+        assert noise_power.shape[0] == num_freq
+        assert np.all(noise_power >= 0)
+        noise_cov = np.eye(num_mic)[None,...] * noise_power[:,None,None]
+
+    psi_plus_noise_cov = psi + noise_cov
     regression_vec = np.linalg.solve(psi_plus_noise_cov, p)
 
-    shd_coeffs = prior_covariance @ measure_conj @ regression_vec[...,None]
+    if prior_covariance.ndim == 1:
+        shd_coeffs = prior_covariance[:,None,None] * measure_conj @ regression_vec[...,None]
+    elif prior_covariance.ndim == 3:
+        shd_coeffs = prior_covariance @ measure_conj @ regression_vec[...,None]
     shd_coeffs = np.squeeze(shd_coeffs, axis=-1)
 
     if prior_mean is not None:
         shd_coeffs += prior_mean
     return shd_coeffs
 
-def posterior_mean_omni(p, pos, exp_center, max_order, wave_num, prior_variance, noise_power, prior_mean = None):
+def _posterior_mean_omni_scalar_covariance(p, pos, exp_center, max_order, wave_num, prior_variance, noise_power, prior_mean = None):
+    """A special case of posterior_mean_omni_arbitrary_cov, and should be removed eventually
+    """
     if prior_mean is not None:
         p_prior = measurement_omni(pos, exp_center, max_order, wave_num) @ prior_mean[...,None]
         p = p - p_prior[...,0]
@@ -823,12 +1214,11 @@ def posterior_mean_omni(p, pos, exp_center, max_order, wave_num, prior_variance,
         shd_coeffs += prior_mean
     return shd_coeffs
 
-def posterior_covariance_omni(pos, exp_center, max_order, wave_num, prior_variance, noise_power):
+def _posterior_covariance_omni_scalar_covariance(pos, exp_center, max_order, wave_num, prior_variance, noise_power):
     """ Returns the posterior covariance of the spherical harmonic coefficients
 
-    Given the model in Natsuki Ueno, Shoichi Koyama, Hiroshi Saruwatai,
-    'Sound Field Recording Using Distributed Microphones Based on Harmonic Analysis of Infinite Order'
-    
+    Assumes Gaussian priors for the spherical harmonic coefficients and Gaussian noise in the measurement equation
+
     Parameters
     ----------
     pos : ndarray of shape (num_mics, 3)
@@ -852,26 +1242,101 @@ def posterior_covariance_omni(pos, exp_center, max_order, wave_num, prior_varian
     cov : ndarray of shape (num_real_freqs, num_coeffs, num_coeffs)
         posterior covariance of the spherical harmonic coefficients
     
+    References
+    ----------
+    Natsuki Ueno, Shoichi Koyama, Hiroshi Saruwatai, 'Sound Field Recording 
+    Using Distributed Microphones Based on Harmonic Analysis of Infinite Order'
     """
     num_mic = pos.shape[0]
+    num_freq = wave_num.shape[0]
     num_coeffs = shd_num_coeffs(max_order)
 
-    psi = ki.kernel_helmholtz_3d(pos, pos, wave_num)
-    psi_plus_noise_cov = psi + np.eye(num_mic) * noise_power / prior_variance
+    assert prior_variance.ndim == 1
+    assert prior_variance.shape[0] == num_freq
+    if isinstance(noise_power, (int, float)):
+        noise_power = np.ones(num_freq) * noise_power
+    assert noise_power.ndim == 1
+    assert noise_power.shape[0] == num_freq
 
-    cov = measurement_conj_omni(pos, exp_center, max_order, wave_num) @ \
-            np.linalg.inv(psi_plus_noise_cov) @ \
-                measurement_omni(pos, exp_center, max_order, wave_num)
-    cov = prior_variance * (np.eye(num_coeffs) - cov)
+        #assert noise_power.shape[0] == num_freq
+    #assert isinstance(noise_power, (int, float)) # not implemented for array noise power
+
+    psi = ki.kernel_helmholtz_3d(pos, pos, wave_num) #* prior_variance[:,None,None]
+    noise_cov = np.eye(num_mic)[None,:,:] * noise_power[:,None,None] / prior_variance[:,None,None]
+    psi_plus_noise_cov = psi + noise_cov
+
+    measure = measurement_omni(pos, exp_center, max_order, wave_num)
+    measure_conj = measurement_conj_omni(pos, exp_center, max_order, wave_num)
+    cov = measure_conj @ np.linalg.solve(psi_plus_noise_cov, measure)
+
+    # cov = measurement_conj_omni(pos, exp_center, max_order, wave_num) @ \
+    #         np.linalg.inv(psi_plus_noise_cov) @ \
+    #             measurement_omni(pos, exp_center, max_order, wave_num)
+    cov = prior_variance[:,None,None] * (np.eye(num_coeffs)[None,:,:] - cov)
     return cov
 
-def posterior_covariance_omni_arbitrary_cov(pos, exp_center, max_order, wave_num, noise_power, prior_covariance):
+def posterior_covariance_omni(pos, exp_center, max_order, wave_num, prior_covariance, noise_power):
+    """Returns the posterior covariance of the spherical harmonic coefficients
+    Assumes Gaussian priors for the spherical harmonic coefficients and Gaussian noise in the measurement equation
+    
+    Parameters
+    ----------
+    pos : ndarray of shape (num_mics, 3)
+        positions of the microphones
+    exp_center : ndarray of shape (1, 3)
+        expansion center of the spherical harmonics
+    max_order : int
+        maximum order of the spherical harmonics
+    wave_num : ndarray of shape (num_real_freqs,)
+        wavenumber, defined as w / c where w is the angular frequency
+        and c is the speed of sound
+    noise_power : float
+        variance of the noise in the measurement equation. The noise covariance matrix
+        is assumed to be a identity matrix scaled by this value
+    prior_covariance : ndarray of shape (num_real_freqs, num_coeffs, num_coeffs), 
+        or ndarray of shape (num_real_freqs,) if the covariance is a scalar matrix
+        or float if the covariance is a scalar matrix, identical for all frequencies. 
+    """
     num_mic = pos.shape[0]
+    num_freq = wave_num.shape[0]
+    num_coeffs = shd_num_coeffs(max_order)
+    assert wave_num.ndim == 1
+
+    if isinstance(prior_covariance, (int, float)):
+        assert prior_covariance >= 0
+        prior_covariance = np.ones(num_freq) * prior_covariance
+    if prior_covariance.ndim == 1:
+        return _posterior_covariance_omni_scalar_covariance(pos, exp_center, max_order, wave_num, prior_covariance, noise_power)
+    #assert prior_covariance.ndim == 3
+    assert prior_covariance.shape == (num_freq, num_coeffs, num_coeffs)
+
     measure = measurement_omni(pos, exp_center, max_order, wave_num)
     measure_conj = measurement_conj_omni(pos, exp_center, max_order, wave_num)
 
+    # Prior covariance
+    # if prior_covariance.ndim == 1:
+    #     assert prior_covariance.shape[0] == num_freq
+    #     assert np.all(prior_covariance >= 0)
+    #     psi = ki.kernel_helmholtz_3d(pos, pos, wave_num) * prior_covariance[:,None,None]
+    # elif prior_covariance.ndim == 3:
+    #     assert prior_covariance.shape == (num_freq, num_coeffs, num_coeffs)
+    #     psi = measure @ prior_covariance @ measure_conj
+    # else:
+    #     raise ValueError("Invalid shape of prior covariance")
+    
+    # Noise covariance
+    if isinstance(noise_power, (int, float)):
+        assert noise_power >= 0
+        noise_cov = np.eye(num_mic)[None,...] * noise_power
+    elif isinstance(noise_power, np.ndarray):
+        assert noise_power.ndim == 1
+        assert noise_power.shape[0] == num_freq
+        assert np.all(noise_power >= 0)
+        noise_cov = np.eye(num_mic)[None,...] * noise_power[:,None,None]
+
+    #noise_cov = np.eye(num_mic) * noise_power 
     psi = measure @ prior_covariance @ measure_conj
-    psi_plus_noise_cov = psi + np.eye(num_mic) * noise_power 
+    psi_plus_noise_cov = psi + noise_cov
 
     measure_times_cov = measure @ prior_covariance
     cov_times_measure_conj = prior_covariance @ measure_conj
@@ -933,8 +1398,8 @@ def inf_dimensional_shd_dynamic_omni(p, pos, pos_eval, sequence, samplerate, c, 
     num_periods = N // seq_len
     assert N % seq_len == 0
 
-    k = fd.get_wavenum(seq_len, samplerate, c)
-    num_real_freqs = len(fd.get_real_freqs(seq_len, samplerate))
+    k = ft.get_wavenum(seq_len, samplerate, c)
+    num_real_freqs = len(ft.get_real_freqs(seq_len, samplerate))
 
     # ======= Estimation of spherical harmonic coefficients =======
     Phi = _sequence_stft_multiperiod(sequence, num_periods)
