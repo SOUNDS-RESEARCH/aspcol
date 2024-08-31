@@ -4,7 +4,6 @@ import hypothesis as hyp
 import hypothesis.strategies as st
 import pytest
 
-import aspsim.signal.sources as sources
 import aspcol.filterclasses as fc
 import aspcol.utilities as util
 
@@ -20,10 +19,13 @@ def test_wola_perfect_reconstruction(num_ch, num_out, nfft_exp):
     #block_size = 32
     num_samples = num_blocks * block_size
 
-    src = sources.WhiteNoiseSource(num_ch,1)
+    #src = sources.WhiteNoiseSource(num_ch,1)
+    rng = np.random.default_rng()
+    
     wola = fc.WOLA(num_ch, num_out, block_size, overlap)
 
-    sig = src.get_samples(num_samples)
+    #sig = src.get_samples(num_samples)
+    sig = rng.normal(0, 1, size=(num_ch, num_samples))
     sig_out = np.zeros((num_ch, num_out, num_samples))
 
     for i in util.block_process_idxs(num_samples, wola.hop, 0):

@@ -16,6 +16,7 @@ import scipy.signal as spsig
 import numexpr as ne
 
 import aspcol.utilities as util
+import aspcol.fouriertransform as ft
 
 class MovingAverage:
     def __init__(self, forget_factor, dim, dtype=np.float64):
@@ -192,7 +193,9 @@ def wola_analysis(sig, window):
     assert window.ndim == 1
     assert window.shape[0] == num_samples
    
-    spectrum = np.fft.rfft(sig * window[None,:], axis=-1)
+    sig_windowed = sig * window[None,:]
+    spectrum = ft.rfft(sig_windowed).T
+    #spectrum = np.fft.rfft(sig * window[None,:], axis=-1)
     return spectrum
 
 def wola_synthesis(spectrum, sig_last_block, window, overlap):
@@ -234,7 +237,7 @@ def wola_synthesis(spectrum, sig_last_block, window, overlap):
     win_broadcast_dims = spectrum.ndim - 1
     window = window.reshape(win_broadcast_dims*(1,) + (-1,))
 
-    sig = window * np.real_if_close(np.fft.irfft(spectrum, axis=-1))
+    sig = window * np.real_if_close(ft.irfft(np.moveaxis(spectrum, -1, 0)))
     
     sig[...,:overlap] += sig_last_block
     return sig
