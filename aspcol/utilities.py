@@ -259,36 +259,6 @@ def measure_time(name):
     return measure_internal
 
 
-def real_gaussian_from_complex(mean, cov):
-    cov = 0.5 * np.block([[np.real(cov), -np.imag(cov)], [np.imag(cov), np.real(cov)]])
-    mean = np.concatenate([np.real(mean), np.imag(mean)])
-    return mean, cov
-
-def sample_complex_gaussian(mean, cov, rng, num_samples):
-    """Sample from a complex Gaussian distribution with given mean and covariance matrix.
-
-    Parameters
-    ----------
-    mean : complex ndarray of shape (dim,)
-        Mean of the complex Gaussian distribution.
-    cov : complex ndarray of shape (dim, dim)
-        Covariance matrix of the complex Gaussian distribution.
-    rng : numpy.random.Generator
-        Random number generator.
-    num_samples : int
-        Number of samples to draw.
-    
-    Returns
-    -------
-    sample : ndarray of shape (dim, num_samples)
-        Complex Gaussian samples. 
-    """
-    joint_mean, joint_cov = real_gaussian_from_complex(mean, cov)
-    sample = rng.multivariate_normal(joint_mean, joint_cov, size=num_samples).T
-    return sample[:mean.shape[0],:] + 1j*sample[mean.shape[0]:,:]
-
-
-
 
 
 def block_process_idxs(num_samples : int, block_size : int, overlap : int, start_idx=0):

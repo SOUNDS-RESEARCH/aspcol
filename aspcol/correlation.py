@@ -19,6 +19,7 @@ import scipy.signal as spsig
 
 import aspcol.matrices as mat
 import aspcol.filterclasses as fc
+import aspcol.fouriertransform as ft
 
 
 def cov_est_oas(sample_cov, n, verbose=False):
@@ -603,12 +604,12 @@ def get_filter_for_autocorrelation(autocorr):
     returns an IR of shape (num_channels, max_lag*2-1)
     """
     ac_full = np.concatenate((autocorr, np.flip(autocorr[:,1:],axis=-1)), axis=-1)
-    psd = np.fft.fft(ac_full, axis=-1)
+    psd = ft.fft(ac_full)
     psd = np.real_if_close(psd)
     assert np.allclose(np.imag(psd), 0) 
     freq_func = np.sqrt(psd)
-    ir = np.real_if_close(np.fft.ifft(freq_func, axis=-1))
-    assert np.allclose(np.imag(ir), 0)  
+    ir = np.real_if_close(ft.ifft(freq_func))
+    assert np.allclose(np.imag(ir), 0)
     return ir
 
 
@@ -655,79 +656,79 @@ def get_filter_for_autocorrelation(autocorr):
 
 
 
-def autocorrelation_old(sig, max_lag, interval):
-    """
-    I'm not sure I trust this one. Write some unit tests 
-    against Autocorrelation class first. But the corr_matrix function
-    works, so this shouldn't be needed. 
+# def autocorrelation_old(sig, max_lag, interval):
+#     """
+#     I'm not sure I trust this one. Write some unit tests 
+#     against Autocorrelation class first. But the corr_matrix function
+#     works, so this shouldn't be needed. 
 
-    Returns the autocorrelation of a multichannel signal
+#     Returns the autocorrelation of a multichannel signal
 
-    corr[j,k,i] = r_jk(i) = E[s_j(n)s_k(n-i)]
-    output is for positive indices, i=0,...,max_lag-1
-    for negative correlation values for r_jk, use r_kj instead
-    Because r_jk(i) = r_kj(-i)
-    """
-    #Check if the correlation is normalized
-    num_channels = sig.shape[0]
-    corr = np.zeros((num_channels, num_channels, max_lag))
+#     corr[j,k,i] = r_jk(i) = E[s_j(n)s_k(n-i)]
+#     output is for positive indices, i=0,...,max_lag-1
+#     for negative correlation values for r_jk, use r_kj instead
+#     Because r_jk(i) = r_kj(-i)
+#     """
+#     #Check if the correlation is normalized
+#     num_channels = sig.shape[0]
+#     corr = np.zeros((num_channels, num_channels, max_lag))
 
-    for i in range(num_channels):
-        for j in range(num_channels):
-            corr[i,j,:] = spsig.correlate(np.flip(sig[i,interval[0]-max_lag+1:interval[1]]), 
-                                            np.flip(sig[j,interval[0]:interval[1]]), "valid")
-    # corr /= interval[1] - interval[0] #+ max_lag - 1
-    return corr
+#     for i in range(num_channels):
+#         for j in range(num_channels):
+#             corr[i,j,:] = spsig.correlate(np.flip(sig[i,interval[0]-max_lag+1:interval[1]]), 
+#                                             np.flip(sig[j,interval[0]:interval[1]]), "valid")
+#     # corr /= interval[1] - interval[0] #+ max_lag - 1
+#     return corr
 
-# These should be working correctly, but are written only for testing purposes.
-# Might be removed at any time and moved to test module. 
+# # These should be working correctly, but are written only for testing purposes.
+# # Might be removed at any time and moved to test module. 
 
-def autocorr_ref_spsig(sig, max_lag):
-    num_channels = sig.shape[0]
-    num_samples = sig.shape[-1]
-    sig = np.pad(sig, ((0,0), (max_lag-1, 0)))
-    r = np.zeros((num_channels, num_channels, max_lag))
-    for ch1 in range(num_channels):
-        for ch2 in range(num_channels):
-                r[ch1, ch2, :] = spsig.correlate(np.flip(sig[ch1,:]), 
-                                            np.flip(sig[ch2,max_lag-1:]), "valid")
-    r /= num_samples
-    return r
+# def autocorr_ref_spsig(sig, max_lag):
+#     num_channels = sig.shape[0]
+#     num_samples = sig.shape[-1]
+#     sig = np.pad(sig, ((0,0), (max_lag-1, 0)))
+#     r = np.zeros((num_channels, num_channels, max_lag))
+#     for ch1 in range(num_channels):
+#         for ch2 in range(num_channels):
+#                 r[ch1, ch2, :] = spsig.correlate(np.flip(sig[ch1,:]), 
+#                                             np.flip(sig[ch2,max_lag-1:]), "valid")
+#     r /= num_samples
+#     return r
 
 
-def autocorr_ref(sig, max_lag):
-    num_channels = sig.shape[0]
-    num_samples = sig.shape[-1]
-    padded_len = num_samples + max_lag - 1
-    sig = np.pad(sig, ((0,0), (max_lag-1, 0)))
-    r = np.zeros((num_channels, num_channels, max_lag))
-    for ch1 in range(num_channels):
-        for ch2 in range(num_channels):
-            for i in range(max_lag-1, padded_len):
-                r[ch1, ch2, :] += sig[ch1,i] * np.flip(sig[ch2, i-max_lag+1:i+1])
-    r /= num_samples
-    return r
+# def autocorr_ref(sig, max_lag):
+#     num_channels = sig.shape[0]
+#     num_samples = sig.shape[-1]
+#     padded_len = num_samples + max_lag - 1
+#     sig = np.pad(sig, ((0,0), (max_lag-1, 0)))
+#     r = np.zeros((num_channels, num_channels, max_lag))
+#     for ch1 in range(num_channels):
+#         for ch2 in range(num_channels):
+#             for i in range(max_lag-1, padded_len):
+#                 r[ch1, ch2, :] += sig[ch1,i] * np.flip(sig[ch2, i-max_lag+1:i+1])
+#     r /= num_samples
+#     return r
 
-def corr_mat_new_first_ref(sig, max_lag):
-    num_channels = sig.shape[0]
-    num_samples = sig.shape[-1]
-    padded_len = num_samples + max_lag - 1
-    sig = np.pad(sig, ((0,0), (max_lag-1, 0)))
-    R = np.zeros((max_lag*num_channels, max_lag*num_channels))
-    for i in range(max_lag-1, padded_len):
-        vec = np.flip(sig[:,i-max_lag+1:i+1], axis=-1).reshape(-1,1)
-        R+= vec @ vec.T
-    R /= num_samples
-    return R
+# def corr_mat_new_first_ref(sig, max_lag):
+#     num_channels = sig.shape[0]
+#     num_samples = sig.shape[-1]
+#     padded_len = num_samples + max_lag - 1
+#     sig = np.pad(sig, ((0,0), (max_lag-1, 0)))
+#     R = np.zeros((max_lag*num_channels, max_lag*num_channels))
+#     for i in range(max_lag-1, padded_len):
+#         vec = np.flip(sig[:,i-max_lag+1:i+1], axis=-1).reshape(-1,1)
+#         R+= vec @ vec.T
+#     R /= num_samples
+#     return R
 
-def corr_mat_old_first_ref(sig, max_lag):
-    num_channels = sig.shape[0]
-    num_samples = sig.shape[-1]
-    padded_len = num_samples + max_lag - 1
-    sig = np.pad(sig, ((0,0), (max_lag-1, 0)))
-    R = np.zeros((max_lag*num_channels, max_lag*num_channels))
-    for i in range(max_lag-1, padded_len):
-        vec = sig[:,i-max_lag+1:i+1].reshape(-1,1)
-        R+= vec @ vec.T
-    R /= num_samples
-    return R
+# def corr_mat_old_first_ref(sig, max_lag):
+#     num_channels = sig.shape[0]
+#     num_samples = sig.shape[-1]
+#     padded_len = num_samples + max_lag - 1
+#     sig = np.pad(sig, ((0,0), (max_lag-1, 0)))
+#     R = np.zeros((max_lag*num_channels, max_lag*num_channels))
+#     for i in range(max_lag-1, padded_len):
+#         vec = sig[:,i-max_lag+1:i+1].reshape(-1,1)
+#         R+= vec @ vec.T
+#     R /= num_samples
+#     return R

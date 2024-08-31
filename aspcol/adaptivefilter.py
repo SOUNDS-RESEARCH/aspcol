@@ -20,7 +20,6 @@ try:
 except ImportError:
     fdf = None
 
-
 class AdaptiveFilterBase():
     def __init__(self, ir_len, num_in, num_out, filter_type=None):
         filter_dim = (num_in, num_out, ir_len)

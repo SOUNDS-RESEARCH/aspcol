@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import itertools as it
 
 import aspcol.correlation as cr
+import aspcol.fouriertransform as ft
 
 
 
@@ -78,7 +79,7 @@ def create_pseq(seq_len : int):
         ph[N_half:] = -np.flip(ph[1:N_half])
 
     c = 10*np.exp(1j*ph)
-    s = np.real_if_close(np.fft.ifft(c, axis=-1))
+    s = np.real_if_close(ft.ifft(c))
 
     # Normalize signal to have max amplitude 1
     s = s / np.max(np.abs(s))
