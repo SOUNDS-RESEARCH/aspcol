@@ -148,3 +148,52 @@ def uniform_random_on_sphere(num_points, rng):
     points = rng.normal(size=(num_points, 3))
     points = points / np.linalg.norm(points, axis=-1)[:,None]
     return points
+
+def uniform_random_on_circle(num_points, rng):
+    """Generate uniformly random points on the unit circle in R^3.
+
+    num_points : int
+        The number of points to generate
+    rng : numpy.random.Generator
+        The random number generator to use
+
+    Returns
+    -------
+    points : ndarray of shape (num_points, 3)
+        The points on the unit sphere
+    """
+    points = rng.normal(size=(num_points, 2))
+    points = points / np.linalg.norm(points, axis=-1)[:,None]
+
+    points = np.concatenate((points, np.zeros((num_points, 1))), axis=1)
+    return points
+
+
+
+def _real_gaussian_from_complex(mean, cov):
+    cov = 0.5 * np.block([[np.real(cov), -np.imag(cov)], [np.imag(cov), np.real(cov)]])
+    mean = np.concatenate([np.real(mean), np.imag(mean)])
+    return mean, cov
+
+def sample_complex_gaussian(mean, cov, rng, num_samples):
+    """Sample from a circularly symmetric complex Gaussian distribution with given mean and covariance matrix.
+
+    Parameters
+    ----------
+    mean : complex ndarray of shape (dim,)
+        Mean of the complex Gaussian distribution.
+    cov : complex ndarray of shape (dim, dim)
+        Covariance matrix of the complex Gaussian distribution.
+    rng : numpy.random.Generator
+        Random number generator.
+    num_samples : int
+        Number of samples to draw.
+    
+    Returns
+    -------
+    sample : ndarray of shape (dim, num_samples)
+        Complex Gaussian samples. 
+    """
+    joint_mean, joint_cov = _real_gaussian_from_complex(mean, cov)
+    sample = rng.multivariate_normal(joint_mean, joint_cov, size=num_samples).T
+    return sample[:mean.shape[0],:] + 1j*sample[mean.shape[0]:,:]
