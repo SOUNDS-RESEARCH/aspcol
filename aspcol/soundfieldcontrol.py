@@ -571,7 +571,7 @@ class PressureMatchingWOLA:
 
 
 # ==================== SINR BASED SOUND ZONE CONTROL =============================
-def solve_power_weighted_qos_uplink(R, noise_pow, sinr_targets, max_pow, audio_cov, tolerance=1e-12, max_iters=20):
+def solve_power_weighted_qos_uplink(R, noise_pow, sinr_targets, max_pow, audio_cov, tolerance=1e-12, max_iters=20, verbose=False):
     """ Calculates a control filter and power allocation that solves the signal-weighted uplink Quality of Service problem in the time-domain
     
     The control filter is SINR-optimal and takes the spectral characteristics of the audio signal into account. In order to use it 
@@ -617,31 +617,35 @@ def solve_power_weighted_qos_uplink(R, noise_pow, sinr_targets, max_pow, audio_c
 
     is_feasible = False
     while True:
-        print(f"Iter {n}")
+        if verbose:
+            print(f"Iter {n}")
         w = _beamformer_minmax_weighted_uplink(q, R, audio_cov)
         w = normalize_beamformer(w)
         s = np.squeeze(np.array([w[k,:,None].T @ audio_cov[k,:,:] @ w[k,:,None] for k in range(num_zones)]))
         if is_feasible:
-            q = power_alloc_qos_uplink(w, R, s, sinr_targets)
+            q = _power_alloc_qos_uplink(w, R, s, sinr_targets)
         else:
-            q, c = power_alloc_minmax_uplink(w, R, s, sinr_targets, max_pow)
-            print(f"capacity: {c}")
+            q, c = _power_alloc_minmax_uplink(w, R, s, sinr_targets, max_pow)
+            if verbose:
+                print(f"capacity: {c}")
             
-            if _power_alloc_qos_feasibility_spectral_radius(link_gain_uplink(w, R), sinr_targets) < 1:
+            if _power_alloc_qos_feasibility_spectral_radius(_link_gain_uplink(w, R), sinr_targets) < 1:
                 is_feasible = True
             
         beamformers.append(w)
         power_vectors.append(q)
-        sinr_balance_diff = sinr_balance_difference_uplink(q, w, R, noise_pow, sinr_targets)
-        print(f"SINR balance difference: {sinr_balance_diff}")
-        print(f"Total power: {np.sum(q)}")
-        print(f"Uplink feasibility spectral radius: {_power_alloc_qos_feasibility_spectral_radius(link_gain_uplink(w, R), sinr_targets)}")
-        print(f"Downlink feasibility spectral radius: {_power_alloc_qos_feasibility_spectral_radius(link_gain_downlink(w, R), sinr_targets)}")
+        sinr_balance_diff = _sinr_balance_difference_uplink(q, w, R, noise_pow, sinr_targets)
+        if verbose:
+            print(f"SINR balance difference: {sinr_balance_diff}")
+            print(f"Total power: {np.sum(q)}")
+            print(f"Uplink feasibility spectral radius: {_power_alloc_qos_feasibility_spectral_radius(_link_gain_uplink(w, R), sinr_targets)}")
+            print(f"Downlink feasibility spectral radius: {_power_alloc_qos_feasibility_spectral_radius(_link_gain_downlink(w, R), sinr_targets)}")
         if n >= 1:
             pow_diff = np.mean(np.abs(power_vectors[-1] - power_vectors[-2])**2)
             bf_diff = np.mean(np.abs(beamformers[-1] - beamformers[-2])**2)
-            print(f"Power mean square difference: {pow_diff}")
-            print(f"Beamformer mean square difference: {bf_diff}")
+            if verbose:
+                print(f"Power mean square difference: {pow_diff}")
+                print(f"Beamformer mean square difference: {bf_diff}")
             
             if (is_feasible and pow_diff < tolerance and bf_diff < tolerance) or n == max_iters:
                 break
@@ -690,7 +694,7 @@ def sum_weighted_pow(bf_vec, weighting_mat):
     num_zones = bf_vec.shape[0]
     return np.sum([np.squeeze(bf_vec[k,:,None].T @ weighting_mat[k,:,:] @ bf_vec[k,:,None]) for k in range(num_zones)])
 
-def select_solution_eigenvalue(opt_mat, verbose=False):
+def _select_solution_eigenvalue(opt_mat, verbose=False):
     """
     opt_mat is of shape (..., beamformer_len, beamformer_len)
 
@@ -698,9 +702,9 @@ def select_solution_eigenvalue(opt_mat, verbose=False):
     
     """
     assert opt_mat.shape[-2] == opt_mat.shape[-1]
-    return mat.broadcast_func(opt_mat, _select_solution_eigenvalue, out_shape=(opt_mat.shape[-1],), dtype=opt_mat.dtype, verbose=verbose)
+    return mat.broadcast_func(opt_mat, _select_solution_eigenvalue_single_freq, out_shape=(opt_mat.shape[-1],), dtype=opt_mat.dtype, verbose=verbose)
 
-def _select_solution_eigenvalue(opt_mat, verbose=False):
+def _select_solution_eigenvalue_single_freq(opt_mat, verbose=False):
     ev, evec = splin.eigh(opt_mat)
     if verbose:
         if ev[-1] / ev[-2] < 1e6:
@@ -760,10 +764,10 @@ def extract_power_vec(w):
 def _is_unit_vector(w):
     return np.allclose(np.linalg.norm(w, axis=-1), 1)
 
-def link_gain_downlink(w, R):
+def _link_gain_downlink(w, R):
     return _link_gain(w, R)
 
-def link_gain_uplink(w, R):
+def _link_gain_uplink(w, R):
     return _link_gain(w, R).T
 
 def _link_gain(w, R):
@@ -789,19 +793,19 @@ def _link_gain(w, R):
     return G
 
 
-def sinr_downlink(p, w, R, noise_pow):
+def _sinr_downlink(p, w, R, noise_pow):
     assert _is_unit_vector(w)
-    return _sinr(p, link_gain_downlink(w, R), noise_pow)
+    return _sinr(p, _link_gain_downlink(w, R), noise_pow)
 
-def sinr_uplink(p, w, R, noise_pow):
+def _sinr_uplink(p, w, R, noise_pow):
     assert _is_unit_vector(w)
-    return _sinr(p, link_gain_uplink(w, R), noise_pow)
+    return _sinr(p, _link_gain_uplink(w, R), noise_pow)
 
-def sinr_margin_downlink(p, w, R, noise_pow, sinr_targets):
-    return sinr_downlink(p, w, R, noise_pow) - sinr_targets
+def _sinr_margin_downlink(p, w, R, noise_pow, sinr_targets):
+    return _sinr_downlink(p, w, R, noise_pow) - sinr_targets
 
-def sinr_margin_uplink(p, w, R, noise_pow, sinr_targets):
-    return sinr_uplink(p, w, R, noise_pow) - sinr_targets
+def _sinr_margin_uplink(p, w, R, noise_pow, sinr_targets):
+    return _sinr_uplink(p, w, R, noise_pow) - sinr_targets
 
 def _sinr(p, gain_mat, noise_pow):
     """
@@ -835,11 +839,11 @@ def _sum_interference(interference_mat):
     
 def power_alloc_qos_downlink(w, R, noise_pow, sinr_targets):
     assert _is_unit_vector(w)
-    return _power_alloc_qos(link_gain_downlink(w, R), noise_pow, sinr_targets)
+    return _power_alloc_qos(_link_gain_downlink(w, R), noise_pow, sinr_targets)
 
-def power_alloc_qos_uplink(w, R, noise_pow, sinr_targets):
+def _power_alloc_qos_uplink(w, R, noise_pow, sinr_targets):
     assert _is_unit_vector(w)
-    return _power_alloc_qos(link_gain_uplink(w, R), noise_pow, sinr_targets)
+    return _power_alloc_qos(_link_gain_uplink(w, R), noise_pow, sinr_targets)
 
 def _power_alloc_qos(gain_mat, noise_pow, sinr_targets):
     """
@@ -876,13 +880,13 @@ def _power_alloc_qos_feasibility_spectral_radius(gain_mat, sinr_targets):
     spectral_radius = np.max(np.abs(ev))
     return spectral_radius
 
-def power_alloc_minmax_downlink(w, R, noise_pow, sinr_targets, max_pow):
+def _power_alloc_minmax_downlink(w, R, noise_pow, sinr_targets, max_pow):
     assert _is_unit_vector(w)
-    return _power_alloc_minmax(link_gain_downlink(w, R), noise_pow, sinr_targets, max_pow)
+    return _power_alloc_minmax(_link_gain_downlink(w, R), noise_pow, sinr_targets, max_pow)
 
-def power_alloc_minmax_uplink(w, R, noise_pow, sinr_targets, max_pow):
+def _power_alloc_minmax_uplink(w, R, noise_pow, sinr_targets, max_pow):
     assert _is_unit_vector(w)
-    return _power_alloc_minmax(link_gain_uplink(w, R), noise_pow, sinr_targets, max_pow)
+    return _power_alloc_minmax(_link_gain_uplink(w, R), noise_pow, sinr_targets, max_pow)
 
 def _power_alloc_minmax(gain_mat, noise_pow, sinr_targets, max_pow):
     """
@@ -938,11 +942,11 @@ def _extended_coupling_matrix_downlink(signal_mat, if_mat, noise_pow, max_pow):
     coupling_mat[-1:, -1:] = max_pow_vec @ signal_mat @ noise_pow                          #bottom right block
     return coupling_mat
 
-def sinr_balance_difference_downlink(p, w, R, noise_pow, sinr_targets):
-    return _sinr_balance_difference(p, link_gain_downlink(w, R), noise_pow, sinr_targets)
+def _sinr_balance_difference_downlink(p, w, R, noise_pow, sinr_targets):
+    return _sinr_balance_difference(p, _link_gain_downlink(w, R), noise_pow, sinr_targets)
 
-def sinr_balance_difference_uplink(p, w, R, noise_pow, sinr_targets):
-    return _sinr_balance_difference(p, link_gain_uplink(w, R), noise_pow, sinr_targets)
+def _sinr_balance_difference_uplink(p, w, R, noise_pow, sinr_targets):
+    return _sinr_balance_difference(p, _link_gain_uplink(w, R), noise_pow, sinr_targets)
 
 def _sinr_balance_difference(p, gain_mat, noise_pow, sinr_targets):
     sinr_val = _sinr(p, gain_mat, noise_pow)
