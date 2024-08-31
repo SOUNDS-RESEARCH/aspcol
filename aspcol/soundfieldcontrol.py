@@ -127,33 +127,9 @@ def fpaths_to_spatial_cov(arrays, fpaths, source_name, zone_names):
         R[:,k,:,:] /= num_mics
     return R
 
-def get_fpaths(arrays, num_freqs, samplerate):
-    """utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
-
-    returns a dictionary with frequency domain RIRs 
-        each entry has shape 
-    """
-    freqs = fd.get_frequency_values(num_freqs, samplerate)
-    num_real_freqs = freqs.shape[0]
-
-    fpaths = {}
-    for src, mic, path in arrays.iter_paths():
-        fpaths.setdefault(src.name, {})
-
-        path_freq = np.fft.fft(path, n=num_freqs, axis=-1)
-
-        new_axis_order = np.concatenate(
-            ([path.ndim - 1], np.arange(path.ndim - 1))
-        )
-        path_freq = np.transpose(path_freq, new_axis_order)
-
-        fpaths[src.name][mic.name] = np.moveaxis(path_freq,1,2)[:num_real_freqs,...]
-    return fpaths, freqs
-
 
 def paths_to_spatial_cov(arrays, source_name, zone_names, sources, filt_len, num_samples, margin=None):
-    """
-    utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
+    """utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
 
     sources should be a list of the audio sources associated with each zone
         naturally the list of zone names and sources should be of the same length
@@ -180,8 +156,7 @@ def paths_to_spatial_cov(arrays, source_name, zone_names, sources, filt_len, num
     return R
 
 def paths_to_spatial_cov_delta(arrays, source_name, zone_names, filt_len):
-    """
-    utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
+    """utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
 
     See info for paths_to_spatial_cov
     """
@@ -583,7 +558,6 @@ class PressureMatchingWOLA:
     def get_samples(self):
         audio = self.audio_src.get_samples(self.block_size)
         self.wola.analysis(audio)
-        #audio_freq = np.moveaxis(np.fft.rfft(audio, axis=-1), -1, 0)
         ls_sig = self.ctrl_freq @ np.moveaxis(self.wola.spectrum, -1, 0)
         return ls_sig
 
