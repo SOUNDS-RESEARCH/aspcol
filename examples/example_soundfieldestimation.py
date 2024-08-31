@@ -7,6 +7,7 @@ import aspsim.room.region as reg
 
 import aspcol.kernelinterpolation as ki
 import aspcol.filterdesign as fd
+import aspcol.fouriertransform as ft
 import aspcol.soundfieldestimation as sfe
 
 
@@ -75,14 +76,14 @@ def generate_data(sr):
     sim = setup.create_simulator()
 
     num_freqs = 512
-    freqs = fd.get_real_freqs(num_freqs, sr)
+    freqs = ft.get_real_freqs(num_freqs, sr)
     num_real_freqs = freqs.shape[0]
 
     fpaths = {}
     for src, mic, path in sim.arrays.iter_paths():
         fpaths.setdefault(src.name, {})
-        fpaths[src.name][mic.name] = np.moveaxis(np.moveaxis(np.fft.fft(path, n=num_freqs), -1, 0),1,2)[:num_real_freqs,...]
-
+        fpaths[src.name][mic.name] = np.moveaxis(ft.rfft(path, n=num_freqs), 1, 2)
+        
     return sim.arrays["mic"].pos, fpaths["src"]["mic"][...,0], sim.arrays["eval"].pos, fpaths["src"]["eval"][...,0], freqs, sim.folder_path, sim.sim_info
 
 

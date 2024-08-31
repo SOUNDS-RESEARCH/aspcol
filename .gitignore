@@ -26,3 +26,6 @@ aspcol.egg-info
 docs/source/_autosummary
 docs/source/_autosummary/*
 docs/build/*
+
+examples/figs/*
+examples/figs

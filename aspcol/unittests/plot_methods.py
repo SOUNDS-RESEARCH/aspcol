@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 
 def image_scatter_freq_response(p_all, freqs, pos, fig_folder=None, plot_name="", same_scale=True, dot_size=500):
     """
-
     Parameters
     ----------
     ir_all_freq : dict of np.ndarray of shape (num_freq, num_pos) or (num_pos,)
@@ -37,7 +36,7 @@ def image_scatter_freq_response(p_all, freqs, pos, fig_folder=None, plot_name=""
     if np.mean(np.abs(pos[0,2] - pos[:,2])) > 1e-3:
         print("Warning: The z-coordinates of the positions are not equal. This is currently ignored, and the values are shown on the xy-plane without further note.")
     num_freqs = freqs.shape[-1]
-    assert all([ir_val.shape == (num_freqs, num_pos) for ir_val in p_all.values()])
+    assert all([p_val.shape == (num_freqs, num_pos) for p_val in p_all.values()])
 
     num_example_freqs = np.min((4, num_freqs))
     idx_interval = num_freqs // num_example_freqs
@@ -46,6 +45,7 @@ def image_scatter_freq_response(p_all, freqs, pos, fig_folder=None, plot_name=""
 
     for fi in freq_idxs:
         fig, axes = plt.subplots(len(p_all), 3, figsize=(14, len(p_all)*4), squeeze=False)
+        fig.suptitle(f"Frequency response at {freqs[fi]} Hz")
 
         p_real_fi = {est_name : np.real(p_val[fi,:]) for est_name, p_val in p_all.items()}
         p_imag_fi = {est_name : np.imag(p_val[fi,:]) for est_name, p_val in p_all.items()}
