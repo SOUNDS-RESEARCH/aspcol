@@ -20,6 +20,7 @@ import aspcol.utilities as util
 import aspcol.filterdesign as fd
 import aspcol.pseq as pseq
 import aspcol.sphericalharmonics as sph
+import aspcol.fouriertransform as ft
 
 
 
@@ -147,7 +148,7 @@ def pseq_nearest_neighbour(p, seq, pos, pos_eval):
         estimated RIR per frequency at the evaluation points
     """
     rir = pseq.decorrelate(p, seq)
-    rir_freq = np.fft.rfft(rir, axis=-1).T
+    rir_freq = ft.rfft(rir)
 
     dist = spdist.cdist(pos, pos_eval)
     min_idx = np.argmin(dist, axis=0)
@@ -192,8 +193,8 @@ def est_ki_diffuse(p, seq, pos, pos_eval, samplerate, c, reg_param):
     rir = pseq.decorrelate(p, seq)
 
     fft_len = rir.shape[-1]
-    rir_freq = np.fft.rfft(rir, axis=-1).T
-    k = fd.get_real_wavenum(fft_len, samplerate, c)
+    rir_freq = ft.rfft(rir)
+    k = ft.get_real_wavenum(fft_len, samplerate, c)
 
     return est_ki_diffuse_freq(rir_freq, pos, pos_eval, k, reg_param)
 
@@ -256,13 +257,15 @@ def est_inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, r
         sequence = np.squeeze(sequence, axis=0)
     assert sequence.ndim == 1
 
+    assert pos.ndim == 2
+
     N = p.shape[0]
     seq_len = sequence.shape[0]
     num_periods = N // seq_len
     assert N % seq_len == 0
 
-    k = fd.get_wavenum(seq_len, samplerate, c)
-    num_real_freqs = len(fd.get_real_freqs(seq_len, samplerate))
+    k = ft.get_wavenum(seq_len, samplerate, c)
+    num_real_freqs = len(ft.get_real_freqs(seq_len, samplerate))
 
     # ======= Estimation of spherical harmonic coefficients =======
     Phi = _sequence_stft_multiperiod(sequence, num_periods)
@@ -286,6 +289,7 @@ def est_inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, r
     regressor = splin.solve(psi + noise_cov, p, assume_a = "pos")
 
     regressor = Phi.conj() * regressor[None,:]
+    regressor = regressor[:num_real_freqs,:] # should be replaced by fixing the function calculating Phi instead
 
     # ======= Reconstruction of RIR =======
     est_sound_pressure = np.zeros((num_real_freqs, pos_eval.shape[0]), dtype=complex)
@@ -325,6 +329,9 @@ def reconstruct_inf_dimensional_shd_dynamic(regressor, pos_eval, pos, k):
         estimated RIR per frequency at the evaluation points
     """
     num_real_freqs = regressor.shape[0]
+    assert k.shape[-1] == num_real_freqs
+    assert pos.shape[0] == regressor.shape[-1]
+
     est_sound_pressure = np.zeros((num_real_freqs, pos_eval.shape[0]), dtype=complex)
     for f in range(num_real_freqs):
         kernel_val = ki.kernel_helmholtz_3d(pos_eval, pos, k[f:f+1]).astype(complex)[0,:,:]
@@ -333,8 +340,7 @@ def reconstruct_inf_dimensional_shd_dynamic(regressor, pos_eval, pos, k):
 
 
 
-
-def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, r_max, verbose=False):
+def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_param, r_max=None, verbose=False):
     """
     Estimates the RIR at evaluation positions using data from a moving microphone
 
@@ -359,8 +365,9 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, r_ma
     samplerate : int
     c : float
         speed of sound
-    r_max : float
-        radius of the sphere onto which the spatial spectrum is computed
+    r_max : float, optional
+        radius of the sphere onto which the spatial spectrum is computed. If not provided, it is 
+        set to the maximum distance from the origin to any of the microphone positions. 
     verbose : bool, optional
         if True, returns diagnostics, by default False
 
@@ -383,31 +390,48 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, r_ma
     assert N % seq_len == 0
     num_eval = pos_eval.shape[0]
 
-    k = fd.get_wavenum(seq_len, samplerate, c)
+    k = ft.get_wavenum(seq_len, samplerate, c)
     num_freqs = len(k)
-    num_real_freqs = len(fd.get_real_freqs(seq_len, samplerate))
+    num_real_freqs = len(ft.get_real_freqs(seq_len, samplerate))
+
+    r, angles = util.cart2spherical(pos)
 
     # ======= Estimation of spatial spectrum coefficients =======
     phi = _sequence_stft_multiperiod(sequence, num_periods)
-    max_orders = sph.shd_min_order(k, r_max)
-    r, angles = util.cart2spherical(pos)
 
+    if r_max is None:
+        r_max = np.max(r)
+    max_orders = sph.shd_min_order(k[:num_real_freqs], r_max)
+    max_orders = np.concatenate((max_orders, np.flip(max_orders[1:])))
+    
     Sigma = []
 
-    for f in range(num_freqs):
+    freq_idx_list = np.arange(num_real_freqs)
+    for f in freq_idx_list:#range(num_real_freqs):
         order, modes = sph.shd_num_degrees_vector(max_orders[f])
         Y_f = spspec.sph_harm(modes[None,:], order[None,:], angles[:,0:1], angles[:,1:2])
         B_f = spspec.spherical_jn(order[None,:], k[f]*r[:,None])
 
-        D_f = spspec.spherical_jn(order, k[f]*r_max)
+       # D_f = spspec.spherical_jn(order, k[f]*r_max)
         S_f = phi[f,:]
 
-        Sigma_f = S_f[:,None] * Y_f * B_f / D_f[None,:]
+        Sigma_f = S_f[:,None] * Y_f * B_f #/ D_f[None,:]
         Sigma.append(Sigma_f)
 
-    Sigma = np.concatenate(Sigma, axis=-1)
+    # for f in np.flip(np.arange(1, num_real_freqs)):
+    #     order, modes = sph.shd_num_degrees_vector(max_orders[f])
+    #     Y_f = spspec.sph_harm(modes[None,:], order[None,:], angles[:,0:1], angles[:,1:2])
+    #     B_f = spspec.spherical_jn(order[None,:], k[f]*r[:,None])
+    #     S_f = phi[f,:]
+    #     Sigma_f = S_f[:,None] * Y_f * B_f
+    #     Sigma.append(np.conj(Sigma_f))
 
-    a, residue, rank, singular_values = np.linalg.lstsq(Sigma, p, rcond=None)
+    Sigma = np.concatenate(Sigma, axis=-1)
+    system_mat = Sigma.conj().T @ Sigma + reg_param * np.eye(Sigma.shape[-1])
+    print(f"Size of spatial spectrum system matrix: {system_mat.shape}")
+    a = splin.solve(system_mat, Sigma.conj().T @ p, assume_a="pos")
+    #a, residue, rank, singular_values = np.linalg.lstsq(Sigma, p, rcond=None)
+    #a = lsqL2(Sigma, p, 1e-6)
 
 
     # ======= Reconstruction of RIR =======
@@ -418,22 +442,128 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, r_ma
         order, modes = sph.shd_num_degrees_vector(max_orders[f])
         num_ord = len(order)
         
-        j_denom = spspec.spherical_jn(order, k[f]*r_max)
+        #j_denom = spspec.spherical_jn(order, k[f]*r_max)
         j_num = spspec.spherical_jn(order[None,:], k[f]*r_eval[:,None])
 
         Y = spspec.sph_harm(modes[None,:], order[None,:], angles_eval[:,0:1], angles_eval[:,1:2])
-        rir_est[f, :] = np.sum(a[None,ord_idx:ord_idx+num_ord] * Y * j_num / j_denom[None,:], axis=-1)
+        rir_est[f, :] = np.sum(a[None,ord_idx:ord_idx+num_ord] * Y * j_num  , axis=-1) # / j_denom[None,:]
         ord_idx += num_ord
 
     if verbose:
         diagnostics = {}
-        diagnostics["residue"] = residue.tolist()
         diagnostics["condition number"] = np.linalg.cond(Sigma).tolist()
         diagnostics["smallest singular value"] = splin.svdvals(Sigma)[0].tolist()
         diagnostics["largest singular"] = splin.svdvals(Sigma)[-1].tolist()
         diagnostics["r_max"] = r_max
         return rir_est, diagnostics
     return rir_est
+
+
+def lsqL2(A, y, lamb=1e-10):
+    U,S, Vh = np.linalg.svd(A, full_matrices=False)
+    return np.conj(Vh).T @ ((np.conj(U).T @ y) * (S/(S**2+lamb)))
+
+
+# def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, r_max, verbose=False):
+#     """
+#     Estimates the RIR at evaluation positions using data from a moving microphone
+
+#     Implements the method from Katzberg et al. "Spherical harmonic 
+#     representation for dynamic sound-field measurements"
+    
+#     Assumptions:
+#     The spherical harmonics are expanded around the origin (0,0,0)
+#     The sequence is periodic, and the pressure is measured for an integer number of periods
+#     The length of sequence is the length of the estimated RIR
+
+#     Parameters
+#     ----------
+#     p : ndarray of shape (N)
+#         sound pressure for each sample of the moving microphone
+#     pos : ndarray of shape (N, 3)
+#         position of the trajectory for each sample
+#     pos_eval : ndarray of shape (num_eval, 3)
+#         positions of the evaluation points
+#     sequence : ndarray of shape (seq_len) or (1, seq_len)
+#         the training signal used for the measurements
+#     samplerate : int
+#     c : float
+#         speed of sound
+#     r_max : float
+#         radius of the sphere onto which the spatial spectrum is computed
+#     verbose : bool, optional
+#         if True, returns diagnostics, by default False
+
+#     Returns
+#     -------
+#     est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+#         estimated RIR per frequency at the evaluation points
+#     """
+#     # ======= Argument checking =======
+#     if p.ndim >= 2:
+#         p = np.squeeze(p)
+
+#     if sequence.ndim == 2:
+#         sequence = np.squeeze(sequence, axis=0)
+#     assert sequence.ndim == 1
+
+#     N = p.shape[0]
+#     seq_len = sequence.shape[0]
+#     num_periods = N // seq_len
+#     assert N % seq_len == 0
+#     num_eval = pos_eval.shape[0]
+
+#     k = ft.get_wavenum(seq_len, samplerate, c)
+#     num_freqs = len(k)
+#     num_real_freqs = len(ft.get_real_freqs(seq_len, samplerate))
+
+#     # ======= Estimation of spatial spectrum coefficients =======
+#     phi = _sequence_stft_multiperiod(sequence, num_periods)
+#     max_orders = sph.shd_min_order(k, r_max)
+#     r, angles = util.cart2spherical(pos)
+
+#     Sigma = []
+
+#     for f in range(num_freqs):
+#         order, modes = sph.shd_num_degrees_vector(max_orders[f])
+#         Y_f = spspec.sph_harm(modes[None,:], order[None,:], angles[:,0:1], angles[:,1:2])
+#         B_f = spspec.spherical_jn(order[None,:], k[f]*r[:,None])
+
+#         D_f = spspec.spherical_jn(order, k[f]*r_max)
+#         S_f = phi[f,:]
+
+#         Sigma_f = S_f[:,None] * Y_f * B_f / D_f[None,:]
+#         Sigma.append(Sigma_f)
+
+#     Sigma = np.concatenate(Sigma, axis=-1)
+
+#     a, residue, rank, singular_values = np.linalg.lstsq(Sigma, p, rcond=None)
+
+
+#     # ======= Reconstruction of RIR =======
+#     rir_est = np.zeros((num_real_freqs, num_eval), dtype=complex)
+#     r_eval, angles_eval = util.cart2spherical(pos_eval)
+#     ord_idx = 0
+#     for f in range(num_real_freqs):
+#         order, modes = sph.shd_num_degrees_vector(max_orders[f])
+#         num_ord = len(order)
+        
+#         j_denom = spspec.spherical_jn(order, k[f]*r_max)
+#         j_num = spspec.spherical_jn(order[None,:], k[f]*r_eval[:,None])
+
+#         Y = spspec.sph_harm(modes[None,:], order[None,:], angles_eval[:,0:1], angles_eval[:,1:2])
+#         rir_est[f, :] = np.sum(a[None,ord_idx:ord_idx+num_ord] * Y * j_num / j_denom[None,:], axis=-1)
+#         ord_idx += num_ord
+
+#     if verbose:
+#         diagnostics = {}
+#         diagnostics["residue"] = residue.tolist()
+#         diagnostics["condition number"] = np.linalg.cond(Sigma).tolist()
+#         diagnostics["smallest singular value"] = splin.svdvals(Sigma)[0].tolist()
+#         diagnostics["largest singular"] = splin.svdvals(Sigma)[-1].tolist()
+#         diagnostics["r_max"] = r_max
+#         return rir_est, diagnostics
+#     return rir_est
 
 
 
@@ -455,8 +585,9 @@ def _sequence_stft_multiperiod(sequence, num_periods):
     return np.tile(Phi, (1, num_periods))
 
 def _sequence_stft(sequence):
-    """
-    Might not correspond to the definition in the paper
+    """Might not correspond to the definition in the paper
+
+    Currently is likely using the wrong time convention. 
 
     Parameters
     ----------
@@ -483,7 +614,7 @@ def _sequence_stft(sequence):
         seq_vec = np.roll(seq_vec, -1) # so that n ends up last
         seq_vec = np.flip(seq_vec) # so that we get n first and then n-i as we move later in the vector
         for f in range(B):
-            exp_vec = fd.idft_vector(f, B)
+            exp_vec = ft.idft_vector(f, B)
             Phi[f,n] = np.sum(exp_vec * seq_vec) 
     # Fast version, not sure if correct
     # for n in range(B):
