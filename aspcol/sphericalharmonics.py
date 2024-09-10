@@ -123,7 +123,7 @@ def shd_num_degrees_vector(max_order : int):
     order = np.concatenate(order)
     return order, degree
 
-def shd_min_order(wavenumber, radius):
+def shd_min_order(wave_num, radius):
     """
     Returns the minimum order of the spherical harmonics that should be used
     for a given wavenumber and radius
@@ -133,7 +133,7 @@ def shd_min_order(wavenumber, radius):
 
     Parameters
     ----------
-    wavenumber : ndarray of shape (num_freqs)
+    wave_num : ndarray of shape (num_freqs)
     radius : float
         represents r_max in the Katzberg paper
 
@@ -142,7 +142,7 @@ def shd_min_order(wavenumber, radius):
     M_f : ndarray of shape (num_freqs)
         contains an integer which is the minimum order of the spherical harmonics
     """
-    return np.ceil(wavenumber * radius).astype(int)
+    return np.ceil(wave_num * radius).astype(int)
 
 def shd_coeffs_order_degree_to_index(order, degree):
     return order**2 + order + degree
