@@ -7,3 +7,4 @@ tensorly
 pytest
 hypothesis
 wigners
+jax
