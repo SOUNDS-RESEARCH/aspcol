@@ -1,0 +1,26 @@
+aspcol.filterclasses.IIRFilter
+==============================
+
+.. currentmodule:: aspcol.filterclasses
+
+.. autoclass:: IIRFilter
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~IIRFilter.__init__
+      ~IIRFilter.process
+   
+   
+
+   
+   
+   

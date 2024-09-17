@@ -1,0 +1,28 @@
+aspcol.utilities.EventCounter
+=============================
+
+.. currentmodule:: aspcol.utilities
+
+.. autoclass:: EventCounter
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~EventCounter.__init__
+      ~EventCounter.add_event
+      ~EventCounter.check_events
+      ~EventCounter.progress
+   
+   
+
+   
+   
+   

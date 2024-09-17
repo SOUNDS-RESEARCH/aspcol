@@ -1,0 +1,6 @@
+aspcol.filterdesign.fractional\_delay\_filter
+=============================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: fractional_delay_filter

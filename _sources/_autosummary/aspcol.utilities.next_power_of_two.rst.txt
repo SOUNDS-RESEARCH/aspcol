@@ -1,0 +1,6 @@
+aspcol.utilities.next\_power\_of\_two
+=====================================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: next_power_of_two

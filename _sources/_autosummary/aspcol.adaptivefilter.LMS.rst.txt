@@ -1,0 +1,37 @@
+aspcol.adaptivefilter.LMS
+=========================
+
+.. currentmodule:: aspcol.adaptivefilter
+
+.. autoclass:: LMS
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~LMS.__init__
+      ~LMS.insert_in_signal
+      ~LMS.prepare
+      ~LMS.process
+      ~LMS.reinitialize
+      ~LMS.set_ir
+      ~LMS.update
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~LMS.ir
+   
+   

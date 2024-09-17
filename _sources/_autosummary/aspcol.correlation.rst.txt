@@ -1,0 +1,49 @@
+﻿aspcol.correlation
+==================
+
+.. automodule:: aspcol.correlation
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      autocorr
+      corr_matrix
+      corr_matrix_from_autocorrelation
+      cov_est_oas
+      cov_est_qis
+      get_filter_for_autocorrelation
+      is_autocorr_func
+      is_autocorr_mat
+      multichannel_acf_from_independent_acf
+      periodic_autocorr
+      sample_correlation
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: new-class-template.rst
+   
+      Autocorrelation
+      SampleCorrelation
+   
+   
+
+   
+   
+   
+
+
+

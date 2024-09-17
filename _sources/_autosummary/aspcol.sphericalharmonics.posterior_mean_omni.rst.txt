@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.posterior\_mean\_omni
+===============================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: posterior_mean_omni

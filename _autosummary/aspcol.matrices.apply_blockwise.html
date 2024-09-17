@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.matrices.apply_blockwise &mdash; aspcol 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.matrices.block_diag" href="aspcol.matrices.block_diag.html" />
+    <link rel="prev" title="aspcol.matrices" href="aspcol.matrices.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.adaptivefilter.html">aspcol.adaptivefilter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.correlation.html">aspcol.correlation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.filterclasses.html">aspcol.filterclasses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.filterdesign.html">aspcol.filterdesign</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.lowrank.html">aspcol.lowrank</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="aspcol.matrices.html">aspcol.matrices</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">aspcol.matrices.apply_blockwise</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#aspcol.matrices.apply_blockwise"><code class="docutils literal notranslate"><span class="pre">apply_blockwise()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.block_diag.html">aspcol.matrices.block_diag</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.block_diag_multiply.html">aspcol.matrices.block_diag_multiply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.block_of_toeplitz.html">aspcol.matrices.block_of_toeplitz</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.block_transpose.html">aspcol.matrices.block_transpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.broadcast_func.html">aspcol.matrices.broadcast_func</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.ensure_hermitian.html">aspcol.matrices.ensure_hermitian</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.ensure_pos_def_adhoc.html">aspcol.matrices.ensure_pos_def_adhoc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.ensure_pos_semidef.html">aspcol.matrices.ensure_pos_semidef</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.is_hermitian.html">aspcol.matrices.is_hermitian</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.is_hermitian_hardcoded.html">aspcol.matrices.is_hermitian_hardcoded</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.is_pos_def.html">aspcol.matrices.is_pos_def</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.is_pos_semidef.html">aspcol.matrices.is_pos_semidef</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.matrices.to_length.html">aspcol.matrices.to_length</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.montecarlo.html">aspcol.montecarlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.pseq.html">aspcol.pseq</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="aspcol.matrices.html">aspcol.matrices</a></li>
+      <li class="breadcrumb-item active">aspcol.matrices.apply_blockwise</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.matrices.apply_blockwise.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="aspcol-matrices-apply-blockwise">
+<h1>aspcol.matrices.apply_blockwise<a class="headerlink" href="#aspcol-matrices-apply-blockwise" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="aspcol.matrices.apply_blockwise">
+<span class="sig-prename descclassname"><span class="pre">aspcol.matrices.</span></span><span class="sig-name descname"><span class="pre">apply_blockwise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_blocks=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separate_axis=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aspcol.matrices.apply_blockwise" title="Link to this definition"></a></dt>
+<dd><p>Applies the same function to each block in the block matrix mat.
+Assumes that the matrix mat is square, and each block is square.</p>
+<p>Either num_blocks or block_size must be supplied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mat</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>a</em><em>, </em><em>a</em><em>)</em>)</p></li>
+<li><p><strong>func</strong> (<em>function</em>) – function to be applied to each block, should return a matrix of shape out_shape</p></li>
+<li><p><strong>out_shape</strong> (<em>tuple</em><em> of </em><em>ints</em><em> or </em><em>'same'</em>) – if ‘same’, the output will be the same size as the input blocks</p></li>
+<li><p><strong>num_blocks</strong> (<em>int</em><em>, </em><em>optional</em>) – number of blocks in each dimension</p></li>
+<li><p><strong>block_size</strong> (<em>int</em><em>, </em><em>optional</em>) – size of each block</p></li>
+<li><p><strong>separate_axis</strong> (<em>bool</em><em>, </em><em>optional</em>) – <dl class="simple">
+<dt>if True, out_shape can be a scalar value or a tuple of any length</dt><dd><p>the output will be of shape (*out_shape, num_blocks, num_blocks)</p>
+</dd>
+<dt>if False, out_shape must be length-2 tuple</dt><dd><p>the output will be of shape (num_blocks*out_shape[0], num_blocks*out_shape[1])</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>dtype</strong> (<em>type</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – passed to func</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – or ndarray of shape (*out_shape, num_blocks, num_blocks)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (num_blocks*out_shape[0], num_blocks*out_shape[1])</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.matrices.html" class="btn btn-neutral float-left" title="aspcol.matrices" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.matrices.block_diag.html" class="btn btn-neutral float-right" title="aspcol.matrices.block_diag" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

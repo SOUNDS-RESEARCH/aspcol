@@ -1,0 +1,6 @@
+aspcol.correlation.get\_filter\_for\_autocorrelation
+====================================================
+
+.. currentmodule:: aspcol.correlation
+
+.. autofunction:: get_filter_for_autocorrelation

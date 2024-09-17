@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.reconstruct\_inf\_dimensional\_shd\_dynamic
+=======================================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: reconstruct_inf_dimensional_shd_dynamic

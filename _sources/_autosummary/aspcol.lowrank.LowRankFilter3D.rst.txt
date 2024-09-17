@@ -1,0 +1,27 @@
+aspcol.lowrank.LowRankFilter3D
+==============================
+
+.. currentmodule:: aspcol.lowrank
+
+.. autoclass:: LowRankFilter3D
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~LowRankFilter3D.__init__
+      ~LowRankFilter3D.process
+      ~LowRankFilter3D.process_nosum
+   
+   
+
+   
+   
+   

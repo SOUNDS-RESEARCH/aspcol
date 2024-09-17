@@ -1,0 +1,28 @@
+aspcol.adaptivefilter.AdaptiveFilterFreq
+========================================
+
+.. currentmodule:: aspcol.adaptivefilter
+
+.. autoclass:: AdaptiveFilterFreq
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~AdaptiveFilterFreq.__init__
+      ~AdaptiveFilterFreq.process
+      ~AdaptiveFilterFreq.process_nosum
+      ~AdaptiveFilterFreq.update
+   
+   
+
+   
+   
+   

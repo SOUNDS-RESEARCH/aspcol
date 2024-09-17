@@ -1,0 +1,41 @@
+﻿aspcol.lowrank
+==============
+
+.. automodule:: aspcol.lowrank
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      create_filter
+      decompose_ir
+      reconstruct_ir
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: new-class-template.rst
+   
+      LowRankFilter2D
+      LowRankFilter3D
+   
+   
+
+   
+   
+   
+
+
+

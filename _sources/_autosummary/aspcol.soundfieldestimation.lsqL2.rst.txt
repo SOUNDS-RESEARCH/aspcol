@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.lsqL2
+=================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: lsqL2

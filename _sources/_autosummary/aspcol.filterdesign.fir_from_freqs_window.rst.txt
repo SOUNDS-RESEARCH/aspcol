@@ -1,0 +1,6 @@
+aspcol.filterdesign.fir\_from\_freqs\_window
+============================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: fir_from_freqs_window

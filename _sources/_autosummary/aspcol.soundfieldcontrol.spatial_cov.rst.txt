@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.spatial\_cov
+=====================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: spatial_cov

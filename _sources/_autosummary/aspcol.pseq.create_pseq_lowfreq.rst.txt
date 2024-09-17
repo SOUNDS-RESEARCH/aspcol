@@ -1,0 +1,6 @@
+aspcol.pseq.create\_pseq\_lowfreq
+=================================
+
+.. currentmodule:: aspcol.pseq
+
+.. autofunction:: create_pseq_lowfreq

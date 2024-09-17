@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.posterior\_covariance\_omni
+=====================================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: posterior_covariance_omni

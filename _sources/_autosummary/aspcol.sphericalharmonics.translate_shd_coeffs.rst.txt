@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.translate\_shd\_coeffs
+================================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: translate_shd_coeffs

@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.vast
+=============================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: vast

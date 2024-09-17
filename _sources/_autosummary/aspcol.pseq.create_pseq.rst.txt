@@ -1,0 +1,6 @@
+aspcol.pseq.create\_pseq
+========================
+
+.. currentmodule:: aspcol.pseq
+
+.. autofunction:: create_pseq

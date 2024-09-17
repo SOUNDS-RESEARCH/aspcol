@@ -1,0 +1,42 @@
+﻿aspcol.filterclasses
+====================
+
+.. automodule:: aspcol.filterclasses
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      get_window_wola
+      wola_analysis
+      wola_synthesis
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: new-class-template.rst
+   
+      IIRFilter
+      MovingAverage
+      WOLA
+   
+   
+
+   
+   
+   
+
+
+

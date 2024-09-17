@@ -1,0 +1,6 @@
+aspcol.matrices.ensure\_pos\_def\_adhoc
+=======================================
+
+.. currentmodule:: aspcol.matrices
+
+.. autofunction:: ensure_pos_def_adhoc

@@ -1,0 +1,6 @@
+aspcol.montecarlo.uniform\_random\_on\_circle
+=============================================
+
+.. currentmodule:: aspcol.montecarlo
+
+.. autofunction:: uniform_random_on_circle

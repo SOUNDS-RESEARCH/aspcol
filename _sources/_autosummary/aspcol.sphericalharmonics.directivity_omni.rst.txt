@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.directivity\_omni
+===========================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: directivity_omni

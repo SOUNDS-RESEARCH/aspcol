@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.normalize\_system
+==========================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: normalize_system

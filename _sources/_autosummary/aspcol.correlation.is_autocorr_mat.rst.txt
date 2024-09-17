@@ -1,0 +1,6 @@
+aspcol.correlation.is\_autocorr\_mat
+====================================
+
+.. currentmodule:: aspcol.correlation
+
+.. autofunction:: is_autocorr_mat

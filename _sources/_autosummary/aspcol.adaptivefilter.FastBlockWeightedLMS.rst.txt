@@ -1,0 +1,31 @@
+aspcol.adaptivefilter.FastBlockWeightedLMS
+==========================================
+
+.. currentmodule:: aspcol.adaptivefilter
+
+.. autoclass:: FastBlockWeightedLMS
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~FastBlockWeightedLMS.__init__
+      ~FastBlockWeightedLMS.channel_independent_normalization
+      ~FastBlockWeightedLMS.freq_independent_normalization
+      ~FastBlockWeightedLMS.process
+      ~FastBlockWeightedLMS.process_nosum
+      ~FastBlockWeightedLMS.scalar_normalization
+      ~FastBlockWeightedLMS.update
+   
+   
+
+   
+   
+   

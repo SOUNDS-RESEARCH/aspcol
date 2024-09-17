@@ -1,0 +1,6 @@
+aspcol.filterclasses.wola\_analysis
+===================================
+
+.. currentmodule:: aspcol.filterclasses
+
+.. autofunction:: wola_analysis

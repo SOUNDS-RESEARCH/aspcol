@@ -1,0 +1,6 @@
+aspcol.filterdesign.filterbank\_third\_octave
+=============================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: filterbank_third_octave

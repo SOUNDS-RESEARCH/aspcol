@@ -1,0 +1,6 @@
+aspcol.matrices.ensure\_pos\_semidef
+====================================
+
+.. currentmodule:: aspcol.matrices
+
+.. autofunction:: ensure_pos_semidef

@@ -1,0 +1,6 @@
+aspcol.filterdesign.differential\_cardioid\_microphone
+======================================================
+
+.. currentmodule:: aspcol.filterdesign
+
+.. autofunction:: differential_cardioid_microphone

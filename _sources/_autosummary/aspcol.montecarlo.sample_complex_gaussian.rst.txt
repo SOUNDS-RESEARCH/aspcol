@@ -1,0 +1,6 @@
+aspcol.montecarlo.sample\_complex\_gaussian
+===========================================
+
+.. currentmodule:: aspcol.montecarlo
+
+.. autofunction:: sample_complex_gaussian

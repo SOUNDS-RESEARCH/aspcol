@@ -1,0 +1,27 @@
+aspcol.correlation.SampleCorrelation
+====================================
+
+.. currentmodule:: aspcol.correlation
+
+.. autoclass:: SampleCorrelation
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~SampleCorrelation.__init__
+      ~SampleCorrelation.get_corr
+      ~SampleCorrelation.update
+   
+   
+
+   
+   
+   

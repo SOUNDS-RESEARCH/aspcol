@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.inf\_dimensional\_shd\_omni\_prior
+============================================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: inf_dimensional_shd_omni_prior
