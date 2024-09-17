@@ -6,6 +6,35 @@ References
 import numpy as np
 
 
+def integrate(
+    func, point_generator, tot_num_samples, total_volume, samples_per_iter=50, verbose=False, *args
+):
+    """pointGenerator should return np array, [numPoints, numSpatialDimensions]
+    func should return np array [funcDims, numPoints],
+    where funcDims can be any number of dimensions (in a multidimensional array sense)"""
+    if verbose:
+        print("Starting MC Integration")
+    num_blocks = int(np.ceil(tot_num_samples / samples_per_iter))
+    out_dims = np.squeeze(func(point_generator(1), *args), axis=-1).shape
+    integral_val = np.zeros(out_dims)
+
+    for i in range(num_blocks):
+        points = point_generator(samples_per_iter)
+        f_vals = func(points, *args)
+
+        new_int_val = (integral_val * i + np.mean(f_vals, axis=-1)) / (i + 1)
+        
+        if verbose:
+            print("Block ", i)
+            diagnostics(new_int_val, integral_val, i)
+
+        integral_val = new_int_val
+    integral_val *= total_volume
+
+    if verbose:
+        print("Finished monte carlo integration")
+    return integral_val
+
 
 def integrate_parallell(
     func, point_generator, tot_num_samples, total_volume, num_per_iter=5, verbose=False
@@ -34,49 +63,6 @@ def integrate_parallell(
 
     integral = np.mean(np.stack(integral, axis=-1), axis=-1)
     return integral
-
-def integrate_fast(
-    func, point_generator, tot_num_samples, total_volume, *args, num_per_iter=50,
-):
-    """identical to integrate, but is meant to be simpler."""
-    num_blocks = int(np.ceil(tot_num_samples / num_per_iter))
-    test_val = func(point_generator(1), *args)
-    out_dims = np.squeeze(test_val, axis=-1).shape
-    integral_val = np.zeros(out_dims, dtype=test_val.dtype)
-
-    for i in range(num_blocks):
-        f_vals = func(point_generator(num_per_iter), *args)
-        integral_val = (integral_val * i + np.mean(f_vals, axis=-1)) / (i + 1)
-    integral_val *= total_volume
-    return integral_val
-
-
-
-def integrate(
-    func, point_generator, tot_num_samples, total_volume, num_per_iter=50, verbose=False, *args
-):
-    """pointGenerator should return np array, [numPoints, numSpatialDimensions]
-    func should return np array [funcDims, numPoints],
-    where funcDims can be any number of dimensions (in a multidimensional array sense)"""
-    print("Starting MC Integration")
-    samples_per_iter = num_per_iter
-    num_blocks = int(np.ceil(tot_num_samples / samples_per_iter))
-    out_dims = np.squeeze(func(point_generator(1), *args), axis=-1).shape
-    integral_val = np.zeros(out_dims)
-
-    for i in range(num_blocks):
-        points = point_generator(samples_per_iter)
-        f_vals = func(points, *args)
-
-        new_int_val = (integral_val * i + np.mean(f_vals, axis=-1)) / (i + 1)
-        print("Block ", i)
-        if verbose:
-            diagnostics(new_int_val, integral_val, i)
-
-        integral_val = new_int_val
-    integral_val *= total_volume
-    print("Finished!!")
-    return integral_val
 
 
 def diagnostics(new_val, old_val, block_idx):

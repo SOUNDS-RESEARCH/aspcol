@@ -1,10 +1,12 @@
 """Functions for handling the spherical harmonic wave function and estimating the sound field coefficients
 
-All math and translation theorems are taken from [martinScattering2006] unless otherwise stated.
+All math and translation theorems are taken from [martinMultiple2006] unless otherwise stated.
 
 References
 ----------
-[martinScattering2006] P. A. Martin, Multiple scattering: Interaction of time-harmonic waves with N obstacles, vol. 107. in Encyclopedia of mathematics and its applications, vol. 107. Cambridge, UK: Cambridge University Press, 2006.
+[martinMultiple2006] P. A. Martin, Multiple scattering: Interaction of time-harmonic waves with N obstacles, vol. 107. in Encyclopedia of mathematics and its applications, vol. 107. Cambridge, UK: Cambridge University Press, 2006. \n
+[brunnstromBayesianSubmitted] J. Brunnström, M. B. Møller, and M. Moonen, “Bayesian sound field estimation using moving microphones,” IEEE Open Journal of Signal Processing, submitted. \n
+[uenoSound2018] N. Ueno, S. Koyama, and H. Saruwatari, “Sound field recording using distributed microphones based on harmonic analysis of infinite order,” IEEE Signal Process. Lett., vol. 25, no. 1, pp. 135–139, Jan. 2018, doi: 10.1109/LSP.2017.2775242. \n
 
 
 Equivalence of spherical harmonic definitions
@@ -18,25 +20,21 @@ The definition used in Martin is (30), the Rodrigues formula.
 The two definitions are equivalent, therefore the Legendre polynomial is consistent. 
 https://mathworld.wolfram.com/LegendrePolynomial.html
 
-Martins definition of the Associated Legendre Polynomial $P_n^m(t)$, found in (A.1) in [martinScattering2006]
+Martins definition of the Associated Legendre Polynomial $P_n^m(t)$, found in (A.1) in [martinMultiple2006]
 is $P_n^m(t) = (1-t^2)^{m/2} \\frac{d^m}{dt^m} P_n(t)$. Scipy has almost the same definition, $S_n^m(t) = (-1)^m P_n^m(t)$,
 where S_n^m(t) denotes the Scipy definition. Therefore they are equivalent except for that Scipy includes
 the Condon-Shortley phase in the ALP. 
 
-The definition of the spherical harmonics in (3.6) in [martinScattering2006] is equivalent to Scipy's definition,
+The definition of the spherical harmonics in (3.6) in [martinMultiple2006] is equivalent to Scipy's definition,
 except for the inclusion of an additional factor (-1)^m, i.e. the Condon-Shortley phase. Because the 
 same factor is included in Scipy's ALP but not Martin ALP, the spherical harmonic definitions are equivalent. 
 """
 import numpy as np
 import itertools as it
-import scipy.linalg as splin
 import scipy.special as special
-import scipy.spatial.distance as distance
 
 import aspcol.kernelinterpolation as ki
 import aspcol.utilities as utils
-import aspcol.filterdesign as fd
-import aspcol.fouriertransform as ft
 
 import wigners
 
@@ -181,10 +179,8 @@ def shd_basis(pos, order, degree, wavenum):
     Notes
     -----
     See more detailed derivations in any of:
-    [1] Natsuki Ueno, Shoichi Koyama, Hiroshi Saruwatai, 'Sound Field Recording Using 
-    Distributed Microphones Based on Harmonic Analysis of Infinite Order'
-    [2] J. Brunnström, M.B. Moeller, M. Moonen, 'Bayesian sound field estimation using
-    moving microphones'
+    [brunnstromBayesianSubmitted] J. Brunnström, M. B. Møller, and M. Moonen, “Bayesian sound field estimation using moving microphones,” IEEE Open Journal of Signal Processing, submitted.
+    [uenoSound2018] N. Ueno, S. Koyama, and H. Saruwatari, “Sound field recording using distributed microphones based on harmonic analysis of infinite order,” IEEE Signal Process. Lett., vol. 25, no. 1, pp. 135–139, Jan. 2018, doi: 10.1109/LSP.2017.2775242.
     """
     #Parse arguments to get correct shapes
     radius, angles = utils.cart2spherical(pos)
@@ -303,10 +299,8 @@ def translation_operator(pos, wave_num, max_order_input, max_order_output):
     """Translation operator for harmonic coefficients, such that 
     shd_coeffs(pos_orig + pos) = T(pos) @ shd_coeffs(pos_orig)
 
-    Defined according to T = hat{S}^T, where hat{S} is the basis translation matrix defined in
-    P. Martin, Multiple scattering: Interaction of time-harmonic waves with N obstacles.
-    This definition is consistent with the definition (6) in Ueno et al., Sound Field Recording Using
-    Distributed Microphones Based on Harmonic Analysis of Infinite Order. 
+    Defined according to $T = \\hat{S}^T $, where $\\hat{S}$ is the basis translation matrix defined in [martinMultiple2006].
+    This definition is consistent with the definition (6) in [uenoSound2018]. 
     
     Parameters
     ----------
@@ -324,6 +318,11 @@ def translation_operator(pos, wave_num, max_order_input, max_order_output):
     -------
     T : ndarray of shape (num_freqs, num_pos, num_coeffs_output, num_coeffs_input)
         translation operator, such that shd_coeffs(pos_orig + pos) = T(pos) @ shd_coeffs(pos_orig)
+
+    References
+    ----------
+    [martinMultiple2006] P. A. Martin, Multiple scattering: Interaction of time-harmonic waves with N obstacles, vol. 107. in Encyclopedia of mathematics and its applications, vol. 107. Cambridge, UK: Cambridge University Press, 2006.
+    [uenoSound2018] N. Ueno, S. Koyama, and H. Saruwatari, “Sound field recording using distributed microphones based on harmonic analysis of infinite order,” IEEE Signal Process. Lett., vol. 25, no. 1, pp. 135–139, Jan. 2018, doi: 10.1109/LSP.2017.2775242.
     """
 
     S = basis_translation_3_80(pos, wave_num, max_order_output, max_order_input)
@@ -419,57 +418,6 @@ def _calculate_gaunt_set(max_order_input, max_order_output):
                     gaunt[out_idx, in_idx, q] = g
     return gaunt
 
-# def basis_translation_3_80(pos, wave_num, max_order_input, max_order_output):
-#     """Translation operator for shd basis function, such that 
-#     shd_basis(pos_orig + pos) = T(pos) @ shd_basis(pos_orig)x
-
-#     Implemented according to equation 3.80 in 
-#     P. Martin, Multiple scattering: Interaction of time-harmonic waves with N obstacles.
-    
-#     Parameters
-#     ----------
-#     pos : ndarray of shape (num_pos, 3)
-#         position argument to the translation operator
-#     wave_num : ndarray of shape (num_freq,)
-#         wavenumber, defined as w / c where w is the angular frequency
-#         and c is the speed of sound.
-#     max_order_input : int
-#         maximum order of the coefficients that should be translated
-#     max_order_output : int
-#         maximum order of the translated coefficients
-
-#     Returns
-#     -------
-#     T : ndarray of shape (num_freqs, num_pos, num_coeffs_output, num_coeffs_input)
-#         translation operator, such that shd_basis(pos_orig + pos) = T(pos) @ shd_basis(pos_orig)
-#     """
-#     num_coeffs_input = shd_num_coeffs(max_order_input)
-#     num_coeffs_output = shd_num_coeffs(max_order_output)
-#     num_pos = pos.shape[0]
-#     num_freq = wave_num.shape[0]
-
-#     tr_op = np.zeros((num_freq, num_pos, num_coeffs_output, num_coeffs_input), dtype=complex)
-
-#     orders_input, degrees_input = shd_num_degrees_vector(max_order_input)
-#     orders_output, degrees_output = shd_num_degrees_vector(max_order_output)
-#     for out_idx, (n, m) in enumerate(zip(orders_output, degrees_output)):
-#         for in_idx, (nu, mu) in enumerate(zip(orders_input, degrees_input)):
-#             sum_val = 0
-#             for q in range(n+nu+1):
-#                 if np.abs(mu-m) <= q:
-#                     basis_val = np.squeeze(shd_basis(pos, np.array([q]), np.array([mu-m]), wave_num), axis=1)
-#                     g = gaunt_coefficient(n, m, nu, -mu, q)
-#                     sum_val += (1j)**q * (-1.0)**(m) * np.conj(basis_val) * g
-
-#             sum_val *= np.sqrt(4*np.pi) * (1j)**(nu-n)
-#             tr_op[..., out_idx, in_idx] = sum_val
-
-#     for p in range(num_pos):
-#         if np.sum(np.abs(pos[p,:])) == 0:
-#             tr_op[:, p, :, :] = np.eye(num_coeffs_output, num_coeffs_input)[None,:,:]
-#     return tr_op
-
-
 
 def basis_translation_3_92(pos, wave_num, max_order_input, max_order_output):
     """Translation operator for harmonic basis functions, such that 
@@ -549,9 +497,7 @@ def _linearity_formula_lower_limit(l1, l2, m1, m2):
 def gaunt_coefficient(l1, m1, l2, m2, l3):
     """Gaunt coefficient G(l1, m1, l2, m2, l3)
     
-    As defined by P. A. Martin, 2006, 'Multiple scattering: 
-    Interaction of time-harmonic waves with N obstacles'. 
-    Defined on page 83, equation (3.71). Argument order is the same as in the reference
+    Defined on page 83, equation (3.71) in [martinMultiple2006]. Argument order is the same as in the reference
     
     Parameters
     ----------
@@ -565,6 +511,15 @@ def gaunt_coefficient(l1, m1, l2, m2, l3):
         Spherical harmonic degree
     l3 : int
         Spherical harmonic order
+
+    Returns
+    -------
+    G : float
+        Gaunt coefficient for the given arguments
+
+    References
+    ----------
+    [martinMultiple2006] P. A. Martin, Multiple scattering: Interaction of time-harmonic waves with N obstacles, vol. 107. in Encyclopedia of mathematics and its applications, vol. 107. Cambridge, UK: Cambridge University Press, 2006.
     
     Notes
     -----
@@ -587,8 +542,8 @@ def gaunt_coefficient(l1, m1, l2, m2, l3):
 def triple_harmonic_integral(l1, l2, l3, m1, m2, m3):
     """Integral of the product of three spherical harmonics
 
-    Defined as int_{\omega} Y_{l1,m1}(\omega) Y_{l2,m2}(\omega) Y_{l3,m3}(\omega) d\omega
-    where \omega is the angle. It is sometimes (in Sympy for example) called gaunt coefficient.
+    Defined as $\\int_{\\omega} Y_{l1,m1}(\\omega) Y_{l2,m2}(\\omega) Y_{l3,m3}(\\omega) d\\omega$
+    where $\\omega$ is the angle. It is sometimes (in Sympy for example) called gaunt coefficient.
     
     Parameters
     ----------
@@ -596,6 +551,11 @@ def triple_harmonic_integral(l1, l2, l3, m1, m2, m3):
         Spherical harmonic orders
     m1, m2, m3 : int
         Spherical harmonic degrees
+
+    Returns
+    -------
+    integral_value : float
+        the value of the triple harmonic integral
     
     """
     f1 = np.sqrt((2*l1+1)*(2*l2+1)*(2*l3+1)/(4*np.pi))
@@ -649,9 +609,14 @@ def directivity_omni(max_order = 0):
     dir_coeffs : ndarray of shape (1, num_coeffs)
         coefficients of the directivity function
 
+    References
+    ----------
+    [uenoSound2018] N. Ueno, S. Koyama, and H. Saruwatari, “Sound field recording using distributed microphones based on harmonic analysis of infinite order,” IEEE Signal Process. Lett., vol. 25, no. 1, pp. 135–139, Jan. 2018, doi: 10.1109/LSP.2017.2775242.
+    [brunnstromBayesianSubmitted] J. Brunnström, M. B. Møller, and M. Moonen, “Bayesian sound field estimation using moving microphones,” IEEE Open Journal of Signal Processing, submitted.
+
     Notes
     -----
-    The directivity coefficients are defined in more detail in the supplementary notes of [uenoSound2018] and in [brunnstromBayesian2024]
+    The directivity coefficients are defined in more detail in the supplementary notes of [uenoSound2018] and in [brunnstromBayesianSubmitted]
     """
     if max_order == 0:
         return np.ones((1,1), complex)
@@ -688,9 +653,14 @@ def directivity_linear(A, d_mic, max_order = 1):
     dir_coeffs : ndarray of shape (num_mic, num_coeffs)
         coefficients of the directivity function
 
+    References
+    ----------
+    [uenoSound2018] N. Ueno, S. Koyama, and H. Saruwatari, “Sound field recording using distributed microphones based on harmonic analysis of infinite order,” IEEE Signal Process. Lett., vol. 25, no. 1, pp. 135–139, Jan. 2018, doi: 10.1109/LSP.2017.2775242.
+    [brunnstromBayesianSubmitted] J. Brunnström, M. B. Møller, and M. Moonen, “Bayesian sound field estimation using moving microphones,” IEEE Open Journal of Signal Processing, submitted.
+
     Notes
     -----
-    The directivity coefficients are defined in more detail in the supplementary notes of [uenoSound2018] and in [brunnstromBayesian2024]
+    The directivity coefficients are defined in more detail in the supplementary notes of [uenoSound2018] and in [brunnstromBayesianSubmitted]
     """
     num_mic = d_mic.shape[0]
     assert d_mic.shape == (num_mic, 3)
@@ -703,15 +673,10 @@ def directivity_linear(A, d_mic, max_order = 1):
     order, degree = shd_num_degrees_vector(max_order) 
 
     dir_coeffs[:, order == 0] = 1 - A
-    
-    #harm = special.sph_harm(np.array([-1,0,1]), 1, angles[...,0], angles[...,1])
     degrees_to_set = degree[order == 1]
     harm = special.sph_harm(degrees_to_set[None,:], 1, angles[...,0:1], angles[...,1:2])
 
     dir_coeffs[:, order == 1] = (-1j * A / 3) * np.sqrt(4*np.pi) * harm.conj()
-    #dir_coeffs[0,1:4] = (1j * A / 3) * np.sqrt(4*np.pi) * np.conj(harm)
-    #dir_coeffs[0,1] *= -1
-    #dir_coeffs[0,3] *= -1
     return dir_coeffs
 
 
@@ -920,9 +885,9 @@ def apply_measurement_conj(vec, pos, exp_center, max_order, wave_num, dir_coeffs
     return np.sum(dir_translated * vec[:,:,None], axis=1)
 
 def translated_inner_product(pos1, pos2, dir_coeffs1, dir_coeffs2, wave_num):
-    """
+    """Computes the inner product of translated sequences of coefficients
     
-    <T(r_1 - r_2, omega_m) gamma_2(omega_m), gamma_1(omega_m)>
+    $\\langle T(r_1 - r_2, \\omega_m) \\gamma_2(\\omega_m), \\gamma_1(\\omega_m) \\rangle$
     
     Parameters
     ----------
@@ -962,14 +927,10 @@ def translated_inner_product(pos1, pos2, dir_coeffs1, dir_coeffs2, wave_num):
     assert dir_coeffs2.shape[0] == num_freqs or dir_coeffs2.shape[0] == 1
 
     max_order1 = shd_max_order(dir_coeffs1.shape[-1])
-    #max_order2 = shd_max_order(dir_coeffs2.shape[-1])
 
     pos_diff = pos1[:,None,:] - pos2[None,:,:]
-    #pos_diff = pos_diff.reshape(-1, 3)
 
     translated_coeffs2 = np.stack([translate_shd_coeffs(dir_coeffs2, pos_diff[m,:,:], wave_num, max_order1) for m in range(num_pos1)], axis=1)
-    #translated_coeffs2 = translated_coeffs2.reshape(num_freqs, num_pos1, num_pos2, -1)
-
     inner_product_matrix = np.sum(translated_coeffs2 * dir_coeffs1.conj()[:,:,None,:], axis=-1)
     return inner_product_matrix
 
@@ -1062,13 +1023,6 @@ def inf_dimensional_shd_omni(p, pos, exp_center, max_order, wave_num, reg_param)
     psi = ki.kernel_helmholtz_3d(pos, pos, wave_num)
     psi_plus_noise_cov = psi + noise_cov
     regression_vec = np.linalg.solve(psi_plus_noise_cov,  p)
-
-
-    # regression_vec = []
-    # for i in range(psi.shape[0]):
-    #     res, _, _, _ = np.linalg.lstsq(psi_plus_noise_cov[i,...],  p[i,...], rcond = 1e-10)
-    #     regression_vec.append(res)
-    # regression_vec = np.stack(regression_vec, axis=0)
 
     shd_coeffs = apply_measurement_conj_omni(regression_vec, pos, exp_center, max_order, wave_num)
     return shd_coeffs
@@ -1310,23 +1264,11 @@ def posterior_covariance_omni(pos, exp_center, max_order, wave_num, prior_covari
         prior_covariance = np.ones(num_freq) * prior_covariance
     if prior_covariance.ndim == 1:
         return _posterior_covariance_omni_scalar_covariance(pos, exp_center, max_order, wave_num, prior_covariance, noise_power)
-    #assert prior_covariance.ndim == 3
     assert prior_covariance.shape == (num_freq, num_coeffs, num_coeffs)
 
     measure = measurement_omni(pos, exp_center, max_order, wave_num)
     measure_conj = measurement_conj_omni(pos, exp_center, max_order, wave_num)
 
-    # Prior covariance
-    # if prior_covariance.ndim == 1:
-    #     assert prior_covariance.shape[0] == num_freq
-    #     assert np.all(prior_covariance >= 0)
-    #     psi = ki.kernel_helmholtz_3d(pos, pos, wave_num) * prior_covariance[:,None,None]
-    # elif prior_covariance.ndim == 3:
-    #     assert prior_covariance.shape == (num_freq, num_coeffs, num_coeffs)
-    #     psi = measure @ prior_covariance @ measure_conj
-    # else:
-    #     raise ValueError("Invalid shape of prior covariance")
-    
     # Noise covariance
     if isinstance(noise_power, (int, float)):
         assert noise_power >= 0
@@ -1337,7 +1279,6 @@ def posterior_covariance_omni(pos, exp_center, max_order, wave_num, prior_covari
         assert np.all(noise_power >= 0)
         noise_cov = np.eye(num_mic)[None,...] * noise_power[:,None,None]
 
-    #noise_cov = np.eye(num_mic) * noise_power 
     psi = measure @ prior_covariance @ measure_conj
     psi_plus_noise_cov = psi + noise_cov
 
@@ -1346,102 +1287,3 @@ def posterior_covariance_omni(pos, exp_center, max_order, wave_num, prior_covari
     main_mat = cov_times_measure_conj @ np.linalg.solve(psi_plus_noise_cov, measure_times_cov)
 
     return prior_covariance - main_mat
-
-
-
-
-def inf_dimensional_shd_dynamic_omni(p, pos, pos_eval, sequence, samplerate, c, reg_param, verbose=False):
-    """
-    Estimates the RIR at evaluation positions using data from a moving microphone
-    using Bayesian inference of an infinite sequence of spherical harmonics
-
-    Implements the method in J. Brunnström, M.B. Moeller, M. Moonen, 
-    "Bayesian sound field estimation using moving microphones" 
-
-    Assumptions:
-    The microphones are omnidirectional
-    The noise covariance is a scaled identity matrix
-    The data is measured over an integer number of periods of the sequence
-    N = seq_len * M, where M is the number of periods that was measured
-    The length of sequence is the length of the estimated RIR
-
-    Parameters
-    ----------
-    p : ndarray of shape (N)
-        sound pressure for each sample of the moving microphone
-    pos : ndarray of shape (N, 3)
-        position of the trajectory for each sample
-    pos_eval : ndarray of shape (num_eval, 3)
-        positions of the evaluation points
-    sequence : ndarray of shape (seq_len) or (1, seq_len)
-        the training signal used for the measurements
-    samplerate : int
-    c : float
-        speed of sound
-    reg_param : float
-        regularization parameter
-    verbose : bool, optional
-        if True, returns diagnostics, by default False
-
-    Returns
-    -------
-    shd_coeffs : ndarray of shape (num_real_freqs, num_eval)
-        time-domain harmonic coefficients of the estimated sound field
-    """
-    # ======= Argument parsing =======
-    if p.ndim >= 2:
-        p = np.squeeze(p)
-
-    if sequence.ndim == 2:
-        sequence = np.squeeze(sequence, axis=0)
-    assert sequence.ndim == 1
-
-    N = p.shape[0]
-    seq_len = sequence.shape[0]
-    num_periods = N // seq_len
-    assert N % seq_len == 0
-
-    k = ft.get_wavenum(seq_len, samplerate, c)
-    num_real_freqs = len(ft.get_real_freqs(seq_len, samplerate))
-
-    # ======= Estimation of spherical harmonic coefficients =======
-    Phi = _sequence_stft_multiperiod(sequence, num_periods)
-
-    #division by pi is a correction for the sinc function used later
-    dist_mat = np.sqrt(np.sum((np.expand_dims(pos,1) - np.expand_dims(pos,0))**2, axis=-1))  / np.pi 
-    
-    psi = np.zeros((N, N), dtype = float)
-
-    # no conjugation required for zeroth frequency and the Nyquist frequency, 
-    # since they will be real already for a real input sequence
-    psi += np.sinc(dist_mat * k[0]) * np.real_if_close(Phi[0,:,None] * Phi[0,None,:])
-    assert seq_len % 2 == 0 #following line is only correct if B is even
-    psi += np.sinc(dist_mat * k[seq_len//2]) * np.real_if_close(Phi[seq_len//2,:,None] * Phi[seq_len//2,None,:])
-
-    for f in range(1, num_real_freqs-1):
-        phi_rank1_matrix = Phi[f,:,None] * Phi[f,None,:].conj()
-        psi += 2*np.real(np.sinc(dist_mat * k[f]) * phi_rank1_matrix)
-
-    noise_cov = reg_param * np.eye(N)
-    right_side = splin.solve(psi + noise_cov, p, assume_a = "pos")
-
-    right_side = Phi.conj() * right_side[None,:]
-
-    # ======= Reconstruction of RIR =======
-    est_sound_pressure = np.zeros((num_real_freqs, pos_eval.shape[0]), dtype=complex)
-    for f in range(num_real_freqs):
-        kernel_val = ki.kernel_helmholtz_3d(pos_eval, pos, k[f:f+1]).astype(complex)[0,:,:]
-        est_sound_pressure[f, :] = np.sum(kernel_val * right_side[f,None,:], axis=-1)
-
-    if verbose:
-        diagnostics = {}
-        diagnostics["regularization parameter"] = reg_param
-        diagnostics["condition number"] = np.linalg.cond(psi).tolist()
-        diagnostics["smallest eigenvalue"] = splin.eigh(psi, subset_by_index=(0,0), eigvals_only=True).tolist()
-        diagnostics["largest eigenvalue"] = splin.eigh(psi, subset_by_index=(N-1, N-1), eigvals_only=True).tolist()
-        return est_sound_pressure, diagnostics
-    else:
-        return est_sound_pressure
-    
-
-
