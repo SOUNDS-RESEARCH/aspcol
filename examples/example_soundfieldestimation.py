@@ -6,7 +6,6 @@ from aspsim.simulator import SimulatorSetup
 import aspsim.room.region as reg
 
 import aspcol.kernelinterpolation as ki
-import aspcol.filterdesign as fd
 import aspcol.fouriertransform as ft
 import aspcol.soundfieldestimation as sfe
 

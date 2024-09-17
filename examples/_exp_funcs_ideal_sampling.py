@@ -16,7 +16,7 @@ import aspcol.utilities as utils
 import aspcol.filterdesign as fd
 import aspcol.fouriertransform as ft
 
-import dynamicsfutilities as dsu
+import _dynamicsfutilities as dsu
 
 
 def normalize_vector(v):
