@@ -4,7 +4,7 @@ These are all constructed for an abritrary number of input and output channels. 
 
 References
 ----------
-[dinizAdaptive2020] P. S. R. Diniz, Adaptive filtering: algorithms and practical implementation. Cham: Springer International Publishing, 2020. doi: 10.1007/978-3-030-29057-3. `[link] <https://link.springer.com/book/10.1007/978-3-030-29057-3>`_
+[dinizAdaptive2020] P. S. R. Diniz, Adaptive filtering: algorithms and practical implementation. Cham: Springer International Publishing, 2020. doi: 10.1007/978-3-030-29057-3. `[link] <https://link.springer.com/book/10.1007/978-3-030-29057-3>`__
 """
 import numpy as np
 from abc import abstractmethod

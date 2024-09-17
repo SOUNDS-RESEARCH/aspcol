@@ -2,6 +2,10 @@
 
 Can be used to obtain FIR filters from frequency responses. Also contains
 helper functions associated with the discrete Fourier transform. 
+
+References
+----------
+[benestyStudy2013] J. Benesty and J. Chen, Study and design of differential microphone arrays, vol. 6. in Springer Topics in Signal Processing, vol. 6. Springer, 2013.
 """
 import numpy as np
 import scipy.signal as signal

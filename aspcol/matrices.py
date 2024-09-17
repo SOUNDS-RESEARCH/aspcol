@@ -1,6 +1,9 @@
 """Functions for common operations on matrices.
 
 Some examples include constructing a block matrix, ensure positive definiteness, applying a function to individual blocks of a block matrix. 
+
+References
+----------
 """
 import numpy as np
 import scipy.signal as spsig

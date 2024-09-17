@@ -6,13 +6,13 @@
 References
 ----------
 [jalmbyLowrank2021] M. Jälmby, F. Elvander, and T. van Waterschoot, “Low-rank tensor modeling of room impulse responses,” 
-in 2021 29th European Signal Processing Conference (EUSIPCO), Aug. 2021, pp. 111–115. doi: 10.23919/EUSIPCO54536.2021.9616075. `[link] <https://doi.org/10.23919/EUSIPCO54536.2021.9616075>`_ \n
+in 2021 29th European Signal Processing Conference (EUSIPCO), Aug. 2021, pp. 111–115. doi: 10.23919/EUSIPCO54536.2021.9616075. `[link] <https://doi.org/10.23919/EUSIPCO54536.2021.9616075>`__ \n
 [paleologuLinear2018] C. Paleologu, J. Benesty, and S. Ciochină, “Linear system identification based on a Kronecker product decomposition,” 
-IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 26, no. 10, pp. 1793–1808, Oct. 2018, doi: 10.1109/TASLP.2018.2842146. `[link] <https://doi.org/10.1109/TASLP.2018.2842146>`_\n
+IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 26, no. 10, pp. 1793–1808, Oct. 2018, doi: 10.1109/TASLP.2018.2842146. `[link] <https://doi.org/10.1109/TASLP.2018.2842146>`__ \n
 [atkinsApproximate2013] J. Atkins, A. Strauss, and C. Zhang, “Approximate convolution using partitioned truncated singular value decomposition filtering,” 
-in 2013 IEEE International Conference on Acoustics, Speech and Signal Processing, May 2013, pp. 176–180. doi: 10.1109/ICASSP.2013.6637632. `[link] <https://doi.org/10.1109/ICASSP.2013.6637632>`_ \n
+in 2013 IEEE International Conference on Acoustics, Speech and Signal Processing, May 2013, pp. 176–180. doi: 10.1109/ICASSP.2013.6637632. `[link] <https://doi.org/10.1109/ICASSP.2013.6637632>`__ \n
 [jalmbyFast2023] M. Jälmby, F. Elvander, and T. van Waterschoot, “Fast low-latency convolution by low-rank tensor approximation,” 
-in ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Rhodes, Greece, Jun. 2023. `[link] <https://doi.org/10.1109/ICASSP49357.2023.10095908>`_ \n
+in ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Rhodes, Greece, Jun. 2023. `[link] <https://doi.org/10.1109/ICASSP49357.2023.10095908>`__ \n
 """
 import numpy as np
 import numba as nb

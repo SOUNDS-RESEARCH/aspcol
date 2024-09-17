@@ -1,3 +1,17 @@
+"""Module for working with plane waves and plane wave models.
+
+The plane wave is defined as $e^{-ik(r-r_c)^T d}$ where r is the position, d is the direction of the plane wave.
+and r_c is the expansion center (the point around which the directions are calculated). 
+
+Using the time-harmonic convention of $exp(-iwt)$, the plane wave is defined as $exp(ikr^T d)$ where d is the plane 
+wave propagation direction [martinMultiple2006]. Therefore the direction provided is the direction from which the plane wave is incoming.
+
+References
+----------
+[martinScattering2006] P. A. Martin, Multiple scattering: Interaction of time-harmonic waves with N obstacles, vol. 107. in Encyclopedia of mathematics and its applications, vol. 107. Cambridge, UK: Cambridge University Press, 2006.
+
+"""
+
 import numpy as np
 import scipy.special as special
 

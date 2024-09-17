@@ -1,12 +1,16 @@
-"""Functions for handling spherical harmonic wave function
+"""Functions for handling the spherical harmonic wave function and estimating the sound field coefficients
 
-Notes
------
+All math and translation theorems are taken from [martinScattering2006] unless otherwise stated.
+
+References
+----------
+[martinScattering2006] P. A. Martin, Multiple scattering: Interaction of time-harmonic waves with N obstacles, vol. 107. in Encyclopedia of mathematics and its applications, vol. 107. Cambridge, UK: Cambridge University Press, 2006.
+
+
+Equivalence of spherical harmonic definitions
+---------------------------------------------
 The scipy spherical harmonic implementation is 
 https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.sph_harm.html
-
-All math and translation theorems are taken from Martin - Multiple scattering: 
-Interaction of time-harmonic waves with N obstacles
 
 The Legendre polynomial (referred to as Legendre function of the first kind in Scipy documentation)
 definition given in Scipy is (37) after inserting the definition of the Hypergeometric function. 
@@ -14,13 +18,12 @@ The definition used in Martin is (30), the Rodrigues formula.
 The two definitions are equivalent, therefore the Legendre polynomial is consistent. 
 https://mathworld.wolfram.com/LegendrePolynomial.html
 
-Martins definition of the Associated Legendre Polynomial P_n^m(t), found in (A.1) in the book
-is P_n^m(t) = (1-t^2)^{m/2} \\frac{d^m}{dt^m} P_n(t)
-Scipy gives almost the same definition, S_n^m(t) = (-1)^m P_n^m(t)
+Martins definition of the Associated Legendre Polynomial $P_n^m(t)$, found in (A.1) in [martinScattering2006]
+is $P_n^m(t) = (1-t^2)^{m/2} \\frac{d^m}{dt^m} P_n(t)$. Scipy has almost the same definition, $S_n^m(t) = (-1)^m P_n^m(t)$,
 where S_n^m(t) denotes the Scipy definition. Therefore they are equivalent except for that Scipy includes
 the Condon-Shortley phase in the ALP. 
 
-The definition of the spherical harmonics in Martin, given in (3.6) is equivalent to Scipys definition
+The definition of the spherical harmonics in (3.6) in [martinScattering2006] is equivalent to Scipy's definition,
 except for the inclusion of an additional factor (-1)^m, i.e. the Condon-Shortley phase. Because the 
 same factor is included in Scipy's ALP but not Martin ALP, the spherical harmonic definitions are equivalent. 
 """

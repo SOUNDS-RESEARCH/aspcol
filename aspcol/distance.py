@@ -4,9 +4,9 @@ For all types of arrays, the mean square error can be computed. Vectors can be c
 
 References
 ----------
-[herdinCorrelation2005] M. Herdin, N. Czink, H. Ozcelik, and E. Bonek, 'Correlation matrix distance, a meaningful measure for evaluation of non-stationary MIMO channels,' in 2005 IEEE 61st Vehicular Technology Conference, May 2005, pp. 136-140 Vol. 1. doi: 10.1109/VETECS.2005.1543265. `[link] <https://doi.org/10.1109/VETECS.2005.1543265>`_ \n
-[forstnermetric2003] W. Förstner and B. Moonen, 'A metric for covariance matrices,' in Geodesy-The Challenge of the 3rd Millennium, E. W. Grafarend, F. W. Krumm, and V. S. Schwarze, Eds., Berlin, Heidelberg: Springer Berlin Heidelberg, 2003, pp. 299–309. doi: 10.1007/978-3-662-05296-9_31. `[link] <https://doi.org/10.1007/978-3-662-05296-9_31>`_ \n
-[duchiDerivations2016] J. Duchi, 'Derivations for Linear Algebra and Optimization, 2016. `[link] <https://web.stanford.edu/~jduchi/projects/general_notes.pdf>`_ \n
+[herdinCorrelation2005] M. Herdin, N. Czink, H. Ozcelik, and E. Bonek, 'Correlation matrix distance, a meaningful measure for evaluation of non-stationary MIMO channels,' in 2005 IEEE 61st Vehicular Technology Conference, May 2005, pp. 136-140 Vol. 1. doi: 10.1109/VETECS.2005.1543265. `[link] <https://doi.org/10.1109/VETECS.2005.1543265>`__ \n
+[forstnermetric2003] W. Förstner and B. Moonen, 'A metric for covariance matrices,' in Geodesy-The Challenge of the 3rd Millennium, E. W. Grafarend, F. W. Krumm, and V. S. Schwarze, Eds., Berlin, Heidelberg: Springer Berlin Heidelberg, 2003, pp. 299–309. doi: 10.1007/978-3-662-05296-9_31. `[link] <https://doi.org/10.1007/978-3-662-05296-9_31>`__ \n
+[duchiDerivations2016] J. Duchi, 'Derivations for Linear Algebra and Optimization, 2016. `[link] <https://web.stanford.edu/~jduchi/projects/general_notes.pdf>`__ \n
 [absilOptimization2008] P.-A. Absil, R. Mahony, and R. Sepulchre, Optimization algorithms on matrix manifolds. Princeton, N.J. ; Woodstock: Princeton University Press, 2008. \n
 """
 import numpy as np

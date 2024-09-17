@@ -26,6 +26,10 @@ the functions will zero-pad the signals correctly in order to avoid circular con
 In particular, the functions can be useful frequency domain adaptive filters, where overlap-save
 is used for both linear convolutions and correlations. It can be tricky there to get 
 the zero-padding right. 
+
+References
+----------
+
 """
 import numpy as np
 

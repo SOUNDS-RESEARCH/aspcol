@@ -3,9 +3,9 @@
 
 References
 ----------
-[brunnstromSound2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Sound zone control for arbitrary sound field reproduction methods,” in European Signal Processing Conference (EUSIPCO), Helsinki, Finland, Sep. 2023. `[link] <https://doi.org/10.23919/EUSIPCO58844.2023.10289995>`_ \n
-[brunnstromSignaltointerferenceplusnoise2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Signal-to-interference-plus-noise ratio based optimization for sound zone control,” IEEE Open Journal of Signal Processing, vol. 4, pp. 257–266, 2023, doi: 10.1109/OJSP.2023.3246398. `[link] <https://doi.org/10.1109/OJSP.2023.3246398>`_ \n
-[leeFast2020] T. Lee, L. Shi, J. K. Nielsen, and M. G. Christensen, “Fast generation of sound zones using variable span trade-off filters in the DFT-domain,” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 29, pp. 363–378, Dec. 2020, doi: 10.1109/TASLP.2020.3042701. `[link] <https://doi.org/10.1109/TASLP.2020.3042701>`_ \n 
+[brunnstromSound2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Sound zone control for arbitrary sound field reproduction methods,” in European Signal Processing Conference (EUSIPCO), Helsinki, Finland, Sep. 2023. `[link] <https://doi.org/10.23919/EUSIPCO58844.2023.10289995>`__ \n
+[brunnstromSignaltointerferenceplusnoise2023] J. Brunnström, T. van Waterschoot, and M. Moonen, “Signal-to-interference-plus-noise ratio based optimization for sound zone control,” IEEE Open Journal of Signal Processing, vol. 4, pp. 257–266, 2023, doi: 10.1109/OJSP.2023.3246398. `[link] <https://doi.org/10.1109/OJSP.2023.3246398>`__ \n
+[leeFast2020] T. Lee, L. Shi, J. K. Nielsen, and M. G. Christensen, “Fast generation of sound zones using variable span trade-off filters in the DFT-domain,” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 29, pp. 363–378, Dec. 2020, doi: 10.1109/TASLP.2020.3042701. `[link] <https://doi.org/10.1109/TASLP.2020.3042701>`__ \n 
 
 
 """
@@ -45,7 +45,7 @@ def freq_to_time_beamformer(w, num_freqs):
     
     Parameters
     ----------
-    w : ndarray of shape ()
+    w : complex ndarray of shape ()
     num_freqs : int
 
     Returns
@@ -68,19 +68,19 @@ def spatial_cov_freq_superpos(Hb, Hd, d=None):
 
     Parameters
     ----------
-    Hb : ndarray of shape (num_freq, num_mic_b, num_ls)
-        transfer functions from loudspeakers to bright zone
-    Hb : ndarray of shape (num_freq, num_mic_d, num_ls)
-        transfer functions from loudspeakers to dark zone
-    d : ndarray of shape (num_freq, num_mic_b, num_virt_src), optional
-        desired sound pressure in the bright zone 
+    Hb : ndarray of shape (num_freq, num_mic_bright, num_ls)
+        complex transfer functions from loudspeakers to bright zone
+    Hb : ndarray of shape (num_freq, num_mic_dark, num_ls)
+        complex transfer functions from loudspeakers to dark zone
+    d : ndarray of shape (num_freq, num_mic_bright, num_virt_src), optional
+        desired complex sound pressure in the bright zone 
 
     Returns
     -------
     Rb : ndarray of shape (num_freq, num_ls, num_ls)
-        spatial covariance for the bright zone
+        Hermitian spatial covariance for the bright zone
     Rd : ndarray of shape (num_freq, num_ls, num_ls)
-        spatial covariance for the dark zone
+        Hermitian spatial covariance for the dark zone
     rb : ndarray of shape (num_freq, num_ls, num_virt_src)
         spatial cross-correlation between the desired pressure and the 
         transfer functions between loudspeakers and bright zone. Only 
@@ -103,9 +103,7 @@ def spatial_cov_freq_superpos(Hb, Hd, d=None):
         return Rb, Rd
 
 def fpaths_to_spatial_cov(arrays, fpaths, source_name, zone_names):
-    """
-
-    utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
+    """utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
 
     - arrays is ArrayCollection object
     - fpaths is the frequency domain RIRs, see function get_fpaths() in this module
@@ -126,7 +124,6 @@ def fpaths_to_spatial_cov(arrays, fpaths, source_name, zone_names):
         num_mics = H[k][f].shape[0]
         R[:,k,:,:] /= num_mics
     return R
-
 
 def paths_to_spatial_cov(arrays, source_name, zone_names, sources, filt_len, num_samples, margin=None):
     """utility function to be used with aspsim package. Deprecated, and will be removed in future versions.
@@ -196,19 +193,40 @@ def rir_to_szc_cov(rir, ctrlfilt_len):
 
 
 def spatial_cov(ir, source, filt_len, num_samples, margin=None):
-    """
-    ir is the room impulse responses of shape (num_ls, num_mic, ir_len)
-        from all loudspeakers to one of the zones. 
+    """Computes time-domain spatial covariance matrix from room impulse responses
 
-    source is a source object with get_samples(num_samples) method, which returns
-        the audio signal that should be reproduced in the sound zones
+    The spatial covariance matrix is 
+    $R = \\begin{bmatrix} = $
 
-    by default it will use as many samples as possible (only remove rir_len-1 samples 
-        in the beginning since they haven't had time to propagate properly). 
+    Parameters
+    ----------
+    ir : ndarray of shape (num_ls, num_mic, ir_len)
+        room impulse responses from loudspeakers to microphones
+    source : Source object
+        source object that generates the audio that should be reproduced in the sound zones. 
+        The only requirement is that it is an object with a get_samples(num_samples) method, returning a 
+        ndarray of shape (num_ls, num_samples).
+    filt_len : int
+        The length of the desired filter impulse response
+    num_samples : int
+        The number of samples to use for the spatial covariance matrix. Higher will give a more accurate estimate,
+        but take longer to compute. 
+    margin : int, optional
+        by default the function will use as many samples as possible, which means only removing rir_len-1 samples 
+        in the beginning of the filtered source signal, since those samples haven't had time to propagate properly. 
         margin can be supplied if a specific number of samples should be removed instead.
         might give questionable result if you set margin to less than rir_len-1.
+
+    Returns
+    -------
+    R : ndarray of shape (num_ls*filt_len, num_ls*filt_len)
+        The spatial covariance matrix
     
-    The returned spatial covariance matrix is of size (num_ls*filt_len, num_ls*filt_len)
+    Notes
+    -----
+    \\begin{equation}
+        \\bm{R}_{zi} = \\expect \\bigl[ \\mathbb{X}_i^\\top (n) \\bm{H}_z \\bm{H}_z^{\\top} \\mathbb{X}_i(n)\\bigr] \\in \\mathbb{R}^{LI\\times LI}
+    \\end{equation}
 
     """
     ir_len = ir.shape[-1]

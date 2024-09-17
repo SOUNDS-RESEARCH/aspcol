@@ -1,4 +1,7 @@
 """Functions for Monte Carlo integration
+
+References
+----------
 """
 import numpy as np
 

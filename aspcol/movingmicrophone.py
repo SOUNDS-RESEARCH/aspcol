@@ -1,3 +1,10 @@
+"""Module for recording sound fields using a moving microphone
+
+References
+----------
+[brunnstromBayesianSubmitted] J. Brunnström, M. B. Møller, and M. Moonen, “Bayesian sound field estimation using moving microphones,” IEEE Open Journal of Signal Processing, submitted. \n
+"""
+
 import aspcol.filterdesign as fd
 import numpy as np
 import scipy.linalg as splin

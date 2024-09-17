@@ -1,3 +1,9 @@
+"""Module for plotting helper functions
+
+References
+----------
+"""
+
 import matplotlib.pyplot as plt
 
 try:
