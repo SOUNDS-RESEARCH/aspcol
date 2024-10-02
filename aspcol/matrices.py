@@ -497,3 +497,23 @@ def _ensure_pos_def_adhoc(mat, start_reg=-12, verbose=False):
     if verbose:
         print(f"To ensure positive definiteness, identity matrix scaled by 10**{reg} was added")
     return new_mat
+
+def lsq_with_l2_regularization(A, y, lamb=1e-10):
+    """Solves a linear least squares problem with L2 regularization
+    
+    Uses the SVD to solve the problem, which is not necessarily the most efficient
+
+    Parameters
+    ----------
+    A : ndarray of shape (m, n)
+        matrix in the least squares problem
+    y : ndarray of shape (m)
+        vector in the least squares problem
+    
+    Returns
+    -------
+    x : ndarray of shape (n)
+        solution to the least squares problem   
+    """
+    U,S, Vh = np.linalg.svd(A, full_matrices=False)
+    return np.conj(Vh).T @ ((np.conj(U).T @ y) * (S/(S**2+lamb)))
