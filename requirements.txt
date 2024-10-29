@@ -1,9 +1,0 @@
-numpy
-scipy
-pandas
-numexpr
-numba
-tensorly
-pytest
-hypothesis
-wigners

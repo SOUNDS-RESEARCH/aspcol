@@ -1,3 +1,37 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "aspcol"
+version = "0.0.1"
+authors = [
+    {name = "Jesper Brunnström", email = "jesper_brunnstrom@hotmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "numpy",
+    "scipy",
+    "aspcore",
+    "pandas",
+    "numexpr",
+    "numba",
+    "tensorly",
+    "wigners",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "hypothesis",
+]
+
+[project.urls]
+Documentation = "https://sounds-research.github.io/aspcol/"
+Repository = "https://github.com/SOUNDS-RESEARCH/aspcol"
