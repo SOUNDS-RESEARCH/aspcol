@@ -30,6 +30,7 @@ import numba as nb
 import aspcol.utilities as util
 import aspcore.fouriertransform as ft
 import aspcore.montecarlo as mc
+import aspcore.filterdesign as fd
 
 def kernel_gaussian(points1, points2, scale):
     """
