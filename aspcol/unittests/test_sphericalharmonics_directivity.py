@@ -7,18 +7,20 @@ import aspcol.sphericalharmonics as sph
 import aspcol.utilities as utils
 import aspcol.unittests.plot_methods as plm
 import aspcol.planewaves as pw
-import aspcol.montecarlo as mc
-import aspcol.fouriertransform as ft
-import aspcol.filterdesign as fd
+
 import aspcol.plot as aspplot
-import aspcol.pseq as pseq
+
 
 from aspsim.simulator import SimulatorSetup
 import aspsim.room.region as region
 import aspsim.signal.sources as sources
 import aspsim.diagnostics.diagnostics as dg
 
-import aspcore.filterclasses as fc
+import aspcore.filter as fc
+import aspcore.montecarlo as mc
+import aspcore.fouriertransform as ft
+import aspcore.filterdesign as fd
+import aspcore.pseq as pseq
 
 import matplotlib.pyplot as plt
 

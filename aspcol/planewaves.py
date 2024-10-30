@@ -14,9 +14,9 @@ References
 
 import numpy as np
 import scipy.special as special
+import aspcore.montecarlo as mc
 
 import aspcol.utilities as utils
-import aspcol.montecarlo as mc
 import aspcol.sphericalharmonics as sph
 
 
@@ -109,13 +109,13 @@ def find_matching_plane_wave(plane_wave_data, freq, pw_dir, pos_mic, c):
     -----
     The gain adjustment is found as the mean amplitude of the plane_wave_data. 
 
-    The phase adjustment is found as the solution to $\lVert e^{i \gamma} \bm{p} - \bm{s} \rVert_2^2$, where $\bm{p}$ is 
-    the vector of analytic pressure values and $\bm{s}$ is the vector of plane_wave_data. The solution is found analytically
+    The phase adjustment is found as the solution to $\\lVert e^{i \\gamma} \\bm{p} - \\bm{s} \\rVert_2^2$, where $\\bm{p}$ is 
+    the vector of analytic pressure values and $\\bm{s}$ is the vector of plane_wave_data. The solution is found analytically
     by taking the derivative and setting to zero. 
 
     The expansion center is defined by $exp(-ik(r-r_c)^T d) = exp(-i gamma) exp(ikr^T d)$, where r_c is the unknown expansion center
     and the phase adjustment gamma is found by the algorithm. Since that relationship is not necessarily unique, the 
-    expansion center is found as min \lVert r_c \rVert_2^2 subject to r_c^T d = gamma / wave_num, which is a 
+    expansion center is found as min \\lVert r_c \\rVert_2^2 subject to r_c^T d = gamma / wave_num, which is a 
     least squares problem with linear constrained, solved analytically using the Lagrange multiplier method.
     """
     freq = np.ones(1) * freq

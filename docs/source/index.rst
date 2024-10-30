@@ -13,16 +13,11 @@ API Reference
    :toctree: _autosummary
    :template: new-module-template.rst
 
-   aspcol.adaptivefilter
-   aspcol.correlation
    aspcol.distance
-   aspcol.filterclasses
-   aspcol.filterdesign
    aspcol.kernelinterpolation
-   aspcol.lowrank
-   aspcol.matrices
-   aspcol.montecarlo
-   aspcol.pseq
+   aspcol.movingmicrophone
+   aspcol.planewaves
+   aspcol.plot
    aspcol.soundfieldcontrol
    aspcol.soundfieldestimation
    aspcol.sphericalharmonics

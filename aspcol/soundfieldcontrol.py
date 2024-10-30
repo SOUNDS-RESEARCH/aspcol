@@ -13,10 +13,11 @@ import numpy as np
 import copy
 import scipy.linalg as splin
 
-import aspcol.correlation as cr
-import aspcol.matrices as mat
-import aspcol.filterclasses as fc
-import aspcol.filterdesign as fd
+import aspcore.correlation as cr
+import aspcore.matrices as mat
+import aspcore.filter as fc
+import aspcore.filterdesign as fd
+import aspcore.fouriertransform as ft
 
 # ================== UTILITIES ==================================
 def beamformer_vec_to_ir(bf_vec, num_ls):
@@ -52,7 +53,7 @@ def freq_to_time_beamformer(w, num_freqs):
     -------
     ir : ndarray of shape ()
     """
-    w = fd.insert_negative_frequencies(w, True)
+    w = ft.insert_negative_frequencies(w, True)
     ir,_ = fd.fir_from_freqs_window(w, num_freqs-1)
     ir = np.moveaxis(ir, 0,1)
     ir = ir[:1,:,:]
@@ -643,7 +644,7 @@ def solve_power_weighted_qos_uplink(R, noise_pow, sinr_targets, max_pow, audio_c
         if is_feasible:
             q = _power_alloc_qos_uplink(w, R, s, sinr_targets)
         else:
-            q, c = _power_alloc_minmax_uplink(w, R, s, sinr_targets, max_pow)
+            q, c = _power_alloc_minmax_uplink(w, R, s, sinr_targets, max_pow, verbose=verbose)
             if verbose:
                 print(f"capacity: {c}")
             
@@ -898,15 +899,15 @@ def _power_alloc_qos_feasibility_spectral_radius(gain_mat, sinr_targets):
     spectral_radius = np.max(np.abs(ev))
     return spectral_radius
 
-def _power_alloc_minmax_downlink(w, R, noise_pow, sinr_targets, max_pow):
+def _power_alloc_minmax_downlink(w, R, noise_pow, sinr_targets, max_pow, verbose=False):
     assert _is_unit_vector(w)
-    return _power_alloc_minmax(_link_gain_downlink(w, R), noise_pow, sinr_targets, max_pow)
+    return _power_alloc_minmax(_link_gain_downlink(w, R), noise_pow, sinr_targets, max_pow, verbose=verbose)
 
-def _power_alloc_minmax_uplink(w, R, noise_pow, sinr_targets, max_pow):
+def _power_alloc_minmax_uplink(w, R, noise_pow, sinr_targets, max_pow, verbose=False):
     assert _is_unit_vector(w)
-    return _power_alloc_minmax(_link_gain_uplink(w, R), noise_pow, sinr_targets, max_pow)
+    return _power_alloc_minmax(_link_gain_uplink(w, R), noise_pow, sinr_targets, max_pow, verbose=verbose)
 
-def _power_alloc_minmax(gain_mat, noise_pow, sinr_targets, max_pow):
+def _power_alloc_minmax(gain_mat, noise_pow, sinr_targets, max_pow, verbose=False):
     """
     Tranpose the gain_mat to shift between the downlink and uplink solution
     
@@ -920,8 +921,9 @@ def _power_alloc_minmax(gain_mat, noise_pow, sinr_targets, max_pow):
     max_ev_idx = np.argmax(np.real(eigvals))
     pow_vec = np.real_if_close(eigvec[:-1, max_ev_idx] / eigvec[-1, max_ev_idx])
     assert np.all(pow_vec > 0) #the dominant eigenvector should be positive
-    if not np.all([eigvals[i] <= 1e-10 for i in range(len(eigvals)) if i != max_ev_idx]): #only one eigenvalue should be positive (not sure if this should be true actually)
-        print(f"Warning: Not only one eigenvalue is positive: {eigvals}")
+    if verbose:
+        if not np.all([eigvals[i] <= 1e-10 for i in range(len(eigvals)) if i != max_ev_idx]): #only one eigenvalue should be positive (not sure if this should be true actually)
+            print(f"Warning: Not only one eigenvalue is positive: {eigvals}")
     capacity = np.real_if_close(1 / eigvals[max_ev_idx])
     return pow_vec, capacity
 

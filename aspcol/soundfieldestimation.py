@@ -13,10 +13,12 @@ References
 import numpy as np
 import scipy.spatial.distance as spdist
 
+import aspcore.pseq as pseq
+import aspcore.fouriertransform as ft
+
 import aspcol.kernelinterpolation as ki
-import aspcol.pseq as pseq
 import aspcol.sphericalharmonics as sph
-import aspcol.fouriertransform as ft
+
 
 
 

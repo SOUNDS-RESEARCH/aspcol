@@ -19,10 +19,7 @@ dependencies = [
     "numpy",
     "scipy",
     "aspcore",
-    "pandas",
-    "numexpr",
     "numba",
-    "tensorly",
     "wigners",
 ]
 
@@ -30,6 +27,7 @@ dependencies = [
 test = [
     "pytest",
     "hypothesis",
+    "cvxpy",
 ]
 
 [project.urls]

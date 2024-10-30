@@ -20,9 +20,9 @@ import jax.numpy as jnp
 #jax.config.update("jax_disable_jit", True)
 #jax.config.update("jax_debug_nans", True)
 
-import aspcol.soundfieldestimation as sfe
+import aspcore.fouriertransform as ft
+
 import aspcol.sphericalharmonics as shd
-import aspcol.fouriertransform as ft
 import aspcol.utilities as util
 import aspcol.kernelinterpolation as ki
 
