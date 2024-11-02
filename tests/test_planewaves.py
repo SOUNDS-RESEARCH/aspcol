@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.special as special
 
 import aspcore.montecarlo as mc
 import aspcore.fouriertransform as ft
@@ -7,7 +8,7 @@ import aspcore.utilities as coreutils
 
 import aspcol.sphericalharmonics as sph
 import aspcol.utilities as utils
-import aspcol.unittests.plot_methods as plm
+import plot_methods as plm
 import aspcol.planewaves as pw
 
 from aspsim.simulator import SimulatorSetup

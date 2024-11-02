@@ -1,8 +1,3 @@
-.. aspcol documentation master file, created by
-   sphinx-quickstart on Wed Sep 13 10:22:13 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Audio Signal Processing Collection (aspcol)
 ===========================================
 This is a package for audio signal processing. Contains implementations of state-of-the-art sound field estimation and sound field reproduction methods, as well as some basic audio signal processing tools.
