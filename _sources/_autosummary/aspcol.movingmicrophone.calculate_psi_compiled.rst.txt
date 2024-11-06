@@ -1,0 +1,6 @@
+aspcol.movingmicrophone.calculate\_psi\_compiled
+================================================
+
+.. currentmodule:: aspcol.movingmicrophone
+
+.. autofunction:: calculate_psi_compiled

@@ -1,0 +1,6 @@
+aspcol.movingmicrophone.shd\_num\_degrees\_vector
+=================================================
+
+.. currentmodule:: aspcol.movingmicrophone
+
+.. autofunction:: shd_num_degrees_vector

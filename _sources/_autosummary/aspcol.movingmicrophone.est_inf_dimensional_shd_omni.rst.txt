@@ -1,0 +1,6 @@
+aspcol.movingmicrophone.est\_inf\_dimensional\_shd\_omni
+========================================================
+
+.. currentmodule:: aspcol.movingmicrophone
+
+.. autofunction:: est_inf_dimensional_shd_omni

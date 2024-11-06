@@ -1,0 +1,6 @@
+aspcol.planewaves.find\_matching\_plane\_wave
+=============================================
+
+.. currentmodule:: aspcol.planewaves
+
+.. autofunction:: find_matching_plane_wave

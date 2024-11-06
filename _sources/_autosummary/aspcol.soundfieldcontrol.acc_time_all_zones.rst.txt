@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.acc\_time\_all\_zones
+==============================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: acc_time_all_zones

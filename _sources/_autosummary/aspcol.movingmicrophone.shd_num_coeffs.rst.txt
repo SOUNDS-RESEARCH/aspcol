@@ -1,0 +1,6 @@
+aspcol.movingmicrophone.shd\_num\_coeffs
+========================================
+
+.. currentmodule:: aspcol.movingmicrophone
+
+.. autofunction:: shd_num_coeffs

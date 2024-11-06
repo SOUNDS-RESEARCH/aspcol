@@ -1,0 +1,6 @@
+aspcol.plot.set\_basic\_plot\_look
+==================================
+
+.. currentmodule:: aspcol.plot
+
+.. autofunction:: set_basic_plot_look

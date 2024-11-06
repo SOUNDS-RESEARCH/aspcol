@@ -1,0 +1,6 @@
+aspcol.planewaves.linear\_directivity\_function
+===============================================
+
+.. currentmodule:: aspcol.planewaves
+
+.. autofunction:: linear_directivity_function

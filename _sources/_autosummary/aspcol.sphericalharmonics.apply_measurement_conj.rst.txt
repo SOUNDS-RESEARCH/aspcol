@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.apply\_measurement\_conj
+==================================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: apply_measurement_conj

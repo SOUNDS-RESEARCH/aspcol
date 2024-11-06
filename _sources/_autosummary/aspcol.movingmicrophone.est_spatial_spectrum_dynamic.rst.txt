@@ -1,0 +1,6 @@
+aspcol.movingmicrophone.est\_spatial\_spectrum\_dynamic
+=======================================================
+
+.. currentmodule:: aspcol.movingmicrophone
+
+.. autofunction:: est_spatial_spectrum_dynamic

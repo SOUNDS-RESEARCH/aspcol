@@ -1,0 +1,6 @@
+aspcol.movingmicrophone.basis\_translation\_3\_80
+=================================================
+
+.. currentmodule:: aspcol.movingmicrophone
+
+.. autofunction:: basis_translation_3_80

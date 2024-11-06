@@ -1,0 +1,49 @@
+﻿aspcol.movingmicrophone
+=======================
+
+.. automodule:: aspcol.movingmicrophone
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      basis_translation_3_80
+      calculate_psi
+      calculate_psi_compiled
+      cart2spherical
+      est_inf_dimensional_shd_omni
+      est_spatial_spectrum_dynamic
+      estimate_from_regressor
+      estimate_from_regressor_compiled
+      factorial
+      inf_dimensional_shd_dynamic
+      inf_dimensional_shd_dynamic_compiled
+      shd_basis
+      shd_coeffs_order_degree_to_index
+      shd_num_coeffs
+      shd_num_degrees_vector
+      spherical_jn
+      spherical_jn_max_order_2
+      translate_shd_coeffs
+      translated_inner_product
+      translation_operator
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

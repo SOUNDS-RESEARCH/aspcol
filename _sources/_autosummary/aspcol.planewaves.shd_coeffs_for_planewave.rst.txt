@@ -1,0 +1,6 @@
+aspcol.planewaves.shd\_coeffs\_for\_planewave
+=============================================
+
+.. currentmodule:: aspcol.planewaves
+
+.. autofunction:: shd_coeffs_for_planewave

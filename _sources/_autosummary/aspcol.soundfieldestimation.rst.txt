@@ -1,0 +1,34 @@
+﻿aspcol.soundfieldestimation
+===========================
+
+.. automodule:: aspcol.soundfieldestimation
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      est_ki_diffuse
+      est_ki_diffuse_freq
+      inf_dim_shd_analysis
+      nearest_neighbour_freq
+      pseq_nearest_neighbour
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

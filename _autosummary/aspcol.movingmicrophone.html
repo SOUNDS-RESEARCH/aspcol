@@ -1,0 +1,212 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.movingmicrophone &mdash; aspcol 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.movingmicrophone.basis_translation_3_80" href="aspcol.movingmicrophone.basis_translation_3_80.html" />
+    <link rel="prev" title="aspcol.kernelinterpolation.soundfield_interpolation_fir" href="aspcol.kernelinterpolation.soundfield_interpolation_fir.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">aspcol.movingmicrophone</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.basis_translation_3_80.html">aspcol.movingmicrophone.basis_translation_3_80</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.calculate_psi.html">aspcol.movingmicrophone.calculate_psi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.calculate_psi_compiled.html">aspcol.movingmicrophone.calculate_psi_compiled</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.cart2spherical.html">aspcol.movingmicrophone.cart2spherical</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.est_inf_dimensional_shd_omni.html">aspcol.movingmicrophone.est_inf_dimensional_shd_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.est_spatial_spectrum_dynamic.html">aspcol.movingmicrophone.est_spatial_spectrum_dynamic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.estimate_from_regressor.html">aspcol.movingmicrophone.estimate_from_regressor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.estimate_from_regressor_compiled.html">aspcol.movingmicrophone.estimate_from_regressor_compiled</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.factorial.html">aspcol.movingmicrophone.factorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.inf_dimensional_shd_dynamic.html">aspcol.movingmicrophone.inf_dimensional_shd_dynamic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.inf_dimensional_shd_dynamic_compiled.html">aspcol.movingmicrophone.inf_dimensional_shd_dynamic_compiled</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.shd_basis.html">aspcol.movingmicrophone.shd_basis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.shd_coeffs_order_degree_to_index.html">aspcol.movingmicrophone.shd_coeffs_order_degree_to_index</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.shd_num_coeffs.html">aspcol.movingmicrophone.shd_num_coeffs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.shd_num_degrees_vector.html">aspcol.movingmicrophone.shd_num_degrees_vector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.spherical_jn.html">aspcol.movingmicrophone.spherical_jn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.spherical_jn_max_order_2.html">aspcol.movingmicrophone.spherical_jn_max_order_2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.translate_shd_coeffs.html">aspcol.movingmicrophone.translate_shd_coeffs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.translated_inner_product.html">aspcol.movingmicrophone.translated_inner_product</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.movingmicrophone.translation_operator.html">aspcol.movingmicrophone.translation_operator</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.planewaves.html">aspcol.planewaves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.plot.html">aspcol.plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">aspcol.movingmicrophone</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.movingmicrophone.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-aspcol.movingmicrophone">
+<span id="aspcol-movingmicrophone"></span><h1>aspcol.movingmicrophone<a class="headerlink" href="#module-aspcol.movingmicrophone" title="Link to this heading"></a></h1>
+<p>Module for recording sound fields using a moving microphone</p>
+<p>The estimation of a sound field from moving microphones is very computationally costly. Especially for directional microphones, the computational cost of the estimation can be prohibitive. Therefore a lot of the code in this module is implemented in jax, such that the resulting functions can be compiled, leading to considerable improvements in running time.</p>
+<p>Due to the need of re-implementing functions such as the spherical Bessel function in jax, the current compilable implementations in this module are somewhat restricted. There is jax implementations of e.g. the translation operator that can also be found in the module sphericalharmonics.py, but in this module it assumes order 0 and 1 harmonic coefficients only.</p>
+<p>The sound field estimation function inf_dimensional_shd_dynamic cannot deal with directionalities above order 1.</p>
+<p class="rubric">References</p>
+<p>[brunnstromBayesianSubmitted] J. Brunnström, M. B. Møller, and M. Moonen, “Bayesian sound field estimation using moving microphones,” IEEE Open Journal of Signal Processing, submitted.</p>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.movingmicrophone.basis_translation_3_80.html#aspcol.movingmicrophone.basis_translation_3_80" title="aspcol.movingmicrophone.basis_translation_3_80"><code class="xref py py-obj docutils literal notranslate"><span class="pre">basis_translation_3_80</span></code></a>(pos, wave_num, gaunt_set)</p></td>
+<td><p>Translation operator for shd basis function, such that shd_basis(pos_orig + pos) = T(pos) &#64; shd_basis(pos_orig)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.movingmicrophone.calculate_psi.html#aspcol.movingmicrophone.calculate_psi" title="aspcol.movingmicrophone.calculate_psi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_psi</span></code></a>(pos, dir_coeffs, k, Phi, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.movingmicrophone.calculate_psi_compiled.html#aspcol.movingmicrophone.calculate_psi_compiled" title="aspcol.movingmicrophone.calculate_psi_compiled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_psi_compiled</span></code></a>(pos, dir_coeffs, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.movingmicrophone.cart2spherical.html#aspcol.movingmicrophone.cart2spherical" title="aspcol.movingmicrophone.cart2spherical"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cart2spherical</span></code></a>(cart_coord)</p></td>
+<td><p>Transforms the provided cartesian coordinates to spherical coordinates</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.movingmicrophone.est_inf_dimensional_shd_omni.html#aspcol.movingmicrophone.est_inf_dimensional_shd_omni" title="aspcol.movingmicrophone.est_inf_dimensional_shd_omni"><code class="xref py py-obj docutils literal notranslate"><span class="pre">est_inf_dimensional_shd_omni</span></code></a>(p, pos, ...[, ...])</p></td>
+<td><p>Estimates the RIR at evaluation positions using data from a moving microphone using Bayesian inference of an infinite sequence of spherical harmonics</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.movingmicrophone.est_spatial_spectrum_dynamic.html#aspcol.movingmicrophone.est_spatial_spectrum_dynamic" title="aspcol.movingmicrophone.est_spatial_spectrum_dynamic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">est_spatial_spectrum_dynamic</span></code></a>(p, pos, ...[, ...])</p></td>
+<td><p>Estimates the RIR at evaluation positions using data from a moving microphone</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.movingmicrophone.estimate_from_regressor.html#aspcol.movingmicrophone.estimate_from_regressor" title="aspcol.movingmicrophone.estimate_from_regressor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimate_from_regressor</span></code></a>(regressor, pos, ...)</p></td>
+<td><p>Takes the regressor from inf_dimensional_shd_dynamic, and gives back a sound field estimate.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.movingmicrophone.estimate_from_regressor_compiled.html#aspcol.movingmicrophone.estimate_from_regressor_compiled" title="aspcol.movingmicrophone.estimate_from_regressor_compiled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimate_from_regressor_compiled</span></code></a>(regressor, ...)</p></td>
+<td><p>Takes the regressor from inf_dimensional_shd_dynamic, and gives back a sound field estimate.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.movingmicrophone.factorial.html#aspcol.movingmicrophone.factorial" title="aspcol.movingmicrophone.factorial"><code class="xref py py-obj docutils literal notranslate"><span class="pre">factorial</span></code></a>(n)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.movingmicrophone.inf_dimensional_shd_dynamic.html#aspcol.movingmicrophone.inf_dimensional_shd_dynamic" title="aspcol.movingmicrophone.inf_dimensional_shd_dynamic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inf_dimensional_shd_dynamic</span></code></a>(p, pos, ...[, ...])</p></td>
+<td><p>Estimates the RIR at evaluation positions using data from a moving microphone using Bayesian inference of an infinite sequence of spherical harmonics</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.movingmicrophone.inf_dimensional_shd_dynamic_compiled.html#aspcol.movingmicrophone.inf_dimensional_shd_dynamic_compiled" title="aspcol.movingmicrophone.inf_dimensional_shd_dynamic_compiled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inf_dimensional_shd_dynamic_compiled</span></code></a>(p, pos, ...)</p></td>
+<td><p>Estimates the RIR at evaluation positions using data from a moving microphone using Bayesian inference of an infinite sequence of spherical harmonics</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.movingmicrophone.shd_basis.html#aspcol.movingmicrophone.shd_basis" title="aspcol.movingmicrophone.shd_basis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shd_basis</span></code></a>(pos, order, degree, wave_num, ...)</p></td>
+<td><p>Spherical harmonic basis function for sound field in 3D</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.movingmicrophone.shd_coeffs_order_degree_to_index.html#aspcol.movingmicrophone.shd_coeffs_order_degree_to_index" title="aspcol.movingmicrophone.shd_coeffs_order_degree_to_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shd_coeffs_order_degree_to_index</span></code></a>(order, degree)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.movingmicrophone.shd_num_coeffs.html#aspcol.movingmicrophone.shd_num_coeffs" title="aspcol.movingmicrophone.shd_num_coeffs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shd_num_coeffs</span></code></a>(max_order)</p></td>
+<td><p>Number of coefficients required to represent a spherical harmonic function of a given order</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.movingmicrophone.shd_num_degrees_vector.html#aspcol.movingmicrophone.shd_num_degrees_vector" title="aspcol.movingmicrophone.shd_num_degrees_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shd_num_degrees_vector</span></code></a>(max_order)</p></td>
+<td><p>Constructs a vector with the index of each order and degree when order = n, the degrees are only non-zero for -n &lt;= degree &lt;= n</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.movingmicrophone.spherical_jn.html#aspcol.movingmicrophone.spherical_jn" title="aspcol.movingmicrophone.spherical_jn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spherical_jn</span></code></a>(v, z)</p></td>
+<td><p>Calculates j_v(z), the spherical Bessel function of the first kind of order v</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.movingmicrophone.spherical_jn_max_order_2.html#aspcol.movingmicrophone.spherical_jn_max_order_2" title="aspcol.movingmicrophone.spherical_jn_max_order_2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spherical_jn_max_order_2</span></code></a>(v, z)</p></td>
+<td><p>Calculates j_v(z), the spherical Bessel function of the first kind of order v</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.movingmicrophone.translate_shd_coeffs.html#aspcol.movingmicrophone.translate_shd_coeffs" title="aspcol.movingmicrophone.translate_shd_coeffs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">translate_shd_coeffs</span></code></a>(shd_coeffs, pos, ...)</p></td>
+<td><p>Translates the provided shd_coeffs to another expansion center</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.movingmicrophone.translated_inner_product.html#aspcol.movingmicrophone.translated_inner_product" title="aspcol.movingmicrophone.translated_inner_product"><code class="xref py py-obj docutils literal notranslate"><span class="pre">translated_inner_product</span></code></a>(pos, dir_coeffs, ...)</p></td>
+<td><p>&lt;T(r_1 - r_2, omega_m) gamma_2(omega_m), gamma_1(omega_m)&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.movingmicrophone.translation_operator.html#aspcol.movingmicrophone.translation_operator" title="aspcol.movingmicrophone.translation_operator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">translation_operator</span></code></a>(pos, wave_num, gaunt_set)</p></td>
+<td><p>Translation operator for harmonic coefficients, such that shd_coeffs(pos_orig + pos) = T(pos) &#64; shd_coeffs(pos_orig)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.kernelinterpolation.soundfield_interpolation_fir.html" class="btn btn-neutral float-left" title="aspcol.kernelinterpolation.soundfield_interpolation_fir" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.movingmicrophone.basis_translation_3_80.html" class="btn btn-neutral float-right" title="aspcol.movingmicrophone.basis_translation_3_80" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+aspcol.movingmicrophone.inf\_dimensional\_shd\_dynamic
+======================================================
+
+.. currentmodule:: aspcol.movingmicrophone
+
+.. autofunction:: inf_dimensional_shd_dynamic

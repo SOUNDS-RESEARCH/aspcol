@@ -1,0 +1,6 @@
+aspcol.movingmicrophone.estimate\_from\_regressor\_compiled
+===========================================================
+
+.. currentmodule:: aspcol.movingmicrophone
+
+.. autofunction:: estimate_from_regressor_compiled

@@ -1,0 +1,6 @@
+aspcol.movingmicrophone.translation\_operator
+=============================================
+
+.. currentmodule:: aspcol.movingmicrophone
+
+.. autofunction:: translation_operator

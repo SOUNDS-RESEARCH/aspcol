@@ -1,0 +1,6 @@
+aspcol.utilities.mag2db
+=======================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: mag2db

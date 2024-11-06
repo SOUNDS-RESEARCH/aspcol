@@ -1,0 +1,6 @@
+aspcol.movingmicrophone.shd\_coeffs\_order\_degree\_to\_index
+=============================================================
+
+.. currentmodule:: aspcol.movingmicrophone
+
+.. autofunction:: shd_coeffs_order_degree_to_index

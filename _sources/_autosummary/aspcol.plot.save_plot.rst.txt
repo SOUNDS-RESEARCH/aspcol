@@ -1,0 +1,6 @@
+aspcol.plot.save\_plot
+======================
+
+.. currentmodule:: aspcol.plot
+
+.. autofunction:: save_plot

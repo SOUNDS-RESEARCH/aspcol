@@ -1,0 +1,6 @@
+aspcol.movingmicrophone.shd\_basis
+==================================
+
+.. currentmodule:: aspcol.movingmicrophone
+
+.. autofunction:: shd_basis
