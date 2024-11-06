@@ -87,4 +87,3 @@ The software is distributed under the MIT license. See the LICENSE file for more
 
 ## Acknowledgements
 The software has been developed during a PhD project as part of the [SOUNDS ETN](https://www.sounds-etn.eu) at KU Leuven. The SOUNDS project has recieved funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No. 956369.
-```
