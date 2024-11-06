@@ -16,10 +16,7 @@ jobs:
           pip install -r docs/requirements.txt
       - name: Install package dependencies
         run: |
-          pip install -r ./requirements.txt
-      - name: Installing the library
-        run: |
-          python setup.py install
+          pip install .
       - name: Sphinx build
         run: |
           sphinx-build docs/source _build
