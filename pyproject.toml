@@ -21,6 +21,7 @@ dependencies = [
     "aspcore",
     "numba",
     "wigners",
+    "jax",
 ]
 
 [project.optional-dependencies]
@@ -28,6 +29,7 @@ test = [
     "pytest",
     "hypothesis",
     "cvxpy",
+    "aspsim",
 ]
 
 [project.urls]
