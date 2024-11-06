@@ -4,7 +4,14 @@ ASPCOL is a collection of functions and classes for audio signal processing. The
 **[More info and complete API documentation](https://sounds-research.github.io/aspcol/)**
 
 ## Installation
-
+The package can be installed via pip by running
+```
+pip install aspcol
+```
+Alternatively, the package can be installed by cloning the repository and running
+```
+pip install path/to/aspcol
+```
 
 ## Contents
 ### Sound field estimation
@@ -18,14 +25,6 @@ The content is contained in the modules
 ### Sound field reproduction
 The content is contained in the modules
 - soundfieldcontrol
-
-### Linear filtering
-The content is contained in the modules
-- adaptivefilter
-- filterclasses
-- filterdesign
-- fouriertransform
-- lowrank
 
 
 ## References
