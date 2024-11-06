@@ -9,13 +9,15 @@ from sympy.physics.wigner import wigner_3j, gaunt
 
 import scipy.special as special
 
+import aspcore.montecarlo as mc
+import aspcore.fouriertransform as ft
+
 import aspcol.sphericalharmonics as sph
 import aspcol.utilities as utils
-import aspcol.filterdesign as fd
-import aspcol.fouriertransform as ft
+
 import aspcol.unittests.plot_methods as plm
 import aspcol.kernelinterpolation as ki
-import aspcol.montecarlo as mc
+
 import aspcol.planewaves as pw
 import aspcol.movingmicrophone as mm
 

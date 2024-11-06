@@ -1,13 +1,15 @@
 import numpy as np
+import scipy.special as special
+
+import aspcore.montecarlo as mc
+import aspcore.fouriertransform as ft
+
+import aspcore.utilities as coreutils
 
 import aspcol.sphericalharmonics as sph
 import aspcol.utilities as utils
-import aspcol.unittests.plot_methods as plm
+import plot_methods as plm
 import aspcol.planewaves as pw
-import aspcol.montecarlo as mc
-import aspcol.filterdesign as fd
-import aspcol.fouriertransform as ft
-import aspcol.plot as aspplot
 
 from aspsim.simulator import SimulatorSetup
 import aspsim.room.region as region
@@ -509,7 +511,7 @@ def _generate_plane_wave_with_ism(sr, pw_dir, pos_mic=None, pos_dir=None, mic_di
     setup = _get_default_simulator_setup(sr)
     prop_delay = np.linalg.norm(pos_src) / setup.sim_info.c
     extra_delay_sec = 0.1
-    rir_len = utils.next_power_of_two((1.5 * prop_delay + extra_delay_sec) * sr)
+    rir_len = coreutils.next_power_of_two((1.5 * prop_delay + extra_delay_sec) * sr)
     extra_delay_samples = int(extra_delay_sec * sr)
 
     setup.sim_info.room_size = [3 * src_distance, 3*src_distance, 3*src_distance]

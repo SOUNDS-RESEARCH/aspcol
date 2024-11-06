@@ -4,16 +4,7 @@ ASPCOL is a collection of functions and classes for audio signal processing. The
 **[More info and complete API documentation](https://sounds-research.github.io/aspcol/)**
 
 ## Installation
-The package does not exist on PyPi. It can be installed by cloning the repository and installing via pip from the downloaded folder. 
-```
-pip install ./path/to/cloned/aspcol/folder
-```
 
-All obligatory dependencies are listed in requirements.txt, and can be installed with pip:
-```
-pip install -r requirements.txt
-```
-The only non-standard dependency is [aspcore](https://github.com/SOUNDS-RESEARCH/aspcore) which is optional. It is required for all functionality of the adaptivefilter.py module, as well as the function power_of_filtered_signal in utilities.py. 
 
 ## Contents
 ### Sound field estimation
@@ -97,3 +88,4 @@ The software is distributed under the MIT license. See the LICENSE file for more
 
 ## Acknowledgements
 The software has been developed during a PhD project as part of the [SOUNDS ETN](https://www.sounds-etn.eu) at KU Leuven. The SOUNDS project has recieved funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No. 956369.
+```

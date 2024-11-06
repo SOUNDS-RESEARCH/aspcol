@@ -5,9 +5,11 @@ import pathlib
 from aspsim.simulator import SimulatorSetup
 import aspsim.room.region as reg
 
+import aspcore.fouriertransform as ft
+
 import aspcol.soundfieldestimation as sfe
 import aspcol.sphericalharmonics as sph
-import aspcol.fouriertransform as ft
+
 
 
 def run_exp():

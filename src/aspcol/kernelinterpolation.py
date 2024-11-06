@@ -28,8 +28,9 @@ import scipy.special as special
 import numba as nb
 
 import aspcol.utilities as util
-import aspcol.filterdesign as fd
-import aspcol.montecarlo as mc
+import aspcore.fouriertransform as ft
+import aspcore.montecarlo as mc
+import aspcore.filterdesign as fd
 
 def kernel_gaussian(points1, points2, scale):
     """
@@ -201,7 +202,7 @@ def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain
     Parameters
     ----------
     kernel_func : function
-        with calling signature kernel_func(points1, points2, waveNum, \*args)
+        with calling signature kernel_func(points1, points2, waveNum, *args)
     reg_param : float
     mic_pos : ndarray of shape (num_mics, spatial_dim)
     integral_domain : instance of any Region object found is aspsim package
@@ -220,7 +221,7 @@ def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain
     For both diffuse and directional kernel P^H = P, so the hermitian tranpose should not do anything
     It is left in place in case a kernel function in the future changes that identity. 
     """
-    freqs = fd.get_frequency_values(num_freq, samplerate)
+    freqs = ft.get_real_freqs(num_freq, samplerate)
     wave_num = 2 * np.pi * freqs / c
 
     def integrable_func(r):
@@ -235,7 +236,7 @@ def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain
     integral_value = mc.integrate(integrable_func, integral_domain.sample_points, mc_samples, integral_domain.volume)
     weighting_filter = np.transpose(P,(0,2,1)).conj() @ integral_value @ P
 
-    weighting_filter = fd.insert_negative_frequencies(weighting_filter, even=True)
+    weighting_filter = ft.insert_negative_frequencies(weighting_filter, even=True)
     return weighting_filter
 
 
@@ -252,7 +253,7 @@ def get_krr_parameters(kernel_func, reg_param, output_arg, data_arg, *args):
     output_arg : ndarray (num_out_points, data_dim)
     kernel_func : function 
         with calling signature kernel_func(output_arg, data_arg, \*args)
-        should return ndarray (..., num_out_points, num_data_points)
+        should return ndarray (..., num_out_points, num_data_poins)
     
     Returns
     -------
@@ -327,10 +328,10 @@ def soundfield_interpolation(
 
     assert num_freq % 2 == 0
 
-    freqs = fd.get_frequency_values(num_freq, samplerate)#[:, None, None]
+    freqs = ft.get_real_freqs(num_freq, samplerate)
     wave_num = 2 * np.pi * freqs / c
     ip_params = get_krr_parameters(kernel_func, reg_param, to_points, from_points, wave_num)
-    ip_params = fd.insert_negative_frequencies(ip_params, even=True)
+    ip_params = ft.insert_negative_frequencies(ip_params, even=True)
     return ip_params
 
 

@@ -21,13 +21,18 @@ os.environ["NUMBA_DISABLE_JIT"] = '1'
 
 
 # -- Project information -----------------------------------------------------
+import pathlib
+import tomllib
+with open(pathlib.Path(__file__).parent.parent.parent / "pyproject.toml", "rb") as f:
+    toml = tomllib.load(f)
+pyproject = toml["project"]
 
-project = 'aspcol'
-copyright = '2023, Jesper Brunnström'
-author = 'Jesper Brunnström'
+project = pyproject["name"]
+copyright = f"2024, {pyproject['authors'][0]['name']}"
+author = pyproject["authors"][0]["name"]
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = pyproject["version"]
 
 
 # -- General configuration ---------------------------------------------------
@@ -51,7 +56,7 @@ autodoc_inherit_docstrings = True
 set_type_checking_flag = True
 autosummary_imported_members = True
 
-autodoc_mock_imports = ["numpy", "scipy", "matplotlib", "samplerate", "numexpr", "numba", "tensorly", "hypothesis", "pytest", "aspcore", "aspsim", "abc"]
+autodoc_mock_imports = ["numpy", "scipy", "matplotlib", "samplerate", "numexpr", "numba", "tensorly", "hypothesis", "pytest", "aspsim", "abc"]
 
 
 # Add any paths that contain templates here, relative to this directory.

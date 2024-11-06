@@ -1,15 +1,12 @@
 import numpy as np
-import pathlib
-import json
-import yaml
 import scipy.signal as spsig
+
+import aspcore.filterdesign as fd
+import aspcore.fouriertransform as ft
 
 import aspsim.room.generatepoints as gp
 
-import aspcol.pseq as pseq
 import aspcol.soundfieldestimation as sfe
-import aspcol.filterdesign as fd
-import aspcol.fouriertransform as ft
 import aspcol.movingmicrophone as mm
 import aspcol.sphericalharmonics as shd
 import aspcol.plot as aspplot   
