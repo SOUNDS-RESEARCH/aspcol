@@ -22,6 +22,7 @@ dependencies = [
     "numba",
     "wigners",
     "jax",
+    "matplotlib",
 ]
 
 [project.optional-dependencies]
@@ -29,6 +30,10 @@ test = [
     "pytest",
     "hypothesis",
     "cvxpy",
+    "aspsim",
+]
+
+examples = [
     "aspsim",
 ]
 
