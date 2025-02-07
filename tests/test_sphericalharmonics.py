@@ -15,7 +15,7 @@ import aspcore.fouriertransform as ft
 import aspcol.sphericalharmonics as sph
 import aspcol.utilities as utils
 
-import aspcol.unittests.plot_methods as plm
+import plot_methods as plm
 import aspcol.kernelinterpolation as ki
 
 import aspcol.planewaves as pw
