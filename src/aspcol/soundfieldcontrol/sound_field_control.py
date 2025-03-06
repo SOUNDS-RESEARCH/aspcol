@@ -97,7 +97,7 @@ def spatial_cov_freq_kernel(krr_params, pos_mic, wave_num, integral_pos_func, in
     """Calculates spatial covariance matrices in the frequency domain using kernel interpolation
 
     Assumes that the kernel function is diagonal, i.e. that there are no cross-terms between the sources. Both standard KRR and 
-    directionally weighted KRR is supported.
+    directionally weighted KRR is therefore supported.
     
     Parameters
     ----------
@@ -108,6 +108,18 @@ def spatial_cov_freq_kernel(krr_params, pos_mic, wave_num, integral_pos_func, in
         positions of the microphones
     wave_num : ndarray of shape (num_freqs)
         the wavenumbers of all considered frequencies, defined as 2 pi f / c, where c is the speed of sound
+    integral_pos_func : function or np.ndarray of shape (num_samples, 3)
+        function that generates random positions for the Monte Carlo integration. The function should take a single integer argument
+        and return a ndarray of shape (num_samples, 3) with the positions. 
+        If an ndarray is provided, it is assumed to be the positions themselves. The argument num_mc_samples is then ignored.
+    integral_volume : float
+        the volume of the region where the Monte Carlo integration is performed
+    num_mc_samples : int
+        the number of samples to use for the Monte Carlo integration
+    kernel_func : function, optional
+        the kernel function to use for the interpolation. If None, the kernel function is assumed to be the Helmholtz kernel
+    kernel_args : list, optional
+        additional arguments to the kernel
 
     Returns
     -------
@@ -116,11 +128,8 @@ def spatial_cov_freq_kernel(krr_params, pos_mic, wave_num, integral_pos_func, in
     if kernel_func is None:
         assert kernel_args is None, "If kernel_func is None, kernel_args must also be None"
         return _spatial_cov_freq_kernel_diffuse(krr_params, pos_mic, wave_num, integral_pos_func, integral_volume, num_mc_samples)
-        #kernel_func = ki.kernel_helmholtz_3d
 
     assert krr_params.ndim == 3
-    num_source = krr_params.shape[1]
-    num_freq = krr_params.shape[2]
 
     #currently assumes we can use the same kernel for all sources, i.e. both kernel and mic positions are the same
     def integrand(r):
@@ -129,21 +138,19 @@ def spatial_cov_freq_kernel(krr_params, pos_mic, wave_num, integral_pos_func, in
             kappa = kappa[:,None,:,:]
         kappa = np.moveaxis(kappa, -2, -1)
         cov_mat = kappa[:,:,:,None,None,:] * kappa[:,None,None,:,:,:].conj()
-        #cov_mat = np.moveaxis(cov_mat, -2, -1)
         return cov_mat
-        #return kappa[...,None,:] * kappa[...,None,:,:].conj()
 
-    num_mic = pos_mic.shape[0]
-    integral_val = mc.integrate(integrand, integral_pos_func, num_mc_samples, integral_volume)
-    #integral_val += 1e-10*np.eye(num_mic)[None,:,:]
-    #weighting_mat = np.transpose(P,(0,2,1)).conj() @ integral_val @ P
+    if callable(integral_pos_func):
+        integral_val = mc.integrate(integrand, integral_pos_func, num_mc_samples, integral_volume)
+    else:
+        integral_val = np.mean(integrand(integral_pos_func), axis=-1) * integral_volume
 
     R = np.sum(np.sum(krr_params[:,:,:,None,None] * integral_val, axis=2) * krr_params[:,None,:,:].conj(), axis=-1)
     R /= integral_volume #Normalization so that it corresponds to the space-discrete covariance
     return R
 
 
-def _spatial_cov_freq_kernel_diffuse(krr_params, pos_mic, wave_num, integral_pos_func, integral_volume, num_mc_samples, kernel_func=None, kernel_args=None):
+def _spatial_cov_freq_kernel_diffuse(krr_params, pos_mic, wave_num, integral_pos_func, integral_volume, num_mc_samples):
     """Calculates spatial covariance matrices in the frequency domain using kernel interpolation
     
     Parameters
@@ -155,20 +162,23 @@ def _spatial_cov_freq_kernel_diffuse(krr_params, pos_mic, wave_num, integral_pos
         positions of the microphones
     wave_num : ndarray of shape (num_freqs)
         the wavenumbers of all considered frequencies, defined as 2 pi f / c, where c is the speed of sound
+    integral_pos_func : function or np.ndarray of shape (num_samples, 3)
+        function that generates random positions for the Monte Carlo integration. The function should take a single integer argument
+        and return a ndarray of shape (num_samples, 3) with the positions. 
+        If an ndarray is provided, it is assumed to be the positions themselves. The argument num_mc_samples is then ignored.
+    integral_volume : float
+        the volume of the region where the Monte Carlo integration is performed
+    num_mc_samples : int
+        the number of samples to use for the Monte Carlo integration
 
-    
     Returns
     -------
     spatial_cov
     """
-    if kernel_func is None:
-        kernel_func = ki.kernel_helmholtz_3d
-    if kernel_args is None:
-        kernel_args = []
+    kernel_func = ki.kernel_helmholtz_3d
+    kernel_args = []
 
     assert krr_params.ndim == 3
-    num_source = krr_params.shape[1]
-    num_freq = krr_params.shape[2]
 
     #currently assumes we can use the same kernel for all sources, i.e. both kernel and mic positions are the same
     def integrand(r):
@@ -176,10 +186,10 @@ def _spatial_cov_freq_kernel_diffuse(krr_params, pos_mic, wave_num, integral_pos
         kappa = np.moveaxis(kappa, -2, -1)
         return kappa[:,:,None,:] * kappa[:,None,:,:].conj()
 
-    num_mic = pos_mic.shape[0]
-    integral_val = mc.integrate(integrand, integral_pos_func, num_mc_samples, integral_volume)
-    #integral_val += 1e-10*np.eye(num_mic)[None,:,:]
-    #weighting_mat = np.transpose(P,(0,2,1)).conj() @ integral_val @ P
+    if callable(integral_pos_func):
+        integral_val = mc.integrate(integrand, integral_pos_func, num_mc_samples, integral_volume)
+    else:
+        integral_val = np.mean(integrand(integral_pos_func), axis=-1) * integral_volume
 
     R = krr_params @ integral_val @ np.moveaxis(krr_params, 1,2).conj()
     R /= integral_volume #Normalization so that it corresponds to the space-discrete covariance

@@ -30,15 +30,8 @@ except for the inclusion of an additional factor (-1)^m, i.e. the Condon-Shortle
 same factor is included in Scipy's ALP but not Martin ALP, the spherical harmonic definitions are equivalent. 
 """
 import numpy as np
-import itertools as it
-import scipy.special as special
-
 import aspcol.kernelinterpolation as ki
-import aspcol.utilities as utils
 import aspcol.sphericalharmonics as shd
-
-import wigners
-
 
 # ====================== SHD ESTIMATION ======================
 
@@ -230,56 +223,6 @@ def apply_measurement_conj(vec, pos, exp_center, max_order, wave_num, dir_coeffs
     dir_translated = shd.translate_shd_coeffs(directivity, rel_pos, wave_num, max_order)
     return np.sum(dir_translated * vec[:,:,None], axis=1)
 
-def translated_inner_product(pos1, pos2, dir_coeffs1, dir_coeffs2, wave_num):
-    """Computes the inner product of translated sequences of coefficients
-    
-    $\\langle T(r_1 - r_2, \\omega_m) \\gamma_2(\\omega_m), \\gamma_1(\\omega_m) \\rangle$
-    
-    Parameters
-    ----------
-    pos1 : ndarray of shape (num_pos1, 3)
-        positions of the first set of measurement points
-    pos2 : ndarray of shape (num_pos2, 3)
-        positions of the second set of measurement points
-    dir_coeffs1 : ndarray of shape (num_freqs, num_coeffs1) or (num_freqs, num_pos1, num_coeffs1)
-        coefficients of the directivity function for the first set of measurement points
-    dir_coeffs2 : ndarray of shape (num_freqs, num_coeffs2) or (num_freqs, num_pos1, num_coeffs1)
-        coefficients of the directivity function for the second set of mea surement points
-    wave_num : ndarray of shape (num_freqs,)
-        wavenumber, defined as w / c where w is the angular frequency
-        and c is the speed of sound.
-
-    Returns
-    -------
-    psi : ndarray of shape (num_freqs, num_pos1, num_pos2)
-        inner product of the translated directivity functions
-    """
-    assert pos1.ndim == 2 and pos2.ndim == 2
-    assert pos1.shape[-1] == 3 and pos2.shape[-1] == 3
-    num_pos1 = pos1.shape[0]
-    num_pos2 = pos2.shape[0]
-
-    assert wave_num.ndim == 1
-    num_freqs = wave_num.shape[0]
-    
-    if dir_coeffs1.ndim == 2:
-        dir_coeffs1 = dir_coeffs1[:,None,:]
-    if dir_coeffs2.ndim == 2:
-        dir_coeffs2 = dir_coeffs2[:,None,:]
-    assert dir_coeffs1.ndim == 3 and dir_coeffs2.ndim == 3
-    assert dir_coeffs1.shape[1] == num_pos1 or dir_coeffs1.shape[1] == 1
-    assert dir_coeffs2.shape[1] == num_pos2 or dir_coeffs2.shape[1] == 1
-    assert dir_coeffs1.shape[0] == num_freqs or dir_coeffs1.shape[0] == 1
-    assert dir_coeffs2.shape[0] == num_freqs or dir_coeffs2.shape[0] == 1
-
-    max_order1 = shd.shd_max_order(dir_coeffs1.shape[-1])
-
-    pos_diff = pos1[:,None,:] - pos2[None,:,:]
-
-    translated_coeffs2 = np.stack([shd.translate_shd_coeffs(dir_coeffs2, pos_diff[m,:,:], wave_num, max_order1) for m in range(num_pos1)], axis=1)
-    inner_product_matrix = np.sum(translated_coeffs2 * dir_coeffs1.conj()[:,:,None,:], axis=-1)
-    return inner_product_matrix
-
 def inf_dimensional_shd(p, pos, exp_center, max_order, wave_num, reg_param, dir_coeffs=None):
     """Estimates the spherical harmonic coefficients with Bayesian inference, allows for arbitrary directivity
     
@@ -313,7 +256,7 @@ def inf_dimensional_shd(p, pos, exp_center, max_order, wave_num, reg_param, dir_
     assert exp_center.shape == (3,) or exp_center.shape == (1, 3)
     num_mic = pos.shape[0]
 
-    psi = translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, wave_num)
+    psi = shd.translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, wave_num)
     psi_plus_noise_cov = psi + np.eye(num_mic) * reg_param
     regression_vec = np.linalg.solve(psi_plus_noise_cov,  p)
 

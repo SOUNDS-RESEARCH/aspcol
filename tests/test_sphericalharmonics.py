@@ -19,7 +19,7 @@ import plot_methods as plm
 import aspcol.kernelinterpolation as ki
 
 import aspcol.planewaves as pw
-import aspcol.movingmicrophone as mm
+import aspcol.soundfieldestimation as sfe
 
 import wigner
 import wigners
@@ -641,8 +641,8 @@ def test_translation_operator_against_jax_compiled_implementation():
     max_order_input = 2
     max_order_output = 2
 
-    gaunt = mm.calculate_gaunt_set(max_order_input, max_order_output)
-    T_jax = mm.translation_operator(pos, wave_num, max_order_input, max_order_output, gaunt)
+    gaunt = sfe.calculate_gaunt_set(max_order_input, max_order_output)
+    T_jax = sfe.translation_operator(pos, wave_num, max_order_input, max_order_output, gaunt)
     T = sph.translation_operator(pos, wave_num, max_order_input, max_order_output)
 
     T_jax = T_jax[0,0,:,:]
@@ -1239,7 +1239,7 @@ def __temp_gen_data():
 
 def test_temp_ki():
     import aspcol.soundfieldestimation as sfe
-    import aspcol.unittests.plot_methods as plm
+    import plot_methods as plm
     import aspcol.plot as aspplot
 
     pos_mic, pos_eval, p_mic, p_eval, freqs, sim_info = __temp_gen_data()

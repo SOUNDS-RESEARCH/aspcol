@@ -17,7 +17,7 @@ import aspsim.diagnostics.diagnostics as dg
 import aspsim.saveloadsession as sls
 
 
-import dynamicsfutilities as dsu
+import _dynamicsfutilities as dsu
 
 
 def normalize_vector(v):

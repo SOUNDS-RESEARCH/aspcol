@@ -7,15 +7,12 @@ import aspcore.fouriertransform as ft
 import aspsim.room.generatepoints as gp
 
 import aspcol.soundfieldestimation as sfe
-import aspcol.movingmicrophone as mm
 import aspcol.sphericalharmonics as shd
 import aspcol.plot as aspplot   
 
 import _exp_funcs_ideal_sampling as exis
 import sys
 
-sys.path.append("C:/research/papers/2024_icassp_moving_mic_sf_estimation/code")
-import plots as fplot
 
 
 def run_exp(fig_folder):
@@ -60,14 +57,14 @@ def run_exp(fig_folder):
     real_freqs = real_freqs[::ds_factor]
 
     dir_coeffs = shd.directivity_linear(0.5, mic_direction)[None,:,:] #* np.ones((pos_dyn.shape[0], 1))
-    estimates["cardioid jax"] = mm.inf_dimensional_shd_dynamic_compiled(p_dyn_cardioid, pos_dyn_cardioid, arrays["eval"].pos, sequence, sim_info.samplerate, sim_info.c, reg_param_td, dir_coeffs)
+    estimates["cardioid jax"] = sfe.inf_dimensional_shd_dynamic_compiled(p_dyn_cardioid, pos_dyn_cardioid, arrays["eval"].pos, sequence, sim_info.samplerate, sim_info.c, reg_param_td, dir_coeffs)
     estimates["proposed omni"] = sfe.est_inf_dimensional_shd_dynamic(p_dyn, pos_dyn, arrays["eval"].pos, sequence, sim_info.samplerate, sim_info.c, reg_param_td)
 
     estimates["nearest neighbour"] = sfe.pseq_nearest_neighbour(p, sequence[:seq_len], arrays["mic"].pos, arrays["eval"].pos)
     estimates["kernel interpolation"] = sfe.est_ki_diffuse(p, sequence[:seq_len], arrays["mic"].pos, arrays["eval"].pos, sim_info.samplerate, sim_info.c, reg_param)
 
 
-    fplot.soundfield_estimation_comparison(arrays, estimates, rir_eval_freq, real_freqs, fig_folder, shape="circle", center=center, num_ls=num_ls, output_method=OUTPUT_METHOD)
+    aspplot.soundfield_estimation_comparison(arrays, estimates, rir_eval_freq, real_freqs, fig_folder, shape="circle", center=center, num_ls=num_ls, output_method=OUTPUT_METHOD)
 
 
 def highpass_microphone_signal(mic_sig, filter_order, samplerate, filter_below):

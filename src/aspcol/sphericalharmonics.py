@@ -494,6 +494,8 @@ def _linearity_formula_lower_limit(l1, l2, m1, m2):
 
 
 
+
+
 def gaunt_coefficient(l1, m1, l2, m2, l3):
     """Gaunt coefficient G(l1, m1, l2, m2, l3)
     
@@ -590,6 +592,59 @@ def _all_gaunt_parameters(max_order):
                         yield l1, m1, l2, m2, l3
 
 
+
+
+
+
+def translated_inner_product(pos1, pos2, dir_coeffs1, dir_coeffs2, wave_num):
+    """Computes the inner product of translated sequences of coefficients
+    
+    $\\langle T(r_1 - r_2, \\omega_m) \\gamma_2(\\omega_m), \\gamma_1(\\omega_m) \\rangle$
+    
+    Parameters
+    ----------
+    pos1 : ndarray of shape (num_pos1, 3)
+        positions of the first set of measurement points
+    pos2 : ndarray of shape (num_pos2, 3)
+        positions of the second set of measurement points
+    dir_coeffs1 : ndarray of shape (num_freqs, num_coeffs1) or (num_freqs, num_pos1, num_coeffs1)
+        coefficients of the directivity function for the first set of measurement points
+    dir_coeffs2 : ndarray of shape (num_freqs, num_coeffs2) or (num_freqs, num_pos1, num_coeffs1)
+        coefficients of the directivity function for the second set of mea surement points
+    wave_num : ndarray of shape (num_freqs,)
+        wavenumber, defined as w / c where w is the angular frequency
+        and c is the speed of sound.
+
+    Returns
+    -------
+    psi : ndarray of shape (num_freqs, num_pos1, num_pos2)
+        inner product of the translated directivity functions
+    """
+    assert pos1.ndim == 2 and pos2.ndim == 2
+    assert pos1.shape[-1] == 3 and pos2.shape[-1] == 3
+    num_pos1 = pos1.shape[0]
+    num_pos2 = pos2.shape[0]
+
+    assert wave_num.ndim == 1
+    num_freqs = wave_num.shape[0]
+    
+    if dir_coeffs1.ndim == 2:
+        dir_coeffs1 = dir_coeffs1[:,None,:]
+    if dir_coeffs2.ndim == 2:
+        dir_coeffs2 = dir_coeffs2[:,None,:]
+    assert dir_coeffs1.ndim == 3 and dir_coeffs2.ndim == 3
+    assert dir_coeffs1.shape[1] == num_pos1 or dir_coeffs1.shape[1] == 1
+    assert dir_coeffs2.shape[1] == num_pos2 or dir_coeffs2.shape[1] == 1
+    assert dir_coeffs1.shape[0] == num_freqs or dir_coeffs1.shape[0] == 1
+    assert dir_coeffs2.shape[0] == num_freqs or dir_coeffs2.shape[0] == 1
+
+    max_order1 = shd_max_order(dir_coeffs1.shape[-1])
+
+    pos_diff = pos1[:,None,:] - pos2[None,:,:]
+
+    translated_coeffs2 = np.stack([translate_shd_coeffs(dir_coeffs2, pos_diff[m,:,:], wave_num, max_order1) for m in range(num_pos1)], axis=1)
+    inner_product_matrix = np.sum(translated_coeffs2 * dir_coeffs1.conj()[:,:,None,:], axis=-1)
+    return inner_product_matrix
 
 
 
