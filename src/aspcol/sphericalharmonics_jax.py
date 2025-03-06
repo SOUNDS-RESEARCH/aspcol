@@ -17,7 +17,7 @@ jax.config.update("jax_enable_x64", True)
 import jax.numpy as jnp
 #jax.config.update("jax_disable_jit", True)
 #jax.config.update("jax_debug_nans", True)
-
+import aspcol.sphericalharmonics as shd_numpy
 
 
 
@@ -259,7 +259,7 @@ def _calculate_gaunt_set(max_order_input, max_order_output):
         for in_idx, (nu, mu) in enumerate(zip(orders_input, degrees_input)):
             for q in range(n+nu+1):
                 if np.abs(mu-m) <= q:
-                    g = shd.gaunt_coefficient(n, m, nu, -mu, q)
+                    g = shd_numpy.gaunt_coefficient(n, m, nu, -mu, q)
                     gaunt[out_idx, in_idx, q] = g
     return gaunt
 
