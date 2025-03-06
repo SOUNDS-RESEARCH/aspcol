@@ -11,10 +11,10 @@ import json
 import aspcore.fouriertransform as ft
 
 import tikzplotlib
-# try:
-#     import tikzplotlib
-# except ImportError:
-#     tikzplotlib = None
+try:
+    import tikzplotlib
+except ImportError:
+    tikzplotlib = None
 
 def _tikzplotlib_fix_ncols(obj):
     """Workaround for matplotlib 3.6 renamed legend's _ncol to _ncols, which breaks tikzplotlib
@@ -120,23 +120,20 @@ def set_basic_plot_look(ax):
 
 
 
-
-
-
-
-
 def soundfield_estimation_comparison(
-        arrays, 
+        pos_est, 
         p_est, 
         p_true, 
         freqs, 
         fig_folder,
-        shape="", 
-        center=None, 
+        shape="",
+        center=None,
         num_ls=1, 
         output_method="pdf", 
+        pos_mic = None,
         images=None, 
         image_true=None,
+        pos_image=None,
         remove_freqs_below=0,
         num_examples = 4,
     ):
@@ -146,8 +143,8 @@ def soundfield_estimation_comparison(
 
     Parameters
     ----------
-    arrays : dict
-        Dictionary containing the arrays used in the simulation.
+    pos_est : np.ndarray
+        Positions of the estimated sound field. Shape (num_positions, spatial_dim)
     p_est : np.ndarray
         Estimated sound field. Shape (num_freqs, num_ls, num_positions) or (num_freqs, num_positions)
     p_true : np.ndarray
@@ -170,14 +167,21 @@ def soundfield_estimation_comparison(
         If 'pdf', the plot is saved as a pdf file.
         If 'svg', the plot is saved as a svg file.
         If 'none', the plot is not saved. The default is "pdf".
+    pos_mic : np.ndarray, optional
+        Positions of the microphones. Shape (num_mics, spatial_dim)
+        The positions are added to the sound field images if supplied. The default is None.
     images : np.ndarray, optional
         Estimated sound field on a grid array appropriate for creating a sound field image. Shape (num_freqs, num_image)
     image_true : np.ndarray, optional
         True sound field on a grid array appropriate for creating a sound field image. Shape (num_freqs, num_image)
+        If supplied along with images, the error between the images and the true value will be shown. 
+    pos_image : np.ndarray, optional
+        Positions of the image array. Shape (num_image, spatial_dim)
     remove_freqs_below : float, optional
         Remove frequencies below this value. The default is 0.
     """
     p_all, p_est, p_true = _cleanup_args(p_est, p_true, num_ls)
+    fig_folder.mkdir(exist_ok=True, parents=True)
 
     p_all_orig = p_all
     p_est_orig = p_est
@@ -210,21 +214,32 @@ def soundfield_estimation_comparison(
 
 
     if shape == "rectangle":
-        compare_soundfields_all_freq(p_all, p_est, p_true, freqs, arrays["eval"].pos, arrays["mic"].pos, fig_folder, output_method=output_method, num_examples=num_examples)
-        compare_soundfields_all_time(p_all_orig, p_est_orig, p_true_orig, freqs_orig, arrays["eval"].pos, arrays["mic"].pos, fig_folder, output_method=output_method, num_examples=num_examples)
+        rectangle_folder = fig_folder / "rectangle"
+        rectangle_folder.mkdir(exist_ok=True)
+        compare_soundfields_all_freq(p_all, p_est, p_true, freqs, pos_est, rectangle_folder, pos_mic=pos_mic, output_method=output_method, num_examples=num_examples)
+        compare_soundfields_all_time(p_all_orig, p_est_orig, p_true_orig, freqs_orig, pos_est, rectangle_folder, pos_mic=pos_mic, output_method=output_method, num_examples=num_examples)
 
         #compare_soundfields(p_all, freqs, arrays, fig_folder)
         #compare_soundfield_error(p_est, p_true, freqs, arrays, fig_folder)
     elif shape == "circle":
         assert center is not None
-        error_per_angle(p_est, p_true, freqs, arrays, center, fig_folder, output_method=output_method)
-        estimates_per_angle(p_all, freqs, arrays, center, fig_folder, output_method=output_method)
+        error_per_angle(pos_est, p_est, p_true, center, fig_folder, output_method=output_method)
+        estimates_per_angle(pos_est, p_all, freqs, center, fig_folder, output_method=output_method)
 
     if images is not None:
-        assert image_true is not None
-        im_all, im_est, im_true = _cleanup_args(images, image_true)
-        compare_soundfields_all_freq(im_all, im_est, im_true, freqs, arrays["image"].pos, arrays["mic"].pos, fig_folder, output_method=output_method, num_examples=num_examples)
-        compare_soundfields_all_time(im_all, im_est, im_true, freqs, arrays["image"].pos, arrays["mic"].pos, fig_folder, output_method=output_method, num_examples=num_examples)
+        assert pos_image is not None
+        if image_true is None:
+            image_true_placeholder = images[list(images.keys())[0]]
+            im_all, im_est, _ = _cleanup_args(images, image_true_placeholder, num_ls)
+            im_all.pop("true")
+            im_true = None
+        else:
+            im_all, im_est, im_true = _cleanup_args(images, image_true, num_ls)
+        image_folder = fig_folder / "images"
+        image_folder.mkdir(exist_ok=True)
+
+        compare_soundfields_all_freq(im_all, im_est, im_true, freqs, pos_image, image_folder, pos_mic=pos_mic, output_method=output_method, num_examples=num_examples, num_ls=num_ls)
+        compare_soundfields_all_time(im_all, im_est, im_true, freqs, pos_image, image_folder, pos_mic=pos_mic, output_method=output_method, num_examples=num_examples, num_ls=num_ls)
 
 
 
@@ -232,6 +247,29 @@ def soundfield_estimation_comparison(
 
 
 def _cleanup_args(p_est, p_true, num_ls = 1):
+    """Cleans up the input arguments to a standardized format for the plotting functions
+    
+    The arguments are assumed to be frequency-domain signals
+
+    Parameters
+    ----------
+    p_est : np.ndarray or dict of np.ndarrays
+        Each ndarray should have the shape (num_freqs, num_ls, num_positions) or (num_freqs, num_positions)
+    p_true : np.ndarray
+        True sound field. Should be the same shape as p_est, but only one is supplied. 
+    num_ls : int, optional
+        Number of loudspeakers. The default is 1. Supply this if the sound field values contains data
+        from multiple loudspeakers. 
+
+    Returns
+    -------
+    p_all : dict of np.ndarrays
+        Dictionary containing the cleaned up estimates as well as the true sound field
+    p_est : dict of np.ndarrays
+        Dictionary containing the cleaned up estimates
+    p_true : np.ndarray
+        The cleaned up true sound field
+    """
     if isinstance(p_est, np.ndarray):
         p_est = {"estimate" : p_est}
     for name, est in p_est.items():
@@ -328,9 +366,8 @@ def error_per_sample(p_est, p_true, fig_folder, output_method="pdf"):
     set_basic_plot_look(ax)
     save_plot(output_method, fig_folder, "error_per_sample")
 
-def error_per_angle(p_est, p_true, freqs, arrays, center, fig_folder, output_method="pdf"):
-    pos = arrays["eval"].pos
-    angle = np.arctan2(pos[:,1]-center[0,1], pos[:,0]-center[0,0])
+def error_per_angle(pos_est, p_est, p_true, center, fig_folder, output_method="pdf"):
+    angle = np.arctan2(pos_est[:,1]-center[0,1], pos_est[:,0]-center[0,0])
     index_array = np.argsort(angle)
 
     sorted_angle = angle[index_array]
@@ -349,9 +386,8 @@ def error_per_angle(p_est, p_true, freqs, arrays, center, fig_folder, output_met
     set_basic_plot_look(ax)
     save_plot(output_method, fig_folder, "error_per_angle")
 
-def estimates_per_angle(p_all, freqs, arrays, center, fig_folder, output_method="pdf", num_examples=5):
-    pos = arrays["eval"].pos
-    angle = np.arctan2(pos[:,1]-center[0,1], pos[:,0]-center[0,0])
+def estimates_per_angle(pos_est, p_all, freqs, arrays, center, fig_folder, output_method="pdf", num_examples=5):
+    angle = np.arctan2(pos_est[:,1]-center[0,1], pos_est[:,0]-center[0,0])
     index_array = np.argsort(angle)
 
     sorted_angle = angle[index_array]
@@ -445,7 +481,9 @@ def mse(p_est, p_true, fig_folder, num_ls = 1):
             json.dump(mse_db, f, indent=4)
 
 
-def error_per_frequency(p_est, p_true, freqs, fig_folder, output_method="pdf", plot_name=None):
+def error_per_frequency(p_est, p_true, freqs, fig_folder, output_method="pdf", plot_name=""):
+    """Plots the normalized mean square error as a function of frequency
+    """
     fig, ax = plt.subplots(1,1, figsize = (8,4))
     for name, est in p_est.items():
         square_error = np.abs(est - p_true)**2
@@ -457,27 +495,55 @@ def error_per_frequency(p_est, p_true, freqs, fig_folder, output_method="pdf", p
     plt.legend(loc="best")
     set_basic_plot_look(ax)
 
-    if plot_name is None:
-        plot_name = f"error_per_frequency"
-    else:
-        plot_name = f"error_per_frequency_{plot_name}"
+    plot_name = f"error_per_frequency{plot_name}"
     save_plot(output_method, fig_folder, plot_name)
 
-def compare_soundfields_all_freq(p_all, p_est, p_true, freqs, pos_im, pos_mic, fig_folder, output_method="pdf", num_examples=5):
-    compare_soundfields({name : np.abs(p) for name, p in p_all.items()}, freqs, pos_im, pos_mic, fig_folder, plot_name="abs", output_method=output_method, only_positive=True, num_examples=num_examples)
-    compare_soundfields({name : np.real(p) for name, p in p_all.items()}, freqs, pos_im, pos_mic, fig_folder, plot_name="real", output_method=output_method, num_examples=num_examples)
-    compare_soundfields({name : np.imag(p) for name, p in p_all.items()}, freqs, pos_im, pos_mic, fig_folder, plot_name="imag", output_method=output_method, num_examples=num_examples)
-    compare_soundfields({name : 10*np.log10(np.abs(p_true - p)**2) for name, p in p_est.items()}, freqs, pos_im, pos_mic, fig_folder, plot_name="square_error", output_method=output_method, only_positive=True, num_examples=num_examples)
-    compare_soundfields({name : 10*np.log10(np.mean(np.abs(p_true - p)**2, axis=0, keepdims=True)) 
-                         for name, p in p_est.items()}, np.zeros((1)), pos_im, pos_mic, fig_folder, plot_name="mse", output_method=output_method, only_positive=True, num_examples=1)
-    
-def compare_soundfields_all_time(p_all, p_est, p_true, freqs, pos_im, pos_mic, fig_folder, output_method="pdf", num_examples=5):
-    if freqs.shape[-1] > 10: # if there's a reasonable amount of frequencies, show time domain responses
-        ir_all = {name : ft.irfft(p) for name, p in p_all.items()}
-        compare_time_domain_soundfields(ir_all, pos_im, pos_mic, fig_folder, plot_name="timedomain", output_method=output_method, num_examples=num_examples)
-        
+def compare_soundfields_all_freq(p_all, p_est, p_true, freqs, pos_im, fig_folder, pos_mic=None, output_method="pdf", num_examples=5, plot_name="", num_ls=1):
+    if num_ls > 1:
+        if p_true is not None:
+            compare_soundfields({name : 10*np.log10(np.mean(np.abs(p_true - p)**2, axis=1)) for name, p in p_est.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_square_error", output_method=output_method, only_positive=True, num_examples=num_examples)
+            compare_soundfields({name : 10*np.log10(np.mean(np.abs(p_true - p)**2, axis=(0,1)))[None,...] 
+                                for name, p in p_est.items()}, np.zeros((1)), pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_mse", output_method=output_method, only_positive=True, num_examples=1)
+    for l in range(num_ls):
+        if num_ls > 1:
+            p_all_l = {name : p[:,l,:] for name, p in p_all.items()}
+            p_est_l = {name : p[:,l,:] for name, p in p_est.items()}
+            p_true_l = p_true[:,l,:]
+            extra_name = f"_src_{l}"
+        else:
+            p_all_l = p_all
+            p_est_l = p_est
+            p_true_l = p_true
+            extra_name = ""
+        _single_src_soundfield_comparison(p_all_l, p_est_l, p_true_l, freqs, pos_im, fig_folder, pos_mic=pos_mic, output_method=output_method, num_examples=num_examples, plot_name=f"{plot_name}{extra_name}")
+            #compare_soundfields({name : 10*np.log10(np.abs(p_true[:,l,:] - p[:,l,:])**2) for name, p in p_est.items()}, freqs, pos_im, pos_mic, fig_folder, plot_name=f"{plot_name}_square_error_src_{l}", output_method=output_method, only_positive=True, num_examples=num_examples)
 
-def compare_time_domain_soundfields(ir_all, pos_im, pos_mic, fig_folder, plot_name="", num_examples = 5, output_method="pdf", only_positive=False):
+def _single_src_soundfield_comparison(p_all, p_est, p_true, freqs, pos_im, fig_folder, pos_mic=None, output_method="pdf", num_examples=5, plot_name=""):
+    compare_soundfields({name : np.abs(p) for name, p in p_all.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_abs", output_method=output_method, only_positive=True, num_examples=num_examples)
+    compare_soundfields({name : np.real(p) for name, p in p_all.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_real", output_method=output_method, num_examples=num_examples)
+    compare_soundfields({name : np.imag(p) for name, p in p_all.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_imag", output_method=output_method, num_examples=num_examples)
+    if p_true is not None:
+        compare_soundfields({name : 10*np.log10(np.abs(p_true - p)**2) for name, p in p_est.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_square_error", output_method=output_method, only_positive=True, num_examples=num_examples)
+        compare_soundfields({name : 10*np.log10(np.mean(np.abs(p_true - p)**2, axis=0, keepdims=True)) 
+                            for name, p in p_est.items()}, np.zeros((1)), pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_mse", output_method=output_method, only_positive=True, num_examples=1)
+
+
+    
+def compare_soundfields_all_time(p_all, p_est, p_true, freqs, pos_im, fig_folder, pos_mic=None, output_method="pdf", num_examples=5, num_ls = 1):
+    if freqs.shape[-1] > 10: # if there's a reasonable amount of frequencies, show time domain responses
+        for l in range(num_ls):
+            if num_ls > 1:
+                p_all_l = {name : p[:,l,:] for name, p in p_all.items()}
+                extra_name = f"_src_{l}"
+            else:
+                p_all_l = p_all
+                extra_name = ""
+        
+            ir_all = {name : ft.irfft(p) for name, p in p_all_l.items()}
+            compare_time_domain_soundfields(ir_all, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"timedomain{extra_name}", output_method=output_method, num_examples=num_examples)
+            
+
+def compare_time_domain_soundfields(ir_all, pos_im, fig_folder, pos_mic=None, plot_name="", num_examples = 5, output_method="pdf", only_positive=False):
     num_samples = ir_all[list(ir_all.keys())[0]].shape[-1]
     if ir_all[list(ir_all.keys())[0]].ndim == 3:
         ir_all = {name : np.squeeze(ir, axis=0) for name, ir in ir_all.items()}
@@ -502,7 +568,9 @@ def compare_time_domain_soundfields(ir_all, pos_im, pos_mic, fig_folder, plot_na
         if only_positive:
             cmap="inferno"
         else:
-            v_min = -v_max
+            max_abs_value = np.max((np.abs(v_max), np.abs(v_min)))
+            v_min = -max_abs_value
+            v_max = max_abs_value
             cmap="RdBu"
 
         for i, (name, ir) in enumerate(ir_all.items()):
@@ -512,7 +580,7 @@ def compare_time_domain_soundfields(ir_all, pos_im, pos_mic, fig_folder, plot_na
         save_plot(output_method, fig_folder, f"soundfield_td_{plot_name}_{n}")
 
 
-def compare_soundfields(p_all, freqs, pos_im, pos_mic, fig_folder, plot_name="", num_examples = 5, output_method="pdf", only_positive=False):
+def compare_soundfields(p_all, freqs, pos_im, fig_folder, pos_mic=None, plot_name="", num_examples = 5, output_method="pdf", only_positive=False):
     num_freqs = len(freqs)
 
     freq_idxs = _get_freq_example_idxs(num_freqs, num_examples)
