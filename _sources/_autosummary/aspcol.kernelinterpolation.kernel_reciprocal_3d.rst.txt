@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.kernel\_reciprocal\_3d
+=================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: kernel_reciprocal_3d

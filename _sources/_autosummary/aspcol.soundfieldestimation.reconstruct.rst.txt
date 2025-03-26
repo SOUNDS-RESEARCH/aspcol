@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.reconstruct
+=======================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: reconstruct

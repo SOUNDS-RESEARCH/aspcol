@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation\_jax.diffuse\_kernel
+===============================================
+
+.. currentmodule:: aspcol.kernelinterpolation_jax
+
+.. autofunction:: diffuse_kernel

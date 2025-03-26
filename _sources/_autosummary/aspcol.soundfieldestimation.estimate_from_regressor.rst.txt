@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.estimate\_from\_regressor
+=====================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: estimate_from_regressor

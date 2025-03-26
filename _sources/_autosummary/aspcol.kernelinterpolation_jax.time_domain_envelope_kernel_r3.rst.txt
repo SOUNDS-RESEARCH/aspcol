@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation\_jax.time\_domain\_envelope\_kernel\_r3
+==================================================================
+
+.. currentmodule:: aspcol.kernelinterpolation_jax
+
+.. autofunction:: time_domain_envelope_kernel_r3

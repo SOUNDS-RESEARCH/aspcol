@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.multifreq\_diffuse\_kernel
+=====================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: multifreq_diffuse_kernel

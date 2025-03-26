@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.time\_domain\_diffuse\_kernel
+========================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: time_domain_diffuse_kernel

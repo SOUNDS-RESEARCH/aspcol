@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.sum\_pow\_of\_mat
+==========================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: sum_pow_of_mat

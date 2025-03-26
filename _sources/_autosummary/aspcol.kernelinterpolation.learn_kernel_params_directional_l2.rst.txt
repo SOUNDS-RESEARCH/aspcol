@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.learn\_kernel\_params\_directional\_l2
+=================================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: learn_kernel_params_directional_l2

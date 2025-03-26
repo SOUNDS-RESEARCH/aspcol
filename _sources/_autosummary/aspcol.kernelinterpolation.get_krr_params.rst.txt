@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.get\_krr\_params
+===========================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: get_krr_params

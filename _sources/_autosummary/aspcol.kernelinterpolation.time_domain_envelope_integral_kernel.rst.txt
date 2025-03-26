@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.time\_domain\_envelope\_integral\_kernel
+===================================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: time_domain_envelope_integral_kernel

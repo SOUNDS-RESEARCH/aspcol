@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.apply\_power\_vec
+==========================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: apply_power_vec

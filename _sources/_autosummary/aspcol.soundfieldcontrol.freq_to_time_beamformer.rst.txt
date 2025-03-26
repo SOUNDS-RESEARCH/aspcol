@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.freq\_to\_time\_beamformer
+===================================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: freq_to_time_beamformer

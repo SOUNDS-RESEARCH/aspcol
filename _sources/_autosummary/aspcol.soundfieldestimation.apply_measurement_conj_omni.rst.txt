@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.apply\_measurement\_conj\_omni
+==========================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: apply_measurement_conj_omni

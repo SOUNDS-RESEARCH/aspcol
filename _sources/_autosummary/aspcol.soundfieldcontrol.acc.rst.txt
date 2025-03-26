@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.acc
+============================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: acc

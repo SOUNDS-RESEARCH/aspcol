@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.translation\_operator
+===============================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: translation_operator

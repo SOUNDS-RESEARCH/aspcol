@@ -1,0 +1,47 @@
+﻿aspcol.sphericalharmonics
+=========================
+
+.. automodule:: aspcol.sphericalharmonics
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      basis_translation_3_80
+      basis_translation_3_92
+      directivity_linear
+      directivity_omni
+      gaunt_coef_lookup
+      gaunt_coefficient
+      reconstruct_pressure
+      shd_basis
+      shd_coeffs_order_degree_to_index
+      shd_max_order
+      shd_min_order
+      shd_num_coeffs
+      shd_num_degrees
+      shd_num_degrees_vector
+      translate_shd_coeffs
+      translated_inner_product
+      translation_operator
+      triple_harmonic_integral
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

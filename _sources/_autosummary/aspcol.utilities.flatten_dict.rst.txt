@@ -1,0 +1,6 @@
+aspcol.utilities.flatten\_dict
+==============================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: flatten_dict

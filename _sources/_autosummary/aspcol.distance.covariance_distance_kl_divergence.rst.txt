@@ -1,0 +1,6 @@
+aspcol.distance.covariance\_distance\_kl\_divergence
+====================================================
+
+.. currentmodule:: aspcol.distance
+
+.. autofunction:: covariance_distance_kl_divergence

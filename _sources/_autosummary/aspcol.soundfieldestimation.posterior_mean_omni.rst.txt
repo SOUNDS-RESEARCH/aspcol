@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.posterior\_mean\_omni
+=================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: posterior_mean_omni

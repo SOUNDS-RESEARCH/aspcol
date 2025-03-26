@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation\_jax.krr\_stationary\_mics
+======================================================
+
+.. currentmodule:: aspcol.soundfieldestimation_jax
+
+.. autofunction:: krr_stationary_mics

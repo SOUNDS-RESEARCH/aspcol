@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.krr\_stationary\_mics\_regularized\_simplified
+==========================================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: krr_stationary_mics_regularized_simplified
