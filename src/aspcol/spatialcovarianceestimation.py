@@ -1,4 +1,5 @@
-"""
+"""Spatial covariance estimation using kernel ridge regression
+
 IMPORTANT: The spatial covariance matrices in this module is defined as the complex conjugate of the spatial covariance matrices in soundfieldcontrol.py. This module is consistent with the definition in the paper [brunnstromSpatial2025], which is the complex conjugate of the definition in many sound zone control papers. 
 
 References
