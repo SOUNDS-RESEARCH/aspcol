@@ -10,11 +10,13 @@ API Reference
 
    aspcol.distance
    aspcol.kernelinterpolation
-   aspcol.movingmicrophone
+   aspcol.kernelinterpolation_jax
    aspcol.planewaves
    aspcol.plot
    aspcol.soundfieldcontrol
    aspcol.soundfieldestimation
+   aspcol.soundfieldestimation_jax
+   aspcol.spatialcovarianceestimation
    aspcol.sphericalharmonics
    aspcol.utilities
 
