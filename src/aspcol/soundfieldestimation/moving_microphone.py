@@ -25,7 +25,6 @@ import aspcore.fouriertransform as ft
 import aspcol.sphericalharmonics as shd
 import aspcol.utilities as util
 import aspcol.kernelinterpolation as ki
-import aspcol.soundfieldestimation.spherical_harmonics_estimation as shd_est
 
 
 def inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_param, dir_coeffs=None, verbose=False):
@@ -446,7 +445,7 @@ def estimate_from_regressor(regressor, pos, pos_eval, wave_num, dir_coeffs = Non
     num_eval = pos_eval.shape[0]
     est_sound_pressure = np.zeros(((num_real_freqs, num_eval)), dtype=complex)
     for i in range(num_eval):
-        kernel_val = shd_est.translated_inner_product(pos_eval[i:i+1,:], pos, dir_omni, dir_coeffs, wave_num)
+        kernel_val = shd.translated_inner_product(pos_eval[i:i+1,:], pos, dir_omni, dir_coeffs, wave_num)
         est_sound_pressure[:,i:i+1] = np.squeeze(kernel_val @ regressor[:,:,None], axis=-1)
     return est_sound_pressure
 
@@ -496,12 +495,12 @@ def calculate_psi(pos, dir_coeffs, k, Phi, seq_len, num_real_freqs):
         print(f"Frequency {f}, going from 1 to {num_real_freqs-2} (inclusive)")
         phi_rank1_matrix = Phi[f,:,None] * Phi[f,None,:].conj()
 
-        psi_f = np.squeeze(shd_est.translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, k[f:f+1]), axis=0) * phi_rank1_matrix
+        psi_f = np.squeeze(shd.translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, k[f:f+1]), axis=0) * phi_rank1_matrix
         psi += 2 * np.real(psi_f)
 
     # no conjugation required for zeroth frequency and the Nyquist frequency, 
     # since they will be real already for a real input sequence
-    psi += np.squeeze(np.real(shd_est.translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, k[0:1])), axis=0) * np.real_if_close(Phi[0,:,None] * Phi[0,None,:])
-    psi += np.squeeze(np.real(shd_est.translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, k[seq_len//2:seq_len//2+1])), axis=0) * np.real_if_close(Phi[seq_len//2,:,None] * Phi[seq_len//2,None,:])
+    psi += np.squeeze(np.real(shd.translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, k[0:1])), axis=0) * np.real_if_close(Phi[0,:,None] * Phi[0,None,:])
+    psi += np.squeeze(np.real(shd.translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, k[seq_len//2:seq_len//2+1])), axis=0) * np.real_if_close(Phi[seq_len//2,:,None] * Phi[seq_len//2,None,:])
     return psi
 
