@@ -40,3 +40,8 @@ examples = [
 [project.urls]
 Documentation = "https://sounds-research.github.io/aspcol/"
 Repository = "https://github.com/SOUNDS-RESEARCH/aspcol"
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "src"
+]

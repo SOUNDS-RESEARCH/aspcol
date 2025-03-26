@@ -11,10 +11,12 @@ import jax.numpy as jnp
 import aspcore.fouriertransform as ft
 import aspcore.montecarlo as mc
 
-import aspcol.sphericalharmonics as sph
-import aspcol.soundfieldestimation as sfe
-import aspcol.movingmicrophone as mm
+import aspcol.sphericalharmonics as sph_numpy
+import aspcol.sphericalharmonics_jax as sph_jax
+import aspcol.soundfieldestimation.moving_microphone as sfe_numpy
+import aspcol.soundfieldestimation_jax.moving_microphone_jax as sfe_jax
 import aspcol.plot as aspplot
+
 
 import matplotlib.pyplot as plt
 
@@ -23,8 +25,8 @@ def _random_shd_coeffs(max_order, num_freqs, rng=None):
     if rng is None:
         rng = np.random.default_rng()
 
-    shd_coeffs = rng.normal(size=(num_freqs, sph.shd_num_coeffs(max_order))) + \
-        1j * rng.normal(size=(num_freqs, sph.shd_num_coeffs(max_order)))
+    shd_coeffs = rng.normal(size=(num_freqs, sph_numpy.shd_num_coeffs(max_order))) + \
+        1j * rng.normal(size=(num_freqs, sph_numpy.shd_num_coeffs(max_order)))
     return shd_coeffs
 
 def _random_mm_arguments(rng, seq_len, num_periods, max_order, num_eval):
@@ -48,7 +50,7 @@ def _random_psi_arguments(rng, seq_len, num_periods, max_order, samplerate, c):
     num_real_freqs = wave_num.shape[-1]
     dir_coeffs = np.stack([_random_shd_coeffs(max_order, 1, rng) for _ in range(num_pos)], axis=1)
     seq = rng.uniform(-1, 1, size=(seq_len,))
-    Phi = sfe._sequence_stft_multiperiod(seq, num_periods)[:num_real_freqs,:]
+    Phi = sfe_numpy._sequence_stft_multiperiod(seq, num_periods)[:num_real_freqs,:]
     return pos, wave_num, dir_coeffs, Phi, seq_len, num_real_freqs
 
 def test_compare_compiled_psi_implementations():
@@ -64,19 +66,19 @@ def test_compare_compiled_psi_implementations():
 
     profiler = Profiler()
     profiler.start()
-    psi_jax = mm.calculate_psi_compiled(pos, dir_coeffs, wave_num, Phi, seq_len, num_real_freqs)
+    psi_jax = sfe_jax.calculate_psi(pos, dir_coeffs, wave_num, Phi, seq_len, num_real_freqs)
     profiler.stop()
     profiler.print()
 
     profiler = Profiler()
     profiler.start()
-    psi_jax = mm.calculate_psi_compiled(pos, dir_coeffs, wave_num, Phi, seq_len, num_real_freqs)
+    psi_jax = sfe_jax.calculate_psi(pos, dir_coeffs, wave_num, Phi, seq_len, num_real_freqs)
     profiler.stop()
     profiler.print()
 
     profiler = Profiler()
     profiler.start()
-    psi_numpy = mm.calculate_psi(pos, dir_coeffs, wave_num, Phi, seq_len, num_real_freqs)
+    psi_numpy = sfe_numpy.calculate_psi(pos, dir_coeffs, wave_num, Phi, seq_len, num_real_freqs)
     profiler.stop()
     profiler.print()
 
@@ -97,13 +99,13 @@ def test_compare_compiled_inf_dimensional_shd_dynamic_implementations():
 
     profiler = Profiler()
     profiler.start()
-    p_eval_jax = mm.inf_dimensional_shd_dynamic_compiled(p, pos, pos_eval, seq, samplerate, c, reg_param, dir_coeffs)
+    p_eval_jax = sfe_jax.inf_dimensional_shd_dynamic(p, pos, pos_eval, seq, samplerate, c, reg_param, dir_coeffs)
     profiler.stop()
     profiler.print()
 
     profiler = Profiler()
     profiler.start()
-    p_eval_numpy = mm.inf_dimensional_shd_dynamic(p, pos, pos_eval, seq, samplerate, c, reg_param, dir_coeffs)
+    p_eval_numpy = sfe_numpy.inf_dimensional_shd_dynamic(p, pos, pos_eval, seq, samplerate, c, reg_param, dir_coeffs)
     profiler.stop()
     profiler.print()
     
@@ -121,8 +123,8 @@ def test_estimate_from_regressor_is_identical_to_original_estimate():
     p, pos, pos_eval, seq, reg_param, dir_coeffs = _random_mm_arguments(rng, seq_len, num_periods, max_order, num_eval)
     wave_num = ft.get_real_wavenum(seq_len, samplerate, c)
 
-    p_eval, regressor, psi = mm.inf_dimensional_shd_dynamic(p, pos, pos_eval, seq, samplerate, c, reg_param, dir_coeffs, verbose=True)
-    p_eval2 = mm.estimate_from_regressor(regressor, pos, pos_eval, wave_num, dir_coeffs)
+    p_eval, regressor, psi = sfe_jax.inf_dimensional_shd_dynamic(p, pos, pos_eval, seq, samplerate, c, reg_param, dir_coeffs, verbose=True)
+    p_eval2 = sfe_jax.estimate_from_regressor(regressor, pos, pos_eval, wave_num, dir_coeffs)
     assert np.allclose(p_eval, p_eval2)
 
 
@@ -137,10 +139,10 @@ def test_estimate_from_regressor_compiled_and_numpy_version_are_identical():
     p, pos, pos_eval, seq, reg_param, dir_coeffs = _random_mm_arguments(rng, seq_len, num_periods, max_order, num_eval)
     wave_num = ft.get_real_wavenum(seq_len, samplerate, c)
 
-    p_eval_orig, regressor, psi = mm.inf_dimensional_shd_dynamic(p, pos, pos_eval, seq, samplerate, c, reg_param, dir_coeffs, verbose=True)
+    p_eval_orig, regressor, psi = sfe_numpy.inf_dimensional_shd_dynamic(p, pos, pos_eval, seq, samplerate, c, reg_param, dir_coeffs, verbose=True)
 
-    p_eval_jax = mm.estimate_from_regressor_compiled(regressor, pos, pos_eval, wave_num, dir_coeffs)
-    p_eval_numpy = mm.estimate_from_regressor(regressor, pos, pos_eval, wave_num, dir_coeffs)
+    p_eval_jax = sfe_jax.estimate_from_regressor(regressor, pos, pos_eval, wave_num, dir_coeffs)
+    p_eval_numpy = sfe_numpy.estimate_from_regressor(regressor, pos, pos_eval, wave_num, dir_coeffs)
     assert np.allclose(p_eval_jax, p_eval_numpy)
 
 
@@ -154,7 +156,7 @@ def test_spherical_jn_against_scipy():
 
     n = order * np.ones(num_points, dtype=np.int32)#np.arange(10, dtype=np.int32)
     x = rng.uniform(0, max_val, size=(num_points,))
-    sph_jn = mm.spherical_jn(n, x)
+    sph_jn = sfe_jax.spherical_jn(n, x)
     scipy_jn = special.spherical_jn(n, x)
 
     fig, axes = plt.subplots(2, 1)
@@ -173,7 +175,6 @@ def test_translation_operator_against_jax_compiled_implementation():
     Currently recreates the problem of jax implemententation not matching nunmpy implementation. Seems to 
     be numerically unstable for small inputs, but very non-obvious how to recreate. 
     """
-    
     rng = np.random.default_rng(21345654)
     #pos = 1e-5 * np.array([[1,-1,0], [1,-1,0], [1,-1,0]]) # #1e-4 * rng.normal(size = (3,3)) 
 
@@ -188,9 +189,9 @@ def test_translation_operator_against_jax_compiled_implementation():
     max_order_input = 1
     max_order_output = 1
 
-    gaunt = mm._calculate_gaunt_set(max_order_input, max_order_output)
-    T_jax = mm.translation_operator(pos, wave_num, gaunt)
-    T = sph.translation_operator(pos, wave_num, max_order_input, max_order_output)
+    gaunt = sph_jax._calculate_gaunt_set(max_order_input, max_order_output)
+    T_jax = sph_jax.translation_operator(pos, wave_num, gaunt)
+    T = sph_numpy.translation_operator(pos, wave_num, max_order_input, max_order_output)
 
     T_jax = T_jax[0,0,:,:]
     T = T[0,0,:,:]
@@ -243,13 +244,13 @@ def test_find_numerical_problems_in_jax_translation_operator():
     max_order_input = 1
     max_order_output = 1
 
-    gaunt = mm._calculate_gaunt_set(max_order_input, max_order_output)
+    gaunt = sph_jax._calculate_gaunt_set(max_order_input, max_order_output)
 
     mse = []
     maxse = []
     for i, s in enumerate(scalings):
-        T_jax = mm.translation_operator(pos[i,:,:], wave_num, gaunt)
-        T = sph.translation_operator(pos[i,:,:], wave_num, max_order_input, max_order_output)
+        T_jax = sph_jax.translation_operator(pos[i,:,:], wave_num, gaunt)
+        T = sph_numpy.translation_operator(pos[i,:,:], wave_num, max_order_input, max_order_output)
         mse_s = np.mean(np.abs(T_jax - T)**2, axis=(-1, -2))
         mse.append(np.mean(mse_s))
         maxse.append(np.max(mse_s))
@@ -287,7 +288,7 @@ def test_spherical_bessel_function_numerical_stability():
     jn_scipy = []
     for i in range(max_order+1):
         jn_scipy.append(special.spherical_jn((i * np.ones_like(arg)).astype(int), arg))
-        jn_jax.append(mm.spherical_jn((i * np.ones_like(arg)).astype(int), arg))
+        jn_jax.append(sph_jax.spherical_jn((i * np.ones_like(arg)).astype(int), arg))
     
 
     error = [jn_j - jn_s for jn_j, jn_s in zip(jn_jax, jn_scipy)]
@@ -322,8 +323,8 @@ def test_bessel_function_integer_order_numerical_stability():
 
     jn_jax = []
     jn_scipy = []
-    jn_jax.append(mm.j0(arg))
-    jn_jax.append(mm.j1(arg))
+    jn_jax.append(sph_jax.j0(arg))
+    jn_jax.append(sph_jax.j1(arg))
     #or i in range(2, max_order+1):
     #   jn_jax.append(mm.jv(i, arg))
 
@@ -372,9 +373,9 @@ def test_bessel_function_half_integer_order_numerical_stability():
     #    jn_scipy.append(special.jv(((0.5+i) * np.ones_like(arg)).astype(int), arg))
         #jn_scipy.append(special.jv((i * np.ones_like(arg)).astype(int), arg))
 
-    jn_jax.append(mm.jneghalf(arg))
-    jn_jax.append(mm.jposhalf(arg))
-    jn_jax.append(mm.jvplushalf(2, arg))
+    jn_jax.append(sph_jax.jneghalf(arg))
+    jn_jax.append(sph_jax.jposhalf(arg))
+    jn_jax.append(sph_jax.jvplushalf(2, arg))
 
     jn_scipy.append(special.jv(-0.5, arg))
     jn_scipy.append(special.jv(0.5, arg))
@@ -401,19 +402,3 @@ def test_bessel_function_half_integer_order_numerical_stability():
     axes[-1,0].set_xlabel("Bessel argument")
     axes[-1,1].set_xlabel("Bessel argument")
     plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

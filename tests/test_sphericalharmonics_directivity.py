@@ -5,7 +5,7 @@ import pytest
 
 import aspcol.sphericalharmonics as sph
 import aspcol.utilities as utils
-import aspcol.unittests.plot_methods as plm
+import plot_methods as plm
 import aspcol.planewaves as pw
 
 import aspcol.plot as aspplot

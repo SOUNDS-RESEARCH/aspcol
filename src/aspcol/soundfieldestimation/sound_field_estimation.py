@@ -50,7 +50,7 @@ def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
     ----------
     [uenoKernel2018]
     """
-    est_filt = ki.get_krr_parameters(ki.kernel_helmholtz_3d, reg_param, pos_eval, pos, k)
+    est_filt = ki.get_interpolation_params(ki.kernel_helmholtz_3d, reg_param, pos_eval, pos, k)
     p_ki = est_filt @ p_freq[:,:,None]
     return np.squeeze(p_ki, axis=-1)
 
@@ -120,9 +120,10 @@ def inf_dim_shd_analysis(p_freq, pos, pos_eval, wave_num, dir_coeffs, reg_param)
     estimator_matrix = sph.translated_inner_product(pos_eval, pos, omni_dir, dir_coeffs, wave_num)
     est_sound_pressure = np.squeeze(estimator_matrix @ regression_vec, axis=-1)
     return est_sound_pressure
+
+
+
 # ============= TIME DOMAIN METHODS - STATIONARY MICROPHONES =============
-
-
 def pseq_nearest_neighbour(p, seq, pos, pos_eval):
     """
     Estimates the sound field at the evaluation points by simply selecting the value
