@@ -1,5 +1,9 @@
 # ASPCOL : Audio Signal Processing COLlection
-ASPCOL is a collection of functions and classes for audio signal processing. The package contains routines for state-of-the-art sound field estimation and sound field reproduction methods. 
+ASPCOL is a collection of functions and classes for audio signal processing, with routines for state-of-the-art sound field estimation and sound field reproduction methods. Some examples include
+- Kernel interpolation for sound fields
+- Bayesian estimation of sound fields using spherical harmonic, both for stationary and moving microphones
+- Sound zone control with signal-to-interference-plus-noise ratio optimization
+- Spatial covariance estimation for sound zones using kernel ridge regression
 
 **[More info and complete API documentation](https://sounds-research.github.io/aspcol/)**
 
