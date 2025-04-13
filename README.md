@@ -34,6 +34,21 @@ The content is contained in the modules
 ## References
 The package was developed in the course of the following research. Please consider citing any of the following papers if relevant to your work. 
 
+**Bayesian sound field estimation using moving microphones**, J. Brunnström, M. B. Møller, and M. Moonen
+```
+@ARTICLE{brunnstromBayesian2025,
+  author={Brunnström, Jesper and møLler, Martin Bo and Moonen, Marc},
+  journal={IEEE Open Journal of Signal Processing}, 
+  title={Bayesian Sound Field Estimation Using Moving Microphones}, 
+  year={2025},
+  volume={6},
+  number={},
+  pages={312-322},
+  doi={10.1109/OJSP.2025.3526546}
+}
+```
+
+  
 **Bayesian sound field estimation using uncertain data**, J. Brunnström, M. B. Møller, J. Østergaard, and M. Moonen
 ```
 @inproceedings{brunnstromBayesian2024,
