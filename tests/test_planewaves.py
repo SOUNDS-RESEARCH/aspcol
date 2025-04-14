@@ -298,7 +298,7 @@ def test_measurement_model_with_cardioid_for_analytic_plane_wave_gives_same_valu
     # axes[2].set_title("Magnitude")
     # axes[0].legend()
     # for ax in axes:
-    #     aspplot.set_basic_plot_look(ax)
+    #     coreutils.set_basic_plot_look(ax)
     #     ylim = ax.get_ylim()
     #     ylim_max = np.max(np.abs(ylim))
     #     ax.set_ylim(-ylim_max, ylim_max)
@@ -389,7 +389,7 @@ def test_measurement_model_with_cardioid_for_multiple_analytic_plane_waves_gives
     # axes[2].set_title("Magnitude")
     # axes[0].legend()
     # for ax in axes:
-    #     aspplot.set_basic_plot_look(ax)
+    #     coreutils.set_basic_plot_look(ax)
     #     ylim = ax.get_ylim()
     #     ylim_max = np.max(np.abs(ylim))
     #     ax.set_ylim(-ylim_max, ylim_max)

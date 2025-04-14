@@ -1238,31 +1238,6 @@ def __temp_gen_data():
     return sim.arrays["omni"].pos, sim.arrays["eval"].pos, fpaths["src"]["omni"][...,0], fpaths["src"]["eval"][...,0], freqs, sim.sim_info
 
 
-def test_temp_ki():
-    import aspcol.soundfieldestimation as sfe
-    import plot_methods as plm
-    import aspcol.plot as aspplot
-
-    pos_mic, pos_eval, p_mic, p_eval, freqs, sim_info = __temp_gen_data()
-    wave_num = 2 * np.pi *freqs / sim_info.c
-
-    
-    est = {}
-    est["diffuse KRR"] = sfe.est_ki_diffuse_freq(p_mic, pos_mic, pos_eval, wave_num, 1e-5)
-    est["nearest neighbour"] = sfe.nearest_neighbour_freq(p_mic, pos_mic, pos_eval)
-
-    est_all = {"diffuse KRR": est["diffuse KRR"], "nearest neighbour": est["nearest neighbour"], "true": p_eval}
-    plm.image_scatter_freq_response(est_all, freqs, pos_eval, dot_size = 25)
-
-    fig, ax = plt.subplots(1,1)
-    for est_name, p_est in est.items():
-        mse = 10 * np.log10(np.mean(np.abs(p_est - p_eval)**2, axis=-1) / np.mean(np.abs(p_eval)**2, axis=-1))
-        ax.plot(freqs, mse, label=est_name)
-    ax.legend()
-    aspplot.set_basic_plot_look(ax)
-    plt.show()
-
-
 def _get_freq_paths_correct_time_convention(arrays, num_freqs, samplerate):
     """Get the frequency domain response of the paths between all sources and microphones
     

@@ -15,7 +15,7 @@ import aspcol.sphericalharmonics as sph_numpy
 import aspcol.sphericalharmonics_jax as sph_jax
 import aspcol.soundfieldestimation.moving_microphone as sfe_numpy
 import aspcol.soundfieldestimation_jax.moving_microphone_jax as sfe_jax
-import aspcol.plot as aspplot
+import aspcore.utilities as utils
 
 
 import matplotlib.pyplot as plt
@@ -165,7 +165,7 @@ def test_spherical_jn_against_scipy():
     axes[1].plot(x, 20 * np.log10(np.abs(sph_jn - scipy_jn)), label="Difference (dB)", marker="x", linestyle="")
     for ax in axes:
         ax.legend()
-        aspplot.set_basic_plot_look(ax)
+        utils.set_basic_plot_look(ax)
     plt.show()
     #assert np.allclose(sph_jn, scipy_jn)
 
@@ -304,7 +304,7 @@ def test_spherical_bessel_function_numerical_stability():
             ax.set_xscale("log")
             ax.set_yscale("log")
             ax.set_ylabel("Amplitude")
-            aspplot.set_basic_plot_look(ax)
+            utils.set_basic_plot_look(ax)
             ax.legend()
     axes[0,0].set_title("Function values")
     axes[0,1].set_title("Error")
@@ -349,7 +349,7 @@ def test_bessel_function_integer_order_numerical_stability():
             ax.set_xscale("log")
             ax.set_yscale("log")
             ax.set_ylabel("Amplitude")
-            aspplot.set_basic_plot_look(ax)
+            utils.set_basic_plot_look(ax)
             ax.legend()
     axes[0,0].set_title("Function values")
     axes[0,1].set_title("Error")
@@ -395,7 +395,7 @@ def test_bessel_function_half_integer_order_numerical_stability():
             ax.set_xscale("log")
             ax.set_yscale("log")
             ax.set_ylabel("Amplitude")
-            aspplot.set_basic_plot_look(ax)
+            utils.set_basic_plot_look(ax)
             ax.legend()
     axes[0,0].set_title("Function values")
     axes[0,1].set_title("Error")

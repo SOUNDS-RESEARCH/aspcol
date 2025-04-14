@@ -3,6 +3,7 @@ import scipy.signal as spsig
 
 import aspcore.filterdesign as fd
 import aspcore.fouriertransform as ft
+import aspcore.utilities as utils
 
 import aspsim.room.generatepoints as gp
 
@@ -11,7 +12,6 @@ import aspcol.sphericalharmonics as shd
 import aspcol.plot as aspplot   
 
 import _exp_funcs_ideal_sampling as exis
-import sys
 
 
 
@@ -136,7 +136,7 @@ def test_differential_cardioid_generates_same_data_as_pyroomacoustics_for_far_aw
     for ax in axes:
         ax.set_xlabel("Frequency [Hz]")
         ax.legend()
-        aspplot.set_basic_plot_look(ax)
+        utils.set_basic_plot_look(ax)
 
     fig, ax = plt.subplots(1, 1)
     ax.plot(np.squeeze(cardioid_sig_pra[ex_idx,:]), label="Pyroomacoustics")

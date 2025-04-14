@@ -81,7 +81,3 @@ def image_scatter_freq_response(p_all, freqs, pos, fig_folder=None, plot_name=""
                 ax.set_ylabel("y (m)")
                 
                 ax.set_aspect("equal")
-                #aspplot.set_basic_plot_look(ax)
-
-        #plt.show()   
-        #aspplot.output_plot("pdf", fig_folder, f"image_scatter_freq_{freqs[fi]}Hz{plot_name}")

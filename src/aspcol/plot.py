@@ -9,113 +9,114 @@ import numpy as np
 import json
 
 import aspcore.fouriertransform as ft
+import aspcore.utilities as utils
 
-import tikzplotlib
-try:
-    import tikzplotlib
-except ImportError:
-    tikzplotlib = None
+# import tikzplotlib
+# try:
+#     import tikzplotlib
+# except ImportError:
+#     tikzplotlib = None
 
-def _tikzplotlib_fix_ncols(obj):
-    """Workaround for matplotlib 3.6 renamed legend's _ncol to _ncols, which breaks tikzplotlib
+# def _tikzplotlib_fix_ncols(obj):
+#     """Workaround for matplotlib 3.6 renamed legend's _ncol to _ncols, which breaks tikzplotlib
 
-    Parameters
-    ----------
-    obj : Figure object
-        Figure object to fix the _ncol attribute in.
-    """
-    if hasattr(obj, "_ncols"):
-        obj._ncol = obj._ncols
-    for child in obj.get_children():
-        _tikzplotlib_fix_ncols(child)
-
-
-def save_plot(print_method, folder, name=""):
-    """Save plot to file in a number of formats.
-
-    Parameters
-    ----------
-    print_method : str
-        Method for saving the plot. Options are 'show', 'tikz', 'pdf', 'svg', 'none'.
-        If 'show', the plot is shown in a window.
-        If 'tikz', the plot is saved as a tikz file and a pdf file. Requires tikzplotlib installed. 
-        If 'pdf', the plot is saved as a pdf file.
-        If 'svg', the plot is saved as a svg file.
-        If 'none', the plot is not saved.
-    folder : Path
-        Folder to save the plot in.
-    name : str, optional
-        Name of the file. The default is "".
-    """
-    if print_method == "show":
-        plt.show()
-    elif print_method == "tikz":
-        if folder is not None:
-            nested_folder = folder.joinpath(name)
-            try:
-                nested_folder.mkdir()
-            except FileExistsError:
-                pass
-
-            fig = plt.gcf()
-            _tikzplotlib_fix_ncols(fig)
-            tikzplotlib.save(
-                str(nested_folder.joinpath(f"{name}.tex")),
-                externalize_tables=True,
-                float_format=".8g",
-            )
-            plt.savefig(
-                str(nested_folder.joinpath(name + ".pdf")),
-                dpi=300,
-                facecolor="w",
-                edgecolor="w",
-                orientation="portrait",
-                format="pdf",
-                transparent=True,
-                bbox_inches=None,
-                pad_inches=0.2,
-            )
-    elif print_method == "pdf":
-        if folder is not None:
-            plt.savefig(
-                str(folder.joinpath(name + ".pdf")),
-                dpi=300,
-                facecolor="w",
-                edgecolor="w",
-                orientation="portrait",
-                format="pdf",
-                transparent=True,
-                bbox_inches="tight",
-                pad_inches=0.2,
-            )
-    elif print_method == "svg":
-        if folder is not None:
-            plt.savefig(
-                str(folder.joinpath(name + ".svg")),
-                dpi=300,
-                format="svg",
-                transparent=True,
-                bbox_inches="tight",
-                pad_inches=0.2,
-            )
-    elif print_method == "none":
-        pass
-    else:
-        raise ValueError
-    plt.close("all")
+#     Parameters
+#     ----------
+#     obj : Figure object
+#         Figure object to fix the _ncol attribute in.
+#     """
+#     if hasattr(obj, "_ncols"):
+#         obj._ncol = obj._ncols
+#     for child in obj.get_children():
+#         _tikzplotlib_fix_ncols(child)
 
 
-def set_basic_plot_look(ax):
-    """Sets basic look for a plot.
+# def save_plot(print_method, folder, name=""):
+#     """Save plot to file in a number of formats.
+
+#     Parameters
+#     ----------
+#     print_method : str
+#         Method for saving the plot. Options are 'show', 'tikz', 'pdf', 'svg', 'none'.
+#         If 'show', the plot is shown in a window.
+#         If 'tikz', the plot is saved as a tikz file and a pdf file. Requires tikzplotlib installed. 
+#         If 'pdf', the plot is saved as a pdf file.
+#         If 'svg', the plot is saved as a svg file.
+#         If 'none', the plot is not saved.
+#     folder : Path
+#         Folder to save the plot in.
+#     name : str, optional
+#         Name of the file. The default is "".
+#     """
+#     if print_method == "show":
+#         plt.show()
+#     elif print_method == "tikz":
+#         if folder is not None:
+#             nested_folder = folder.joinpath(name)
+#             try:
+#                 nested_folder.mkdir()
+#             except FileExistsError:
+#                 pass
+
+#             fig = plt.gcf()
+#             _tikzplotlib_fix_ncols(fig)
+#             tikzplotlib.save(
+#                 str(nested_folder.joinpath(f"{name}.tex")),
+#                 externalize_tables=True,
+#                 float_format=".8g",
+#             )
+#             plt.savefig(
+#                 str(nested_folder.joinpath(name + ".pdf")),
+#                 dpi=300,
+#                 facecolor="w",
+#                 edgecolor="w",
+#                 orientation="portrait",
+#                 format="pdf",
+#                 transparent=True,
+#                 bbox_inches=None,
+#                 pad_inches=0.2,
+#             )
+#     elif print_method == "pdf":
+#         if folder is not None:
+#             plt.savefig(
+#                 str(folder.joinpath(name + ".pdf")),
+#                 dpi=300,
+#                 facecolor="w",
+#                 edgecolor="w",
+#                 orientation="portrait",
+#                 format="pdf",
+#                 transparent=True,
+#                 bbox_inches="tight",
+#                 pad_inches=0.2,
+#             )
+#     elif print_method == "svg":
+#         if folder is not None:
+#             plt.savefig(
+#                 str(folder.joinpath(name + ".svg")),
+#                 dpi=300,
+#                 format="svg",
+#                 transparent=True,
+#                 bbox_inches="tight",
+#                 pad_inches=0.2,
+#             )
+#     elif print_method == "none":
+#         pass
+#     else:
+#         raise ValueError
+#     plt.close("all")
+
+
+# def set_basic_plot_look(ax):
+#     """Sets basic look for a plot.
     
-    Parameters
-    ----------
-    ax : Axes
-        Axes object to set the look of.
-    """
-    ax.grid(True)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
+#     Parameters
+#     ----------
+#     ax : Axes
+#         Axes object to set the look of.
+#     """
+#     ax.grid(True)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
 
 
 
@@ -327,8 +328,8 @@ def freq_response(p_all, freqs, fig_folder, index_to_show, output_method="pdf"):
         ax.set_xlabel("Frequency (Hz)")
         ax.set_ylabel("Absolute amplitude")
         ax.legend(loc="best")
-        set_basic_plot_look(ax)
-    save_plot(output_method, fig_folder, f"freq_response")
+        utils.set_basic_plot_look(ax)
+    utils.save_plot(output_method, fig_folder, f"freq_response")
 
 def time_response(p_all, fig_folder, index_to_show, output_method="pdf", scaling="linear"):
     fig, axes = plt.subplots(len(index_to_show), 1, figsize = (8,4*len(index_to_show)))
@@ -347,8 +348,8 @@ def time_response(p_all, fig_folder, index_to_show, output_method="pdf", scaling
         ax.set_xlabel("Time (samples)")
         ax.set_ylabel("Amplitude")
         ax.legend(loc="best")
-        set_basic_plot_look(ax)
-    save_plot(output_method, fig_folder, f"time_response_{scaling}")
+        utils.set_basic_plot_look(ax)
+    utils.save_plot(output_method, fig_folder, f"time_response_{scaling}")
 
 
 def error_per_sample(p_est, p_true, fig_folder, output_method="pdf"):
@@ -363,8 +364,8 @@ def error_per_sample(p_est, p_true, fig_folder, output_method="pdf"):
     ax.set_xlabel("Time (samples)")
     ax.set_ylabel("Mean square error (dB)")
     ax.legend(loc="best")
-    set_basic_plot_look(ax)
-    save_plot(output_method, fig_folder, "error_per_sample")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(output_method, fig_folder, "error_per_sample")
 
 def error_per_angle(pos_est, p_est, p_true, center, fig_folder, output_method="pdf"):
     angle = np.arctan2(pos_est[:,1]-center[0,1], pos_est[:,0]-center[0,0])
@@ -383,8 +384,8 @@ def error_per_angle(pos_est, p_est, p_true, center, fig_folder, output_method="p
     ax.set_xlabel("Angle (radians)")
     ax.set_ylabel("Square error (dB)")
     ax.legend(loc="best")
-    set_basic_plot_look(ax)
-    save_plot(output_method, fig_folder, "error_per_angle")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(output_method, fig_folder, "error_per_angle")
 
 def estimates_per_angle(pos_est, p_all, freqs, arrays, center, fig_folder, output_method="pdf", num_examples=5):
     angle = np.arctan2(pos_est[:,1]-center[0,1], pos_est[:,0]-center[0,0])
@@ -414,10 +415,10 @@ def estimates_per_angle(pos_est, p_all, freqs, arrays, center, fig_folder, outpu
         for j in range(3):
             axes[f_idx,j].set_xlabel("Angle (radians)")
             axes[f_idx,j].legend(loc="best")
-            set_basic_plot_look(axes[f_idx, j])
+            utils.set_basic_plot_look(axes[f_idx, j])
 
         plt.suptitle(f"Estimated pressures at frequency {freqs[f]} Hz")
-    save_plot(output_method, fig_folder, f"estimates_per_angle")
+    utils.save_plot(output_method, fig_folder, f"estimates_per_angle")
 
     #fig, ax = plt.subplots(1,2, figsize = (8,4))
     #for name, est in p_all.items():
@@ -493,10 +494,10 @@ def error_per_frequency(p_est, p_true, freqs, fig_folder, output_method="pdf", p
     ax.set_xlabel("Frequency (Hz)")
     ax.set_ylabel("Square error (dB)")
     plt.legend(loc="best")
-    set_basic_plot_look(ax)
+    utils.set_basic_plot_look(ax)
 
     plot_name = f"error_per_frequency{plot_name}"
-    save_plot(output_method, fig_folder, plot_name)
+    utils.save_plot(output_method, fig_folder, plot_name)
 
 def compare_soundfields_all_freq(p_all, p_est, p_true, freqs, pos_im, fig_folder, pos_mic=None, output_method="pdf", num_examples=5, plot_name="", num_ls=1):
     if num_ls > 1:
@@ -577,7 +578,7 @@ def compare_time_domain_soundfields(ir_all, pos_im, fig_folder, pos_mic=None, pl
             soundfield_image(ir[...,n], pos_im, pos_mic, ax=axes[i], title=f"{name}", vminmax=(v_min, v_max), cmap=cmap)
 
         plt.suptitle(f"Time domain sound field {plot_name} at sample {n}")
-        save_plot(output_method, fig_folder, f"soundfield_td_{plot_name}_{n}")
+        utils.save_plot(output_method, fig_folder, f"soundfield_td_{plot_name}_{n}")
 
 
 def compare_soundfields(p_all, freqs, pos_im, fig_folder, pos_mic=None, plot_name="", num_examples = 5, output_method="pdf", only_positive=False):
@@ -611,7 +612,7 @@ def compare_soundfields(p_all, freqs, pos_im, fig_folder, pos_mic=None, plot_nam
 
 
         plt.suptitle(f"Sound field {plot_name} at frequency {freqs[f]} Hz")
-        save_plot(output_method, fig_folder, f"soundfield_{plot_name}_{freqs[f]}")
+        utils.save_plot(output_method, fig_folder, f"soundfield_{plot_name}_{freqs[f]}")
 
 
 

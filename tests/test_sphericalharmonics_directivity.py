@@ -8,19 +8,16 @@ import aspcol.utilities as utils
 import plot_methods as plm
 import aspcol.planewaves as pw
 
-import aspcol.plot as aspplot
-
-
 from aspsim.simulator import SimulatorSetup
 import aspsim.room.region as region
 import aspsim.signal.sources as sources
 import aspsim.diagnostics.diagnostics as dg
 
-import aspcore.filter as fc
 import aspcore.montecarlo as mc
 import aspcore.fouriertransform as ft
 import aspcore.filterdesign as fd
 import aspcore.pseq as pseq
+import aspcore.utilities as utils
 
 import matplotlib.pyplot as plt
 
@@ -658,7 +655,7 @@ def test_measurement_model_with_cardioid_microphone_gives_same_value_as_simulate
     axes[2].set_title("Magnitude")
     axes[0].legend()
     for ax in axes:
-        aspplot.set_basic_plot_look(ax)
+        utils.set_basic_plot_look(ax)
         ylim = ax.get_ylim()
         ylim_max = np.max(np.abs(ylim))
         ax.set_ylim(-ylim_max, ylim_max)
@@ -738,7 +735,7 @@ def test_measurement_model_with_cardioid_microphone_as_a_function_of_the_distanc
         axes[i,0].legend()
     for ax_row in axes:
         for ax in ax_row:
-            aspplot.set_basic_plot_look(ax)
+            utils.set_basic_plot_look(ax)
             ylim = ax.get_ylim()
             ylim_max = np.max(np.abs(ylim))
             ax.set_ylim(-ylim_max, ylim_max)
@@ -748,7 +745,7 @@ def test_measurement_model_with_cardioid_microphone_as_a_function_of_the_distanc
     ax.plot(source_distances, 10 * np.log10(mse_cardioid))
     ax.set_xlabel("Distance to source")
     ax.set_ylabel("MSE (dB)")
-    aspplot.set_basic_plot_look(ax)
+    utils.set_basic_plot_look(ax)
 
     fig, axes = plt.subplots(2, 1, figsize=(8,6))
     for i in range(num_src):
@@ -758,7 +755,7 @@ def test_measurement_model_with_cardioid_microphone_as_a_function_of_the_distanc
     axes[1].set_title("SHD")
     for ax in axes:
         ax.legend()
-        aspplot.set_basic_plot_look(ax)
+        utils.set_basic_plot_look(ax)
     fig.suptitle("Magnitude of cardioid response")
 
     plt.show()
@@ -826,7 +823,7 @@ def test_sound_pressure_estimates_with_cardioid_microphones_as_a_function_of_the
     ax.plot(source_distances, 10 * np.log10(mse_cardioid), "-x", label="cardioid")
     ax.set_xlabel("Distance to source (m)")
     ax.set_ylabel("MSE (dB)")
-    aspplot.set_basic_plot_look(ax)
+    utils.set_basic_plot_look(ax)
 
     plm.image_scatter_freq_response({"omni close" : p_eval_omni[...,0], "cardioid close" : p_eval_cardioid[...,0], "sim close" : p_eval_sim[...,0]}, freq, pos_eval, dot_size = 60)
     plm.image_scatter_freq_response({"omni far" : p_eval_omni[...,-1], "cardioid far" : p_eval_cardioid[...,-1], "sim far" : p_eval_sim[...,-1]}, freq, pos_eval, dot_size = 60)
@@ -913,7 +910,7 @@ def test_measurement_model_with_differential_cardioid_microphones_as_a_function_
         axes[i,0].legend()
     for ax_row in axes:
         for ax in ax_row:
-            aspplot.set_basic_plot_look(ax)
+            utils.set_basic_plot_look(ax)
             ylim = ax.get_ylim()
             ylim_max = np.max(np.abs(ylim))
             ax.set_ylim(-ylim_max, ylim_max)
@@ -923,7 +920,7 @@ def test_measurement_model_with_differential_cardioid_microphones_as_a_function_
     ax.plot(source_distances, 10 * np.log10(mse_cardioid))
     ax.set_xlabel("Distance to source")
     ax.set_ylabel("MSE (dB)")
-    aspplot.set_basic_plot_look(ax)
+    utils.set_basic_plot_look(ax)
 
     fig, axes = plt.subplots(2, 1, figsize=(8,6))
     for i in range(num_src):
@@ -933,7 +930,7 @@ def test_measurement_model_with_differential_cardioid_microphones_as_a_function_
     axes[1].set_title("SHD")
     for ax in axes:
         ax.legend()
-        aspplot.set_basic_plot_look(ax)
+        utils.set_basic_plot_look(ax)
     fig.suptitle("Magnitude of cardioid response")
 
     plt.show()
@@ -1002,7 +999,7 @@ def test_measurement_model_with_differential_cardioid_microphones_calculated_in_
         axes[i].plot(sig_diff_cardioid[i,:], label="Differential")
         axes[i].plot(sig_pw_cardioid[i,:], label="True")
         axes[i].legend()
-        aspplot.set_basic_plot_look(axes[i])
+        utils.set_basic_plot_look(axes[i])
 
     freq_diff_cardioid = ft.rfft(sig_diff_cardioid)
     freq_pw_cardioid = ft.rfft(sig_pw_cardioid)
@@ -1024,13 +1021,13 @@ def test_measurement_model_with_differential_cardioid_microphones_calculated_in_
 
     for ax_row in axes:
         for ax in ax_row:
-            aspplot.set_basic_plot_look(ax)
+            utils.set_basic_plot_look(ax)
             ax.legend()
 
     fig, ax = plt.subplots(1,1, figsize=(8,6))
     mse = np.mean(np.abs(freq_diff_cardioid - freq_pw_cardioid)**2, axis=-1) / np.mean(np.abs(freq_pw_cardioid)**2, axis=-1)
     ax.plot(10 * np.log10(mse))
-    aspplot.set_basic_plot_look(ax)
+    utils.set_basic_plot_look(ax)
     ax.set_title("Mean square error")
     ax.set_xlabel("Frequency bin")
     ax.set_ylabel("MSE (dB)")
@@ -1119,7 +1116,7 @@ def test_measurement_model_with_differential_cardioid_microphones_calculated_in_
         axes[i].plot(sig_diff_cardioid[i,:], label="Differential")
         axes[i].plot(sig_cardioid[i,:], label="True")
         axes[i].legend()
-        aspplot.set_basic_plot_look(axes[i])
+        utils.set_basic_plot_look(axes[i])
 
     fig, axes = plt.subplots(num_examples, 2, figsize=(8,10))
     for i in range(num_examples):
@@ -1132,7 +1129,7 @@ def test_measurement_model_with_differential_cardioid_microphones_calculated_in_
     for ax_row in axes:
         for ax in ax_row:
             ax.legend()
-            aspplot.set_basic_plot_look(ax)
+            utils.set_basic_plot_look(ax)
     axes[0,0].set_title("Room impulse responses")
     axes[0,1].set_title("Room impulse responses (dB)")
 
@@ -1159,13 +1156,13 @@ def test_measurement_model_with_differential_cardioid_microphones_calculated_in_
 
     for ax_row in axes:
         for ax in ax_row:
-            aspplot.set_basic_plot_look(ax)
+            utils.set_basic_plot_look(ax)
             ax.legend()
 
     fig, ax = plt.subplots(1,1, figsize=(8,6))
     mse = np.mean(np.abs(freq_diff_cardioid - freq_cardioid)**2, axis=-1) / np.mean(np.abs(freq_cardioid)**2, axis=-1)
     ax.plot(10 * np.log10(mse))
-    aspplot.set_basic_plot_look(ax)
+    utils.set_basic_plot_look(ax)
     ax.set_title("Mean square error")
     ax.set_xlabel("Frequency bin")
     ax.set_ylabel("MSE (dB)")
@@ -1282,7 +1279,7 @@ def test_measurement_model_with_differential_cardioid_microphones_calculated_in_
         axes[i].plot(sig_diff_cardioid[i,:], label="Differential")
         #axes[i].plot(sig_cardioid[i,:], label="True")
         axes[i].legend()
-        aspplot.set_basic_plot_look(axes[i])
+        utils.set_basic_plot_look(axes[i])
 
     fig, axes = plt.subplots(num_examples, 2, figsize=(8,10))
     for i in range(num_examples):
@@ -1295,7 +1292,7 @@ def test_measurement_model_with_differential_cardioid_microphones_calculated_in_
     for ax_row in axes:
         for ax in ax_row:
             ax.legend()
-            aspplot.set_basic_plot_look(ax)
+            utils.set_basic_plot_look(ax)
     axes[0,0].set_title("Room impulse responses")
     axes[0,1].set_title("Room impulse responses (dB)")
 
@@ -1322,7 +1319,7 @@ def test_measurement_model_with_differential_cardioid_microphones_calculated_in_
 
     for ax_row in axes:
         for ax in ax_row:
-            aspplot.set_basic_plot_look(ax)
+            utils.set_basic_plot_look(ax)
             ax.legend()
 
 
@@ -1332,7 +1329,7 @@ def test_measurement_model_with_differential_cardioid_microphones_calculated_in_
 
     mean_mse = np.mean(mse[freqs > 50])
     ax.plot(10 * np.log10(mse))
-    aspplot.set_basic_plot_look(ax)
+    utils.set_basic_plot_look(ax)
     ax.set_title(f"Mean square error, mean: {10 * np.log10(mean_mse)}")
     ax.set_xlabel("Frequency bin")
     ax.set_ylabel("MSE (dB)")
