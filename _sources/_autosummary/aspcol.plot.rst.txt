@@ -1,0 +1,43 @@
+﻿aspcol.plot
+===========
+
+.. automodule:: aspcol.plot
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      compare_soundfields
+      compare_soundfields_all_freq
+      compare_soundfields_all_time
+      compare_time_domain_soundfields
+      error_per_angle
+      error_per_frequency
+      error_per_sample
+      estimates_per_angle
+      example_responses
+      freq_response
+      mse
+      soundfield_estimation_comparison
+      soundfield_image
+      time_response
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

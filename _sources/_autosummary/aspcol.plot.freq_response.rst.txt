@@ -1,0 +1,6 @@
+aspcol.plot.freq\_response
+==========================
+
+.. currentmodule:: aspcol.plot
+
+.. autofunction:: freq_response

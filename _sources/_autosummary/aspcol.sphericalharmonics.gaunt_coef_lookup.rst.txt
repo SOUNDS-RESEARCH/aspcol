@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.gaunt\_coef\_lookup
+=============================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: gaunt_coef_lookup

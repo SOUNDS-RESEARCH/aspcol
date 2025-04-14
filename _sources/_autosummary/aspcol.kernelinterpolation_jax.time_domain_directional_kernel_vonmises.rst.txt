@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation\_jax.time\_domain\_directional\_kernel\_vonmises
+===========================================================================
+
+.. currentmodule:: aspcol.kernelinterpolation_jax
+
+.. autofunction:: time_domain_directional_kernel_vonmises

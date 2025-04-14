@@ -1,0 +1,6 @@
+aspcol.spatialcovarianceestimation.krr\_estimation\_cov\_informed
+=================================================================
+
+.. currentmodule:: aspcol.spatialcovarianceestimation
+
+.. autofunction:: krr_estimation_cov_informed

@@ -1,0 +1,6 @@
+aspcol.planewaves.omni\_directivity\_function
+=============================================
+
+.. currentmodule:: aspcol.planewaves
+
+.. autofunction:: omni_directivity_function

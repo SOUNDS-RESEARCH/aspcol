@@ -1,0 +1,6 @@
+aspcol.spatialcovarianceestimation.krr\_estimation\_sgd
+=======================================================
+
+.. currentmodule:: aspcol.spatialcovarianceestimation
+
+.. autofunction:: krr_estimation_sgd

@@ -1,0 +1,6 @@
+aspcol.utilities.measure\_time
+==============================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: measure_time

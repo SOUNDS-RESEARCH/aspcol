@@ -1,0 +1,6 @@
+aspcol.plot.mse
+===============
+
+.. currentmodule:: aspcol.plot
+
+.. autofunction:: mse

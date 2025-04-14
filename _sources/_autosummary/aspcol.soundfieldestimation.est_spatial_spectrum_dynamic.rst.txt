@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.est\_spatial\_spectrum\_dynamic
+===========================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: est_spatial_spectrum_dynamic

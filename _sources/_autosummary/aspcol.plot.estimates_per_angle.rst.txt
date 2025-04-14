@@ -1,0 +1,6 @@
+aspcol.plot.estimates\_per\_angle
+=================================
+
+.. currentmodule:: aspcol.plot
+
+.. autofunction:: estimates_per_angle

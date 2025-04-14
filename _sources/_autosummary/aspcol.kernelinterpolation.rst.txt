@@ -1,0 +1,61 @@
+﻿aspcol.kernelinterpolation
+==========================
+
+.. automodule:: aspcol.kernelinterpolation
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      analytic_kernel_weighting_disc_2d
+      freq_to_time_domain_kernel_matrix
+      get_interpolation_params
+      get_kernel_weighting_filter
+      get_krr_params
+      kernel_directional_3d
+      kernel_directional_3d_combined
+      kernel_directional_3d_slow
+      kernel_gaussian
+      kernel_helmholtz_2d
+      kernel_helmholtz_3d
+      kernel_helmholtz_3d_slow
+      kernel_reciprocal_3d
+      learn_kernel_params_directional_l2
+      multifreq_diffuse_kernel
+      multifreq_directional_kernel_vonmises
+      multifreq_envelope_kernel
+      multifreq_envelope_kernel_r2
+      multifreq_envelope_kernel_r3
+      reconstruct_freq
+      soundfield_interpolation
+      soundfield_interpolation_fir
+      time_domain_diffuse_kernel
+      time_domain_directional_kernel
+      time_domain_directional_kernel_vonmises
+      time_domain_directional_kernel_vonmises_approx
+      time_domain_envelope_integral_kernel
+      time_domain_envelope_integral_kernel_r3
+      time_domain_envelope_kernel
+      time_domain_envelope_kernel_r2
+      time_domain_envelope_kernel_r3
+      time_domain_freq_dependent_directional_vonmises
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

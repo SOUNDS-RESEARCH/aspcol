@@ -1,0 +1,6 @@
+aspcol.spatialcovarianceestimation.spatial\_cov\_from\_integral\_weighting\_diffuse
+===================================================================================
+
+.. currentmodule:: aspcol.spatialcovarianceestimation
+
+.. autofunction:: spatial_cov_from_integral_weighting_diffuse
