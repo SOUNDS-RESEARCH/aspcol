@@ -137,6 +137,7 @@ def soundfield_estimation_comparison(
         pos_image=None,
         remove_freqs_below=0,
         num_examples = 4,
+        points_for_errors = None,
     ):
     """Outputs a series of plots comparing a set of sound field estimates to the true sound field.
     
@@ -180,6 +181,10 @@ def soundfield_estimation_comparison(
         Positions of the image array. Shape (num_image, spatial_dim)
     remove_freqs_below : float, optional
         Remove frequencies below this value. The default is 0.
+    points_for_errors : np.ndarray of shape (num_positions,) with Boolean values, optional
+        Points which have True values are included in error calculations. The default is None.
+        It also specifies which points to use in setting of colormap limits in the soundfield MSE plots. Useful if a few points
+        are known exactly, which usually leads to useless sound field MSE plots. 
     """
     p_all, p_est, p_true = _cleanup_args(p_est, p_true, num_ls)
     fig_folder.mkdir(exist_ok=True, parents=True)
@@ -188,10 +193,6 @@ def soundfield_estimation_comparison(
     p_est_orig = p_est
     p_true_orig = p_true
     freqs_orig = freqs
-
-    # inserts the true zeroth frequency. Only matters for example response and td-error
-    #for name in p_all.keys():
-    #    p_all[name][0,...] = p_true[0,...]
 
     example_responses(p_all_orig, freqs_orig, fig_folder, output_method=output_method, num_examples=num_examples) # needs to be done before removing 0Hz bin
     error_per_sample(p_est_orig, p_true_orig, fig_folder, output_method=output_method)
@@ -202,28 +203,36 @@ def soundfield_estimation_comparison(
     p_true = p_true[freqs_to_keep,...]
     freqs = freqs[freqs_to_keep]
 
-    mse(p_est, p_true, fig_folder, num_ls = num_ls)
-    error_per_frequency(p_est, p_true, freqs, fig_folder, output_method=output_method)
+    if points_for_errors is not None:
+        p_est_masked = {name : sig[..., points_for_errors] for name, sig in p_est.items()}
+        p_true_masked = p_true[..., points_for_errors]
+    else:
+        p_est_masked = p_est
+        p_true_masked = p_true
+
+    mse(p_est_masked, p_true_masked, fig_folder, num_ls = num_ls)
+    error_per_frequency(p_est_masked, p_true_masked, freqs, fig_folder, output_method=output_method)
 
     if num_ls > 1:
         for l in range(num_ls):
-            p_all_single = {name : sig[:,l:l+1,:] for name, sig in p_all.items()}
-            p_est_single = {name : sig[:,l:l+1,:] for name, sig in p_est.items()}
-            p_true_single = p_true[:,l:l+1,:]
-
+            #p_all_single = {name : sig[:,l:l+1,:] for name, sig in p_all.items()}
+            p_est_single = {name : sig[:,l:l+1,:] for name, sig in p_est_masked.items()}
+            p_true_single = p_true_masked[:,l:l+1,:]
             error_per_frequency(p_est_single, p_true_single, freqs, fig_folder, output_method=output_method, plot_name=f"src_{l}")
 
 
     if shape == "rectangle":
         rectangle_folder = fig_folder / "rectangle"
         rectangle_folder.mkdir(exist_ok=True)
-        compare_soundfields_all_freq(p_all, p_est, p_true, freqs, pos_est, rectangle_folder, pos_mic=pos_mic, output_method=output_method, num_examples=num_examples)
-        compare_soundfields_all_time(p_all_orig, p_est_orig, p_true_orig, freqs_orig, pos_est, rectangle_folder, pos_mic=pos_mic, output_method=output_method, num_examples=num_examples)
+        compare_soundfields_all_freq(p_all, p_est, p_true, freqs, pos_est, rectangle_folder, pos_mic=pos_mic, output_method=output_method, num_examples=num_examples, points_for_errors=points_for_errors)
+        compare_soundfields_all_time(p_all_orig, p_est_orig, p_true_orig, freqs_orig, pos_est, rectangle_folder, pos_mic=pos_mic, output_method=output_method, num_examples=num_examples, points_for_errors=points_for_errors)
 
         #compare_soundfields(p_all, freqs, arrays, fig_folder)
         #compare_soundfield_error(p_est, p_true, freqs, arrays, fig_folder)
     elif shape == "circle":
         assert center is not None
+        if exclude_points_from_error is not None:
+            raise NotImplementedError("Excluding points from error is not implemented for circular shapes")
         error_per_angle(pos_est, p_est, p_true, center, fig_folder, output_method=output_method)
         estimates_per_angle(pos_est, p_all, freqs, center, fig_folder, output_method=output_method)
 
@@ -499,10 +508,10 @@ def error_per_frequency(p_est, p_true, freqs, fig_folder, output_method="pdf", p
     plot_name = f"error_per_frequency{plot_name}"
     utils.save_plot(output_method, fig_folder, plot_name)
 
-def compare_soundfields_all_freq(p_all, p_est, p_true, freqs, pos_im, fig_folder, pos_mic=None, output_method="pdf", num_examples=5, plot_name="", num_ls=1):
+def compare_soundfields_all_freq(p_all, p_est, p_true, freqs, pos_im, fig_folder, pos_mic=None, output_method="pdf", num_examples=5, plot_name="", num_ls=1, points_for_errors = None):
     if num_ls > 1:
         if p_true is not None:
-            compare_soundfields({name : 10*np.log10(np.mean(np.abs(p_true - p)**2, axis=1)) for name, p in p_est.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_square_error", output_method=output_method, only_positive=True, num_examples=num_examples)
+            compare_soundfields({name : 10*np.log10(np.mean(np.abs(p_true - p)**2, axis=1)) for name, p in p_est.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_square_error", output_method=output_method, only_positive=True, num_examples=num_examples, points_to_set_colormap=points_for_errors)
             compare_soundfields({name : 10*np.log10(np.mean(np.abs(p_true - p)**2, axis=(0,1)))[None,...] 
                                 for name, p in p_est.items()}, np.zeros((1)), pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_mse", output_method=output_method, only_positive=True, num_examples=1)
     for l in range(num_ls):
@@ -516,21 +525,23 @@ def compare_soundfields_all_freq(p_all, p_est, p_true, freqs, pos_im, fig_folder
             p_est_l = p_est
             p_true_l = p_true
             extra_name = ""
-        _single_src_soundfield_comparison(p_all_l, p_est_l, p_true_l, freqs, pos_im, fig_folder, pos_mic=pos_mic, output_method=output_method, num_examples=num_examples, plot_name=f"{plot_name}{extra_name}")
+        _single_src_soundfield_comparison(p_all_l, p_est_l, p_true_l, freqs, pos_im, fig_folder, pos_mic=pos_mic, output_method=output_method, num_examples=num_examples, plot_name=f"{plot_name}{extra_name}", points_to_set_colormap=points_for_errors)
             #compare_soundfields({name : 10*np.log10(np.abs(p_true[:,l,:] - p[:,l,:])**2) for name, p in p_est.items()}, freqs, pos_im, pos_mic, fig_folder, plot_name=f"{plot_name}_square_error_src_{l}", output_method=output_method, only_positive=True, num_examples=num_examples)
 
-def _single_src_soundfield_comparison(p_all, p_est, p_true, freqs, pos_im, fig_folder, pos_mic=None, output_method="pdf", num_examples=5, plot_name=""):
+def _single_src_soundfield_comparison(p_all, p_est, p_true, freqs, pos_im, fig_folder, pos_mic=None, output_method="pdf", num_examples=5, plot_name="", points_to_set_colormap=None):
     compare_soundfields({name : np.abs(p) for name, p in p_all.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_abs", output_method=output_method, only_positive=True, num_examples=num_examples)
     compare_soundfields({name : np.real(p) for name, p in p_all.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_real", output_method=output_method, num_examples=num_examples)
     compare_soundfields({name : np.imag(p) for name, p in p_all.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_imag", output_method=output_method, num_examples=num_examples)
     if p_true is not None:
-        compare_soundfields({name : 10*np.log10(np.abs(p_true - p)**2) for name, p in p_est.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_square_error", output_method=output_method, only_positive=True, num_examples=num_examples)
+        compare_soundfields({name : 10*np.log10(np.abs(p_true - p)**2) for name, p in p_est.items()}, freqs, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_square_error", output_method=output_method, only_positive=True, num_examples=num_examples, points_to_set_colormap=points_to_set_colormap)
         compare_soundfields({name : 10*np.log10(np.mean(np.abs(p_true - p)**2, axis=0, keepdims=True)) 
-                            for name, p in p_est.items()}, np.zeros((1)), pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_mse", output_method=output_method, only_positive=True, num_examples=1)
+                            for name, p in p_est.items()}, np.zeros((1)), pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_mse", output_method=output_method, only_positive=True, num_examples=1, points_to_set_colormap=points_to_set_colormap)
+        compare_soundfields({name : 10*np.log10(np.mean(np.abs(p_true - p)**2, axis=0, keepdims=True) / np.mean(np.abs(p_true)**2, axis=0, keepdims=True)) 
+                            for name, p in p_est.items()}, np.zeros((1)), pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"{plot_name}_nmse", output_method=output_method, only_positive=True, num_examples=1, points_to_set_colormap=points_to_set_colormap)
 
 
     
-def compare_soundfields_all_time(p_all, p_est, p_true, freqs, pos_im, fig_folder, pos_mic=None, output_method="pdf", num_examples=5, num_ls = 1):
+def compare_soundfields_all_time(p_all, p_est, p_true, freqs, pos_im, fig_folder, pos_mic=None, output_method="pdf", num_examples=5, num_ls = 1, points_for_errors = None):
     if freqs.shape[-1] > 10: # if there's a reasonable amount of frequencies, show time domain responses
         for l in range(num_ls):
             if num_ls > 1:
@@ -581,7 +592,7 @@ def compare_time_domain_soundfields(ir_all, pos_im, fig_folder, pos_mic=None, pl
         utils.save_plot(output_method, fig_folder, f"soundfield_td_{plot_name}_{n}")
 
 
-def compare_soundfields(p_all, freqs, pos_im, fig_folder, pos_mic=None, plot_name="", num_examples = 5, output_method="pdf", only_positive=False):
+def compare_soundfields(p_all, freqs, pos_im, fig_folder, pos_mic=None, plot_name="", num_examples = 5, output_method="pdf", only_positive=False, points_to_set_colormap=None):
     num_freqs = len(freqs)
 
     freq_idxs = _get_freq_example_idxs(num_freqs, num_examples)
@@ -595,8 +606,13 @@ def compare_soundfields(p_all, freqs, pos_im, fig_folder, pos_mic=None, plot_nam
             axes = [axes]
         fig.tight_layout()
 
-        v_max = np.max([np.max(sf[f,...]) for sf in p_all.values()])
-        v_min = np.min([np.min(sf[f,...]) for sf in p_all.values()])
+        if points_to_set_colormap is not None:
+            v_max = np.max([np.max(sf[f,...,points_to_set_colormap]) for sf in p_all.values()])
+            v_min = np.min([np.min(sf[f,...,points_to_set_colormap]) for sf in p_all.values()])
+        else:
+            v_max = np.max([np.max(sf[f,...]) for sf in p_all.values()])
+            v_min = np.min([np.min(sf[f,...]) for sf in p_all.values()])
+
 
         if only_positive:
             cmap="inferno"
