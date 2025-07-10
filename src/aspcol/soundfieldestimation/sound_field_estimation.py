@@ -23,7 +23,7 @@ import aspcol.sphericalharmonics as sph
 
 
 #============= FREQUENCY DOMAIN METHODS - STATIONARY MICROPHONES =============
-def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
+def est_ki_freq(p_freq, pos, pos_eval, k, reg_param, kernel_func = None, kernel_args = None):
     """Estimates the RIR in the frequency domain using kernel interpolation
     
     Uses the frequency domain sound pressure as input
@@ -50,9 +50,24 @@ def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
     ----------
     [uenoKernel2018]
     """
-    est_filt = ki.get_interpolation_params(ki.kernel_helmholtz_3d, reg_param, pos_eval, pos, k)
+    if kernel_func is None:
+        kernel_func = ki.kernel_helmholtz_3d
+        assert kernel_args is None, "kernel_args must be None if kernel_func is None"
+    if kernel_args is None:
+        kernel_args = []
+
+    est_filt = ki.get_interpolation_params(kernel_func, reg_param, pos_eval, pos, k, *kernel_args)
+    if est_filt.ndim == 4:
+        est_filt = np.squeeze(est_filt, axis=1)
     p_ki = est_filt @ p_freq[:,:,None]
     return np.squeeze(p_ki, axis=-1)
+
+
+def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
+    """DEPRECATED: Use est_ki_freq instead. It defaults to the diffuse Helmholtz kernel, hence is equivalent. 
+    Only kept for backwards compatibility.
+    """
+    return est_ki_freq(p_freq, pos, pos_eval, k, reg_param)
 
 
 def nearest_neighbour_freq(p_freq, pos, pos_eval):
@@ -159,7 +174,7 @@ def pseq_nearest_neighbour(p, seq, pos, pos_eval):
     return est_sound_pressure
 
 
-def est_ki_diffuse(p, seq, pos, pos_eval, samplerate, c, reg_param):
+def est_ki(p, seq, pos, pos_eval, samplerate, c, reg_param, kernel_func = None, kernel_args = None):
     """
     Estimates the RIR in the frequency domain using kernel interpolation
     Assumes seq is a perfect periodic sequence
@@ -179,6 +194,10 @@ def est_ki_diffuse(p, seq, pos, pos_eval, samplerate, c, reg_param):
         speed of sound
     reg_param : float
         regularization parameter for kernel interpolation
+    kernel_func : callable
+        kernel function to use, defaults to the diffuse Helmholtz kernel.
+    kernel_args : tuple
+        additional arguments to pass to the kernel function, defaults to None.
 
     Returns
     -------
@@ -195,8 +214,13 @@ def est_ki_diffuse(p, seq, pos, pos_eval, samplerate, c, reg_param):
     rir_freq = ft.rfft(rir)
     k = ft.get_real_wavenum(fft_len, samplerate, c)
 
-    return est_ki_diffuse_freq(rir_freq, pos, pos_eval, k, reg_param)
+    return est_ki_freq(rir_freq, pos, pos_eval, k, reg_param, kernel_func, kernel_args)
 
+def est_ki_diffuse(p, seq, pos, pos_eval, samplerate, c, reg_param):
+    """DEPRECATED: Use est_ki instead. It defaults to the diffuse Helmholtz kernel, hence is equivalent.
+    Only kept for backwards compatibility.
+    """
+    return est_ki(p, seq, pos, pos_eval, samplerate, c, reg_param)
 
 
 

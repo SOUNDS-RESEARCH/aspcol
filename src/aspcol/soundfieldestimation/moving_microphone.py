@@ -8,7 +8,7 @@ The sound field estimation function inf_dimensional_shd_dynamic cannot deal with
 
 References
 ----------
-[brunnstromBayesianSubmitted] J. Brunnström, M. B. Møller, and M. Moonen, “Bayesian sound field estimation using moving microphones,” IEEE Open Journal of Signal Processing, submitted. \n
+[brunnstromBayesian2025] J. Brunnström, M. B. Møller, and M. Moonen, “Bayesian sound field estimation using moving microphones,” IEEE Open Journal of Signal Processing, 2025. \n
 """
 
 import numpy as np
@@ -97,7 +97,7 @@ def inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_p
     
 
     # ======= Estimation of spherical harmonic coefficients =======
-    Phi = _sequence_stft_multiperiod(sequence, num_periods)
+    Phi = _seq_stft_bayesian_multiperiod(sequence, num_periods)
     
     psi = calculate_psi(pos, dir_coeffs, wave_num, Phi, seq_len, num_real_freqs)
     noise_cov = reg_param * np.eye(N)
@@ -168,7 +168,7 @@ def _est_inf_dimensional_shd_omni(p, pos, pos_eval, sequence, samplerate, c, reg
     num_real_freqs = len(ft.get_real_freqs(seq_len, samplerate))
 
     # ======= Estimation of spherical harmonic coefficients =======
-    Phi = _sequence_stft_multiperiod(sequence, num_periods)
+    Phi = _seq_stft_bayesian_multiperiod(sequence, num_periods)
 
     #division by pi is a correction for the sinc function used later
     dist_mat = np.sqrt(np.sum((np.expand_dims(pos,1) - np.expand_dims(pos,0))**2, axis=-1))  / np.pi 
@@ -267,7 +267,7 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_
     r, angles = util.cart2spherical(pos)
 
     # ======= Estimation of spatial spectrum coefficients =======
-    phi = _sequence_stft_multiperiod(sequence, num_periods)
+    phi = _seq_stft_bayesian_multiperiod(sequence, num_periods)
 
     if r_max is None:
         r_max = np.max(r)
@@ -329,7 +329,7 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_
     return rir_est
 
 
-def _sequence_stft_multiperiod(sequence, num_periods):
+def _seq_stft_bayesian_multiperiod(sequence, num_periods):
     """
     Assumes that the sequence is periodic.
     Assumes that sequence argument only contains one period
@@ -343,11 +343,37 @@ def _sequence_stft_multiperiod(sequence, num_periods):
     -------
     Phi : ndarray of shape (seq_len, num_periods*seq_len)
     """
-    Phi = _sequence_stft(sequence)
+    Phi = _seq_stft_bayesian(sequence)
     return np.tile(Phi, (1, num_periods))
 
-def _sequence_stft(sequence):
-    """Might not correspond to the definition in the paper
+def _seq_stft_bayesian(sequence):
+    """Computes the STFT for a single period as needed for the Bayesian moving microphone method
+
+    Computes Phi(n, omega) in [brunnstromBayesian2025]
+    Assumes the sequence is periodic with period B
+
+    Parameters
+    ----------
+    sequence : ndarray of shape (seq_len,)
+
+    Returns
+    -------
+    Phi : ndarray of shape (seq_len, seq_len)
+        first axis contains frequency bins
+        second axis contains time indices
+    """
+    if sequence.ndim == 2:
+        sequence = np.squeeze(sequence, axis=0)
+    assert sequence.ndim == 1
+    B = sequence.shape[0]
+
+    Phi = np.zeros((B, B), dtype=complex)
+    for n in range(B):
+        Phi[:,n] = ft.fft(np.roll(sequence, -n)) / B
+    return Phi
+
+def _seq_stft_bayesian_slow(sequence):
+    """Slow version of seq_stft_bayesian, should not be used
 
     Parameters
     ----------
@@ -376,9 +402,6 @@ def _sequence_stft(sequence):
         for f in range(B):
             exp_vec = ft.idft_vector(f, B)
             Phi[f,n] = np.sum(exp_vec * seq_vec) 
-    # Fast version, not sure if correct
-    # for n in range(B):
-    #     Phi[:,n] = np.fft.fft(np.roll(sequence, -n), axis=-1)
     return Phi
 
 
@@ -480,8 +503,6 @@ def _estimate_from_regressor_omni(regressor, pos_eval, pos, k):
         est_sound_pressure[f, :] = np.sum(kernel_val * regressor[f,None,:], axis=-1)
     return est_sound_pressure
 
-
-
 def calculate_psi(pos, dir_coeffs, k, Phi, seq_len, num_real_freqs):
     N = pos.shape[0]
     psi = np.zeros((N, N), dtype = float)
@@ -504,3 +525,137 @@ def calculate_psi(pos, dir_coeffs, k, Phi, seq_len, num_real_freqs):
     psi += np.squeeze(np.real(shd.translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, k[seq_len//2:seq_len//2+1])), axis=0) * np.real_if_close(Phi[seq_len//2,:,None] * Phi[seq_len//2,None,:])
     return psi
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def krr_moving_mic(p, pos, pos_eval, sequence, samplerate, c, reg_param, kernel_func = None, kernel_args = [], return_params=False):
+    """
+    Estimates the RIR at evaluation positions using data from a moving microphone
+    using Bayesian inference of an infinite sequence of spherical harmonics
+
+    Parameters
+    ----------
+    p : ndarray of shape (N)
+        sound pressure for each sample of the moving microphone
+    pos : ndarray of shape (N, 3)
+        position of the trajectory for each sample
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+    sequence : ndarray of shape (seq_len) or (1, seq_len)
+        the training signal used for the measurements
+    samplerate : int
+    c : float
+        speed of sound
+    reg_param : float
+        regularization parameter
+
+    Returns
+    -------
+    
+    """
+    # ======= Argument parsing and constants =======
+    if p.ndim >= 2:
+        p = np.squeeze(p)
+    N = p.shape[0]
+
+    if kernel_func is None:
+        kernel_func = ki.kernel_helmholtz_3d
+    if kernel_args is None:
+        kernel_args = []
+
+    if sequence.ndim == 2:
+        sequence = np.squeeze(sequence, axis=0)
+    assert sequence.ndim == 1
+    seq_len = sequence.shape[0]
+    assert seq_len % 2 == 0 #Calculations later assume seq_len is even to get the Nyquist frequency
+    num_periods = N // seq_len
+    assert N % seq_len == 0
+
+    wave_num = ft.get_real_wavenum(seq_len, samplerate, c)
+    num_real_freqs = len(wave_num)
+
+    assert pos.shape == (N, 3)
+    assert pos_eval.ndim == 2 and pos_eval.shape[1] == 3
+
+    # ======= Estimation of spherical harmonic coefficients =======
+    phi_f = _seq_stft_krr_multiperiod(sequence, num_periods)
+    #phi_f2 = _seq_stft_bayesian_multiperiod(sequence, num_periods)
+    #np.allclose(phi_f, 500*np.conj(phi_f2[:251,:]), atol=1e-8)
+
+    dft_weighting = ft.rdft_weighting(num_real_freqs, seq_len, 0)
+
+    K = np.zeros((N, N), dtype = float)
+    for f in range(num_real_freqs):
+        phi_rank1_matrix = phi_f[f,:,None].conj() * phi_f[f,None,:]
+        K += dft_weighting[f] * np.real(np.squeeze(kernel_func(pos, pos, wave_num[f:f+1], *kernel_args)) * phi_rank1_matrix)
+
+    # with seq_len as mulitplier the reg_param can be set identical to the Bayesian method
+    reg_matrix = seq_len*reg_param * np.eye(N)
+    krr_params = splin.solve(K + reg_matrix, p, assume_a = "pos")
+    krr_params = phi_f * krr_params[None,:]
+
+    # ======= Reconstruction of RIR =======
+    est_sound_pressure = reconstruct_from_krr_params(krr_params, pos_eval, pos, wave_num, kernel_func, kernel_args)
+    if return_params:
+        est_sound_pressure, krr_params, K
+    return est_sound_pressure
+
+def reconstruct_from_krr_params(krr_params, pos_eval, pos, wave_num, kernel_func = None, kernel_args = []):
+    """Takes the regressor from inf_dimensional_shd_dynamic, and gives back a sound field estimate. 
+    Reconstructs the sound field at the evaluation points using the regressor matrix
+    from est_inf_dimensional_shd_dynamic
+
+    Parameters
+    ----------
+    krr_params : ndarray of shape (num_real_freqs, N)
+        KRR parameters
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+    pos : ndarray of shape (N, 3)
+        positions of the trajectory for each sample
+    k : ndarray of shape (num_freq)
+        wavenumbers
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
+    """
+    num_real_freqs = krr_params.shape[0]
+    assert wave_num.shape[-1] == num_real_freqs
+    assert pos.shape[0] == krr_params.shape[-1]
+
+    est_sound_pressure = np.zeros((num_real_freqs, pos_eval.shape[0]), dtype=complex)
+    for f in range(num_real_freqs):
+        kernel_val = kernel_func(pos_eval, pos, wave_num[f:f+1], *kernel_args).astype(complex)[0,:,:]
+        est_sound_pressure[f, :] = np.sum(kernel_val * krr_params[f,None,:], axis=-1)
+    return est_sound_pressure
+
+
+def _seq_stft_krr_multiperiod(sequence, num_periods):
+    seq_len = sequence.shape[0]
+    full_seq_len = seq_len * num_periods
+
+    num_real_freqs = len(ft.get_real_freqs(seq_len, 1))
+    phi_f = np.zeros((num_real_freqs, full_seq_len), dtype=complex)
+
+    full_seq = np.tile(sequence, num_periods+1)
+    for i in range(full_seq_len):
+        offset_i = i + seq_len
+        phi_n = np.flip(full_seq[offset_i-seq_len+1:offset_i+1])
+        #phi_n = full_seq[offset_i-seq_len+1:offset_i+1]
+        phi_f[:,i] = ft.rfft(phi_n)
+    return phi_f
