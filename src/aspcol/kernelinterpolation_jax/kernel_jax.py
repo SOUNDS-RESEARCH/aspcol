@@ -98,8 +98,9 @@ def multifreq_diffuse_kernel(pos1, pos2, wave_num, diag_mat=True):
         return kernel_matrix
     return kernel_val
 
-@jax.jit
-def time_domain_diffuse_kernel(pos1, pos2, wave_num):
+#@jax.jit
+@partial(jax.jit, static_argnames=["real_nyquist"])
+def time_domain_diffuse_kernel(pos1, pos2, wave_num, real_nyquist=False):
     """Time domain diffuse sound field kernel. 
 
     Assumes the total DFT length was even. Any number of real frequencies / wave numbers can 
@@ -116,6 +117,11 @@ def time_domain_diffuse_kernel(pos1, pos2, wave_num):
         Position of the second point.
     wave_num : np.ndarray of shape (num_real_freqs,)
         Wave number, defined as 2*pi*f/c, where f is the frequency and c is the speed of sound.
+    real_nyquist : bool, optional
+        If True, the kernel is calculated as 1/2 * k(r, r') + k(r, -r') for the highest frequency bin. This is
+        the kernel derived in [brunnströmTime2025] for even DFT lengths. It should be set to False for odd DFT lengths,
+        but it is also not likely to make a big difference, as the sound field model for the Nyquist frequency is 
+        non-physical anyway. Default is False.
 
     Returns
     -------
@@ -129,6 +135,12 @@ def time_domain_diffuse_kernel(pos1, pos2, wave_num):
     than DFT matrices. This is left for future work, whereas this is clear and easy to check for correctness. 
     """
     freq_kernel = multifreq_diffuse_kernel(pos1, pos2, wave_num, diag_mat=False)
+
+    if real_nyquist:
+        nyquist_extra_kernel = diffuse_kernel(pos1, -pos2, wave_num[-1])[0,...]
+        freq_kernel.at[..., -1].add(nyquist_extra_kernel)
+        freq_kernel.at[..., -1].multiply(0.5)
+
     kernel_matrix = freq_to_time_domain_kernel_matrix(freq_kernel)
     return kernel_matrix
 

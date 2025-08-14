@@ -46,9 +46,12 @@ def reconstruct_diffuse(pos_eval, pos_mic, wave_num, krr_params, batch_size=20):
     if krr_params.ndim == 1:
         krr_params = krr_params.reshape(num_mic, -1)
     assert krr_params.ndim == 2
+    ir_len = krr_params.shape[-1]
+    even_ir_length = ir_len % 2 == 0
+    #even_ir_length = False
 
     def _reconstruct_diffuse_inner_loop(pos_eval_batch):
-        gamma_eval = kernel.time_domain_diffuse_kernel(pos_eval_batch[None,:], pos_mic, wave_num)
+        gamma_eval = kernel.time_domain_diffuse_kernel(pos_eval_batch[None,:], pos_mic, wave_num, real_nyquist=even_ir_length)
         estimate = jnp.squeeze(aspmat.matmul_param(gamma_eval, krr_params[:,None,:,None]), axis=(0,1,3))
         return estimate
 
@@ -135,10 +138,12 @@ def krr_stationary_mics(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, ver
     num_pos = pos_mic.shape[0]
     num_eval = pos_eval.shape[0]
     ir_len = ir_mic.shape[-1]
+    even_dft_length = ir_len % 2 == 0
+    #even_dft_length = False  # Check if the DFT length is even
+
     mat_size = num_pos * ir_len
     wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
-    gamma = kernel.time_domain_diffuse_kernel(pos_mic, pos_mic, wave_num)
-
+    gamma = kernel.time_domain_diffuse_kernel(pos_mic, pos_mic, wave_num, real_nyquist=even_dft_length)
     gamma = aspmat.param2blockmat(gamma)
 
     if data_weighting is not None:
