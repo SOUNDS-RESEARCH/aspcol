@@ -136,6 +136,7 @@ def soundfield_estimation_comparison(
         image_true=None,
         pos_image=None,
         remove_freqs_below=0,
+        remove_freqs_above=None,
         num_examples = 4,
         points_for_errors = None,
     ):
@@ -180,7 +181,9 @@ def soundfield_estimation_comparison(
     pos_image : np.ndarray, optional
         Positions of the image array. Shape (num_image, spatial_dim)
     remove_freqs_below : float, optional
-        Remove frequencies below this value. The default is 0.
+        Remove frequencies below this value in Hz. The default is 0.
+    remove_freqs_above : float; optional
+        Remove frequencies above this value in Hz. 
     points_for_errors : np.ndarray of shape (num_positions,) with Boolean values, optional
         Points which have True values are included in error calculations. The default is None.
         It also specifies which points to use in setting of colormap limits in the soundfield MSE plots. Useful if a few points
@@ -197,7 +200,7 @@ def soundfield_estimation_comparison(
     example_responses(p_all_orig, freqs_orig, fig_folder, output_method=output_method, num_examples=num_examples) # needs to be done before removing 0Hz bin
     error_per_sample(p_est_orig, p_true_orig, fig_folder, output_method=output_method)
 
-    freqs_to_keep = freqs > remove_freqs_below
+    freqs_to_keep = np.logical_and(freqs > remove_freqs_below, freqs < remove_freqs_above)
     p_all = {name : sig[freqs_to_keep,...] for name, sig in p_all.items()}
     p_est = {name : sig[freqs_to_keep,...] for name, sig in p_est.items()}
     p_true = p_true[freqs_to_keep,...]
