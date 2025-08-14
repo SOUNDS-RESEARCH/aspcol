@@ -49,7 +49,7 @@ def plane_wave(pos, direction, wave_num, exp_center=None):
     """
     if direction.ndim == 1:
         direction = direction[None,:]
-    assert direction.ndim == 2
+    #assert direction.ndim == 2
     assert direction.shape[-1] == 3
     assert np.allclose(np.linalg.norm(direction, axis=-1), 1)
     assert pos.ndim == 2
@@ -66,7 +66,13 @@ def plane_wave(pos, direction, wave_num, exp_center=None):
     assert wave_num.ndim == 1
     num_freqs = wave_num.shape[0]
 
-    pw_values = np.exp(-1j * wave_num[:,None,None] * np.sum(pos[:,None,:] * direction[None,:,:], axis=-1)[None,...])
+    pos_ext = np.expand_dims(pos, axis=tuple(range(1, direction.ndim)))  # shape (num_pos, 1, 3)
+    #pos.reshape((-1, *(direction.ndim-1) * (1,), 3))
+    direction_ext =  np.expand_dims(direction, tuple(range(pos.ndim-1)))
+    #direction.reshape((*(pos.ndim-1) * (1,), *direction.shape)) #adds empty dims to the beginning
+    wave_num_ext = np.expand_dims(wave_num, (tuple(range(1, pos_ext.ndim))))
+
+    pw_values = np.exp(-1j * wave_num_ext * np.sum(pos_ext * direction_ext, axis=-1)[None,...])
 
     if num_freqs == 1:
         pw_values = np.squeeze(pw_values, axis=0)
