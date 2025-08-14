@@ -1,10 +1,6 @@
 """Module for recording sound fields using a moving microphone
 
-The estimation of a sound field from moving microphones is very computationally costly. Especially for directional microphones, the computational cost of the estimation can be prohibitive. Therefore a lot of the code in this module is implemented in jax, such that the resulting functions can be compiled, leading to considerable improvements in running time. 
-
-Due to the need of re-implementing functions such as the spherical Bessel function in jax, the current compilable implementations in this module are somewhat restricted. There is jax implementations of e.g. the translation operator that can also be found in the module sphericalharmonics.py, but in this module it assumes order 0 and 1 harmonic coefficients only. 
-
-The sound field estimation function inf_dimensional_shd_dynamic cannot deal with directionalities above order 1.
+The estimation of a sound field from moving microphones is very computationally costly. Especially for directional microphones, the computational cost of the estimation can be prohibitive. 
 
 References
 ----------
@@ -14,17 +10,16 @@ References
 import numpy as np
 import scipy.linalg as splin
 import scipy.special as spspec
-import jax
-jax.config.update("jax_enable_x64", True)
-import jax.numpy as jnp
-#jax.config.update("jax_disable_jit", True)
-#jax.config.update("jax_debug_nans", True)
 
 import aspcore.fouriertransform as ft
+import aspcore.montecarlo as mc
+import aspcore.matrices as aspmat
 
 import aspcol.sphericalharmonics as shd
 import aspcol.utilities as util
 import aspcol.kernelinterpolation as ki
+import aspcol.planewaves as pw
+
 
 
 def inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_param, dir_coeffs=None, verbose=False):
@@ -610,7 +605,7 @@ def krr_moving_mic(p, pos, pos_eval, sequence, samplerate, c, reg_param, kernel_
     # ======= Reconstruction of RIR =======
     est_sound_pressure = reconstruct_from_krr_params(krr_params, pos_eval, pos, wave_num, kernel_func, kernel_args)
     if return_params:
-        est_sound_pressure, krr_params, K
+        return est_sound_pressure, krr_params, K
     return est_sound_pressure
 
 def reconstruct_from_krr_params(krr_params, pos_eval, pos, wave_num, kernel_func = None, kernel_args = []):
@@ -659,3 +654,175 @@ def _seq_stft_krr_multiperiod(sequence, num_periods):
         #phi_n = full_seq[offset_i-seq_len+1:offset_i+1]
         phi_f[:,i] = ft.rfft(phi_n)
     return phi_f
+
+
+
+
+
+def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num_basis=64, rng=None, return_params=False):
+    """Sound field estimation with moving microphone using KRR with random Fourier features
+    
+    Parameters
+    ----------
+    p : ndarray of shape (N)
+        sound pressure for each sample of the moving microphone
+    pos : ndarray of shape (N, 3)
+        position of the trajectory for each sample
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+    sequence : ndarray of shape (seq_len)
+        N is a multiple of seq_len. The loudspeaker sequence used for the measurements, 
+        which is assumed to be periodic with period seq_len
+    samplerate : int
+    c : float
+        speed of sound
+    reg_param : float
+        regularization parameter
+    num_basis : int, optional
+        number of random basis directions to use, by default 64
+
+    Notes
+    -----
+    Uses the diffuse kernel implicitly
+    the reg_param is not identical to the standard KRR methods, and so might have to be chosen differently
+    The params returns by return_params can be interpreted as plane wave coefficients, but are
+    not the same as the standard krr parameters
+
+    """
+    # ======= Argument parsing and constants =======
+    if p.ndim >= 2:
+        p = np.squeeze(p)
+    N = p.shape[0]
+
+    if sequence.ndim == 2:
+        sequence = np.squeeze(sequence, axis=0)
+    assert sequence.ndim == 1
+    seq_len = sequence.shape[0]
+    assert seq_len % 2 == 0 #Calculations later assume seq_len is even to get the Nyquist frequency
+    num_periods = N // seq_len
+    assert N % seq_len == 0
+
+    wave_num = ft.get_real_wavenum(seq_len, samplerate, c)
+    num_real_freqs = len(wave_num)
+
+    assert pos.shape == (N, 3)
+    assert pos_eval.ndim == 2 and pos_eval.shape[1] == 3
+    phi_f = _seq_stft_krr_multiperiod(sequence, num_periods) #/ np.sqrt(seq_len)
+
+    if rng is None:
+        rng = np.random.default_rng(1234543)
+
+    #basis_directions = mc.uniform_random_on_sphere(num_basis, rng)
+    basis_directions = mc.uniform_random_on_sphere(num_basis*num_real_freqs, rng).reshape((num_real_freqs, num_basis, 3))
+
+    Z = _rff_z_matrix(-pos, wave_num, phi_f, basis_directions, num_basis, seq_len, N)
+
+    system_mat = Z.T @ Z 
+    #system_mat = aspmat.regularize_matrix_with_condition_number(system_mat, 1/reg_param)
+    system_mat += seq_len * reg_param * np.eye(seq_len * num_basis, dtype=Z.dtype)
+    projected_data = Z.T @ p
+
+    params = np.linalg.solve(system_mat, projected_data)
+    params = params.reshape(seq_len, num_basis)
+    params = ft.real_vec_to_dft_domain(params, scale=True) # (num_real_freqs, num_basis)
+
+    #z_eval = pw.plane_wave(pos_eval, basis_directions, wave_num) / np.sqrt(num_basis) # (num_real_freqs, num_eval, num_basis)
+    z_eval = np.stack([pw.plane_wave(pos_eval, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / np.sqrt(num_basis) #(num_real_freqs, num_eval, num_basis)
+
+    z_eval = np.moveaxis(z_eval, 0, 1) # (num_eval, num_real_freqs, num_basis)
+
+    p_est = np.sum(z_eval * params[None,:,:], axis=-1).T #(num_eval, seq_len)
+    if return_params:
+        return p_est, params, Z
+    return p_est
+
+def _rff_z_matrix(pos, wave_num, Phi, basis_directions, num_basis, seq_len, N):
+    num_real_freqs = wave_num.shape[0]
+    Z = np.stack([pw.plane_wave(pos, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / np.sqrt(num_basis)
+
+    Z *=  Phi[:,:,None]
+    Z = ft.dft_domain_to_real_vec(Z, even=True, scale=True)  # (seq_len, N, num_basis)
+    Z = np.moveaxis(Z, 0, 1) # (N, seq_len, num_basis)
+    Z = np.reshape(Z, (N, seq_len* num_basis)) # (N, seq_len * num_basis)
+    return Z
+
+def _get_real_basis_vector(pos, basis_directions, wave_num, phi_f):
+    """Generates a random basis vector for the RFF method
+    
+    The basis vector V_nd is R^L and is defined as 
+    V_nd = S E(r_n, d_d) phi_f(n) / np.sqrt(D)
+
+    This function generates the vector V_n which is R^DL
+    where V_n = (V_n1, V_n2, ..., V_nD) and
+
+    Parameters
+    ----------
+    pos : ndarray of shape (1, 3)
+        position of r_n
+    basis_direction : ndarray of shape (num_real_freqs, num_basis, 3)
+        direction of d_d, 
+        where num_real_freqs is the number of real frequencies
+    wave_num : ndarray of shape (num_real_freqs,)
+        wavenumbers for the real frequencies
+    Phi : ndarray of shape (num_real_freqs,)
+        the STFT of the sequence for time step n
+        
+    Returns
+    -------
+    V_n : ndarray of shape (D*L,)
+        the basis vector for the RFF method
+    """
+    assert basis_directions.ndim == 3
+    num_basis = basis_directions.shape[1]
+    num_real_freqs = basis_directions.shape[0]
+    assert basis_directions.shape[2] == 3
+    assert wave_num.shape[0] == num_real_freqs
+    assert pos.shape == (1, 3)
+
+    E_nd = np.stack([pw.plane_wave(pos, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / np.sqrt(num_basis)
+    V_nd = E_nd[:,0,:] * phi_f[:,None]
+    V_nd = ft.dft_domain_to_real_vec(V_nd, even=True, scale=True) # (seq_len, num_basis)
+    V_nd = np.moveaxis(V_nd, 0, 1) # (num_basis, seq_len)
+    V_n = np.reshape(V_nd, (-1,)) # (D*L,)
+    return V_n
+
+def _get_basis_vector(pos, basis_directions, wave_num, phi_f):
+    """Generates a random basis vector for the RFF method
+    
+    The basis vector V_nd is R^L and is defined as 
+    V_nd = E(r_n, d_d) phi_f(n) / np.sqrt(D)
+
+    This function generates the vector V_n which is (num_real_freqs, num_basis)
+
+    Parameters
+    ----------
+    pos : ndarray of shape (1, 3)
+        position of r_n
+    basis_direction : ndarray of shape (num_real_freqs, num_basis, 3)
+        direction of d_d, 
+        where num_real_freqs is the number of real frequencies
+    wave_num : ndarray of shape (num_real_freqs,)
+        wavenumbers for the real frequencies
+    Phi : ndarray of shape (num_real_freqs,)
+        the STFT of the sequence for time step n
+        
+    Returns
+    -------
+    V_n : ndarray of shape (D*L,)
+        the basis vector for the RFF method
+    """
+    assert basis_directions.ndim == 3
+    num_basis = basis_directions.shape[1]
+    num_real_freqs = basis_directions.shape[0]
+    assert basis_directions.shape[2] == 3
+    assert wave_num.shape[0] == num_real_freqs
+    assert pos.shape == (1, 3)
+
+    E_nd = np.stack([pw.plane_wave(pos, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / np.sqrt(num_basis)
+    E_nd = E_nd[:,0,:]
+    E_nd[-1,:] = np.real(E_nd[-1,:]) # make the Nyquist frequency real
+    E_nd[0,:] = np.real(E_nd[0,:]) # make the DC component real
+
+    V_nd = E_nd * phi_f[:,None] #(num_real_freqs, num_basis)
+    return V_nd
+    

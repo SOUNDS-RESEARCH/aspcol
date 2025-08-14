@@ -10,11 +10,30 @@ import aspcol.sphericalharmonics as sph
 import aspcol.utilities as utils
 import plot_methods as plm
 import aspcol.planewaves as pw
+import aspcol.planewaves_jax as pw_jax
 
 from aspsim.simulator import SimulatorSetup
 import aspsim.room.region as region
 
 import matplotlib.pyplot as plt
+
+
+
+def test_plane_wave_numpy_and_jax_are_equivalent():
+    rng = np.random.default_rng()
+    sr = 2000
+    num_freqs = 128
+    c = 343
+    wave_num = ft.get_real_wavenum(num_freqs, sr, c)
+
+    directions = mc.uniform_random_on_sphere(10, rng)
+
+    pos = rng.uniform(-1, 1, size=(100, 3))
+
+    waves_numpy = pw.plane_wave(pos, directions, wave_num)
+    waves_jax = pw_jax.plane_wave(pos, directions, wave_num)
+
+    assert np.allclose(waves_numpy, waves_jax)
 
 def show_plane_wave_response():
     freq = 400
