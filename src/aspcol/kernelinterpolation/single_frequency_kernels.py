@@ -140,8 +140,8 @@ def kernel_directional_3d(points1, points2, wave_num, direction_vec, beta):
     Defined in 'Spatial active noise control based on kernel interpolation 
     of sound field' by Koyama, Brunnström, Ito, Ueno, Saruwatari.
 
-    The direction is defined such that the direction_vec should be pointing from the receiver to the source.
-    if the target region is centered at (0,0,0) and the source is at (4,0,0), then the direction_vec should be (1,0,0)
+    If used for sound field estimation, the direction should be set in the preferred propagation direction
+    This means that for a receiver at [0,0,0] and a source at [10,0,0], the direction should be [-1,0,0]
     
     Parameters
     ----------
@@ -159,7 +159,7 @@ def kernel_directional_3d(points1, points2, wave_num, direction_vec, beta):
     """
     angle_term = 1j * beta * direction_vec.reshape((1,-1,1,1,direction_vec.shape[-1]))
     pos_term = wave_num.reshape((-1,1,1,1,1)) * (points1.reshape((1,1,-1,1,points1.shape[-1])) - points2.reshape((1,1,1,-1,points2.shape[-1])))
-    return np.sinc(np.sqrt(np.sum((angle_term + pos_term)**2, axis=-1)) / np.pi)
+    return np.sinc(np.sqrt(np.sum((pos_term - angle_term)**2, axis=-1)) / np.pi)
 
 
 def kernel_reciprocal_3d(points1, points2, wave_num):
@@ -373,6 +373,7 @@ def reconstruct_freq(krr_params, pos_output, pos_data, wave_num, kernel_func=Non
     """
     if kernel_func is None:
         kernel_func = kernel_helmholtz_3d
+        assert kernel_args is None, "kernel_args must be None if kernel_func is None"
     if kernel_args is None:
         kernel_args = []
 
@@ -417,6 +418,7 @@ def get_krr_params(data, pos, wave_num, reg_param, kernel_func=None, kernel_args
     """
     if kernel_func is None:
         kernel_func = kernel_helmholtz_3d
+        assert kernel_args is None, "kernel_args must be None if kernel_func is None"
     if kernel_args is None:
         kernel_args = []
 
@@ -426,7 +428,6 @@ def get_krr_params(data, pos, wave_num, reg_param, kernel_func=None, kernel_args
     K_reg = K + reg_param * np.eye(K.shape[-1])[None,:,:]
 
     K_reg = aspmat.regularize_matrix_with_condition_number(K_reg, 1e8)
-    #print(f"Condition number of K: {np.linalg.cond(K)}")}")
     a = np.linalg.solve(K_reg, data)
     return a
 

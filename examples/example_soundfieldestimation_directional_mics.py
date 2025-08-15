@@ -14,7 +14,7 @@ import aspcol.sphericalharmonics as sph
 def run_exp():
     samplerate = 1000
     pos_mic, p_mic_omni, p_mic_cardioid, pos_eval, p_eval, freqs, fig_folder, sim_info = generate_data(samplerate)
-    wave_num = freqs / sim_info.c
+    wave_num = ft.freqs_to_wavenum(freqs, sim_info.c)
     
     reg_param = 1e-5
 

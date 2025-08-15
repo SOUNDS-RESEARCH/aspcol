@@ -59,9 +59,6 @@ def reconstruct_diffuse(pos_eval, pos_mic, wave_num, krr_params, batch_size=20):
     return estimate
 
 
-
-
-
 def reconstruct_from_kernel(gamma_eval, krr_params):
     """Reconstructs the sound field using an already calculated kernel matrix.
     
@@ -169,7 +166,6 @@ def krr_stationary_mics(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, ver
 
     if verbose:
         return estimate, krr_params, gamma
-
     return estimate
 
 

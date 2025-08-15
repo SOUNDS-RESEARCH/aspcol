@@ -15,15 +15,18 @@ import scipy.spatial.distance as spdist
 
 import aspcore.pseq as pseq
 import aspcore.fouriertransform as ft
+import aspcore.montecarlo as mc
 
 import aspcol.kernelinterpolation as ki
 import aspcol.sphericalharmonics as sph
+import aspcol.planewaves as pw
+
 
 
 
 
 #============= FREQUENCY DOMAIN METHODS - STATIONARY MICROPHONES =============
-def est_ki_freq(p_freq, pos, pos_eval, k, reg_param, kernel_func = None, kernel_args = None):
+def est_ki_freq(p_freq, pos, pos_eval, wave_num, reg_param, kernel_func = None, kernel_args = None):
     """Estimates the RIR in the frequency domain using kernel interpolation
     
     Uses the frequency domain sound pressure as input
@@ -50,17 +53,22 @@ def est_ki_freq(p_freq, pos, pos_eval, k, reg_param, kernel_func = None, kernel_
     ----------
     [uenoKernel2018]
     """
-    if kernel_func is None:
-        kernel_func = ki.kernel_helmholtz_3d
-        assert kernel_args is None, "kernel_args must be None if kernel_func is None"
-    if kernel_args is None:
-        kernel_args = []
+    # if kernel_func is None:
+    #     kernel_func = ki.kernel_helmholtz_3d
+    #     assert kernel_args is None, "kernel_args must be None if kernel_func is None"
+    # if kernel_args is None:
+    #     kernel_args = []
 
-    est_filt = ki.get_interpolation_params(kernel_func, reg_param, pos_eval, pos, k, *kernel_args)
-    if est_filt.ndim == 4:
-        est_filt = np.squeeze(est_filt, axis=1)
-    p_ki = est_filt @ p_freq[:,:,None]
-    return np.squeeze(p_ki, axis=-1)
+    a = ki.get_krr_params(p_freq, pos, wave_num, reg_param, kernel_func=kernel_func, kernel_args=kernel_args)
+    p_ki = ki.reconstruct_freq(a, pos_eval, pos, wave_num, kernel_func, kernel_args)
+    return p_ki
+
+
+    # est_filt = ki.get_interpolation_params(kernel_func, reg_param, pos_eval, pos, k, *kernel_args)
+    # if est_filt.ndim == 4:
+    #     est_filt = np.squeeze(est_filt, axis=1)
+    # p_ki = est_filt @ p_freq[:,:,None]
+    # return np.squeeze(p_ki, axis=-1)
 
 
 def est_ki_diffuse_freq(p_freq, pos, pos_eval, k, reg_param):
@@ -135,6 +143,77 @@ def inf_dim_shd_analysis(p_freq, pos, pos_eval, wave_num, dir_coeffs, reg_param)
     estimator_matrix = sph.translated_inner_product(pos_eval, pos, omni_dir, dir_coeffs, wave_num)
     est_sound_pressure = np.squeeze(estimator_matrix @ regression_vec, axis=-1)
     return est_sound_pressure
+
+
+
+
+def est_ki_freq_rff(p_freq, pos, pos_eval, k, reg_param, num_basis = 64, rng = None, direction=None, beta = None):
+    """Estimates the RIR in the frequency domain using random Fourier features
+    
+    Uses the frequency domain sound pressure as input
+
+    Parameters
+    ----------
+    p_freq : ndarray of shape (num_real_freqs, num_mics)
+        sound pressure in frequency domain at num_mic microphone positions
+    pos : ndarray of shape (num_mic, 3)
+        positions of the microphones
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+    k : ndarray of shape (num_freq)
+        wavenumbers
+    reg_param : float
+        regularization parameter for kernel interpolation
+    num_basis : int
+        number of basis directions to use for the random fourier features
+    direction : ndarray of shape (3,)
+        direction of the directional weighting. 
+        This should be towards the source, i.e. in the opposite of the propagation direction
+    beta : float
+        strength of the directional component
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
+
+    Notes
+    -----
+    If direction is set, the basis directions are sampled from a von Mises-Fisher distribution, 
+    with pdf p(x) = e^{-beta * direction^T x}.
+
+    References
+    ----------
+    [uenoKernel2018]
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+
+    if direction is None:
+        assert beta is None, "beta must be None if direction is None"
+        basis_directions = mc.uniform_random_on_sphere(num_basis, rng)
+    else:
+        assert beta is not None, "beta must be set if direction is set"
+        basis_directions = mc.vonmises_fisher_on_sphere(num_basis, -direction, beta, rng)
+
+    Z = pw.plane_wave(pos, basis_directions, k) / np.sqrt(num_basis)
+    system_mat = np.moveaxis(Z.conj(), 1, 2) @ Z
+    system_mat += reg_param * np.eye(num_basis, dtype=system_mat.dtype)[None,...]
+
+    projected_data = np.moveaxis(Z.conj(),1,2) @ p_freq[:,:,None]
+    params = np.linalg.solve(system_mat, projected_data)
+
+    z_eval = pw.plane_wave(pos_eval, basis_directions, k) / np.sqrt(num_basis)
+    p_est = z_eval @ params
+    return np.squeeze(p_est, axis=-1)
+
+
+
+
+
+
+
+
 
 
 
@@ -224,8 +303,46 @@ def est_ki_diffuse(p, seq, pos, pos_eval, samplerate, c, reg_param):
 
 
 
+def est_ki_rff(p, seq, pos, pos_eval, samplerate, c, reg_param, kernel_func = None, kernel_args = None):
+    """Estimates the RIR in the frequency domain using random Fourier features
+    Assumes seq is a perfect periodic sequence
 
+    Parameters
+    ----------
+    p : ndarray of shape (M, seq_len)
+        sound pressure in time domain at M microphone positions
+    seq : ndarray of shape (seq_len)
+        the training signal used for the measurements
+    pos : ndarray of shape (num_mic, 3)
+        positions of the microphones
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+    samplerate : int
+    c : float
+        speed of sound
+    reg_param : float
+        regularization parameter for kernel interpolation
+    kernel_func : callable
+        kernel function to use, defaults to the diffuse Helmholtz kernel.
+    kernel_args : tuple
+        additional arguments to pass to the kernel function, defaults to None.
 
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
+
+    References
+    ----------
+    [uenoKernel2018]
+    """
+    rir = pseq.decorrelate(p, seq)
+
+    fft_len = rir.shape[-1]
+    rir_freq = ft.rfft(rir)
+    k = ft.get_real_wavenum(fft_len, samplerate, c)
+
+    return est_ki_freq_rff(rir_freq, pos, pos_eval, k, reg_param, kernel_func, kernel_args)
 
 
 
