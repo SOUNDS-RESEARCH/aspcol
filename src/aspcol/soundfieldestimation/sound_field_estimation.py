@@ -16,6 +16,7 @@ import scipy.spatial.distance as spdist
 import aspcore.pseq as pseq
 import aspcore.fouriertransform as ft
 import aspcore.montecarlo as mc
+import aspcore.matrices as aspmat
 
 import aspcol.kernelinterpolation as ki
 import aspcol.sphericalharmonics as sph
@@ -200,6 +201,8 @@ def est_ki_freq_rff(p_freq, pos, pos_eval, k, reg_param, num_basis = 64, rng = N
     system_mat = np.moveaxis(Z.conj(), 1, 2) @ Z
     system_mat += reg_param * np.eye(num_basis, dtype=system_mat.dtype)[None,...]
 
+    #system_mat = aspmat.regularize_matrix_with_condition_number(system_mat, 1e8) # safety to ensure the system is not singular
+    
     projected_data = np.moveaxis(Z.conj(),1,2) @ p_freq[:,:,None]
     params = np.linalg.solve(system_mat, projected_data)
 

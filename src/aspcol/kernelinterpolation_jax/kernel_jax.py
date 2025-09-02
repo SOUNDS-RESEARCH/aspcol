@@ -76,7 +76,9 @@ def directional_kernel_vonmises(pos1, pos2, wave_num, direction, beta):
     pos_term = wave_num.reshape((-1,1,1,1,1)) * (pos1.reshape((1,1,-1,1,pos1.shape[-1])) - pos2.reshape((1,1,1,-1,pos2.shape[-1])))
     kernel_values = jnp.sinc(jnp.sqrt(jnp.sum((pos_term - angle_term)**2, axis=-1)) / jnp.pi)
 
+    
     normalization = 2 * beta / (jnp.exp(beta) - jnp.exp(-beta))
+    normalization = jnp.where(beta == 0, 1.0, normalization)  # Avoid division by zero for beta=0
     kernel_values = kernel_values * normalization
 
     if direction.ndim == 1 or direction.shape[0] == 1:

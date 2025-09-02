@@ -544,7 +544,7 @@ def krr_moving_mic_directional(p, pos, pos_eval, sequence, samplerate, c, reg_pa
     krr_params = jax_splin.solve(K + reg_matrix, p, assume_a="pos")
     krr_params = phi_f * krr_params[None,:]
 
-    est_sound_pressure = reconstruct_directional(krr_params, pos_eval, pos, wave_num, direction, beta, batch_size=batch_size)
+    est_sound_pressure = reconstruct_krr_moving_mic_directional(krr_params, pos_eval, pos, wave_num, direction, beta, batch_size=batch_size)
     if return_params:
         return est_sound_pressure, krr_params, K
     return est_sound_pressure
@@ -609,7 +609,7 @@ def _calc_directional_kernel_mat(pos, wave_num, phi_f, direction, beta, seq_len,
     def _kernel_inner_loop(system_mat, scanned_args):
         (wave_num_single, phi_single, dft_weight) = scanned_args
         phi_rank1_matrix = phi_single[:,None].conj() * phi_single[None,:]
-        system_mat_incr = dft_weight * jnp.real(jnp.squeeze(kernel.directional_kernel_vonmises(pos, pos, wave_num_single, -direction, beta)) * phi_rank1_matrix)
+        system_mat_incr = dft_weight * jnp.real(jnp.squeeze(kernel.directional_kernel_vonmises(pos, pos, wave_num_single, direction, beta)) * phi_rank1_matrix)
         system_mat = system_mat + system_mat_incr
         return system_mat, system_mat
 
@@ -618,15 +618,13 @@ def _calc_directional_kernel_mat(pos, wave_num, phi_f, direction, beta, seq_len,
     return kernel_system_mat
 
 
-def reconstruct_directional(krr_params, pos_eval, pos_mic, wave_num, direction, beta, batch_size=8):
-    """Takes the regressor from inf_dimensional_shd_dynamic, and gives back a sound field estimate. 
-    Reconstructs the sound field at the evaluation points using the regressor matrix
-    from est_inf_dimensional_shd_dynamic
+def reconstruct_krr_moving_mic_directional(krr_params, pos_eval, pos_mic, wave_num, direction, beta, batch_size=8):
+    """Takes the KRR parameters, and gives back a sound field estimate. 
 
     Parameters
     ----------
     krr_params : ndarray of shape (num_real_freqs, N)
-        regressor matrix from est_inf_dimensional_shd_dynamic
+        krr parameters from krr_moving_mic_directional
     pos_eval : ndarray of shape (num_eval, 3)
         positions of the evaluation points
     pos : ndarray of shape (N, 3)
@@ -639,10 +637,10 @@ def reconstruct_directional(krr_params, pos_eval, pos_mic, wave_num, direction, 
     est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
         estimated RIR per frequency at the evaluation points"""
     def _reconstruct_inner_loop(pos_eval_single):
-        kernel_val = kernel.directional_kernel_vonmises(pos_eval_single[None,:], pos_mic, wave_num, -direction, beta).astype(complex)
-        kernel_val = jnp.squeeze(kernel_val, axis=1) # remove extra axis corresponding to the number of directions
-        p_est = jnp.sum(kernel_val * krr_params[:,None,:], axis=-1)
-        return jnp.squeeze(p_est, axis=-1)
+        kernel_val = kernel.directional_kernel_vonmises(pos_eval_single[None,:], pos_mic, wave_num, direction, beta).astype(complex)
+        kernel_val = jnp.squeeze(kernel_val, axis=1) # remove axis corresponding to single_eval
+        p_est = jnp.sum(kernel_val * krr_params, axis=-1)
+        return p_est
     
     estimate = jnp.moveaxis(jax.lax.map(_reconstruct_inner_loop, pos_eval, batch_size=batch_size), 0, 1)
     return estimate
@@ -684,7 +682,7 @@ def krr_moving_mic_diffuse(p, pos, pos_eval, sequence, samplerate, c, reg_param,
     krr_params = jax_splin.solve(K + reg_matrix, p, assume_a="pos")
     krr_params = phi_f * krr_params[None,:]
 
-    est_sound_pressure = reconstruct_diffuse(krr_params, pos_eval, pos, wave_num)
+    est_sound_pressure = reconstruct_krr_moving_mic_diffuse(krr_params, pos_eval, pos, wave_num)
     if return_params:
         return est_sound_pressure, krr_params, K
     return est_sound_pressure
@@ -707,7 +705,7 @@ def _calc_diffuse_kernel_mat(pos, wave_num, Phi, seq_len, batch_size=8):
     return kernel_system_mat
 
 @partial(jax.jit, static_argnames=["batch_size"])
-def reconstruct_diffuse(krr_params, pos_eval, pos_mic, wave_num, batch_size=8):
+def reconstruct_krr_moving_mic_diffuse(krr_params, pos_eval, pos_mic, wave_num, batch_size=8):
     """Takes the regressor from inf_dimensional_shd_dynamic, and gives back a sound field estimate. 
     Reconstructs the sound field at the evaluation points using the regressor matrix
     from est_inf_dimensional_shd_dynamic
@@ -830,8 +828,16 @@ def _seq_stft_krr_OLD(sequence):
     return phis.conj() * B
 
 
-@partial(jax.jit, static_argnames=["num_basis", "return_params"])
-def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num_basis=64, seed=None, return_params=False, direction = None, beta = None):
+
+
+@partial(jax.jit, static_argnames=["same_direction_for_all_freqs"])
+def reconstruct_moving_mic_rff(params, pos_eval, wave_num, basis_directions, same_direction_for_all_freqs=True):
+    z_eval = _get_rff_basis_vec(pos_eval, basis_directions, wave_num, same_direction_for_all_freqs)
+    p_est = jnp.sum(z_eval * params[:,None,:], axis=-1) 
+    return p_est
+
+@partial(jax.jit, static_argnames=["num_basis", "return_params", "same_direction_for_all_freqs"])
+def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num_basis=64, key=None, return_params=False, direction = None, beta = None, same_direction_for_all_freqs=True):
     """Sound field estimation with moving microphone using KRR with random Fourier features
     
     Parameters
@@ -863,26 +869,28 @@ def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num
     """
     p, pos, pos_eval, sequence, N, seq_len, num_periods = _parse_moving_mic_args(p, pos, pos_eval, sequence)
 
-    if seed is None:
-        seed = 123456
-    key = jax.random.PRNGKey(seed)
-
-    #p_est, params, Z = _rff_compilable_subproblem(
-    #    p, pos, pos_eval, sequence, samplerate, c, reg_param, num_basis, seq_len, N, num_periods, key)
+    if key is None:
+        key = jax.random.key(23456743)
 
     wave_num = ft.get_real_wavenum(seq_len, samplerate, c)
     num_real_freqs = wave_num.shape[-1]
     phi_f = _seq_stft_krr_multiperiod(sequence, num_periods)
 
+    if same_direction_for_all_freqs:
+        tot_num_basis = num_basis
+    else:
+        tot_num_basis = num_basis * num_real_freqs
+
     if direction is None:
         assert beta is None, "beta should not be provided if direction is not provided"
-        basis_directions = mc.uniform_random_on_sphere(num_basis*num_real_freqs, key)
+        basis_directions = mc.uniform_random_on_sphere(tot_num_basis, key)
     else:
         assert beta is not None, "beta should be provided if direction is provided"
-        basis_directions = mc.vonmises_fisher_on_sphere(num_basis*num_real_freqs, direction, beta, key)
-    basis_directions = basis_directions.reshape((num_real_freqs, num_basis, 3))
+        basis_directions = mc.vonmises_fisher_on_sphere(tot_num_basis, -direction, beta, key)
+    if not same_direction_for_all_freqs:
+        basis_directions = basis_directions.reshape((num_real_freqs, num_basis, 3))
 
-    Z = _rff_z_matrix(-pos, wave_num, phi_f, basis_directions, num_basis, seq_len, N)
+    Z = _rff_z_matrix(-pos, wave_num, phi_f, basis_directions, num_basis, seq_len, N, same_direction_for_all_freqs)
 
     system_mat = Z.T @ Z
     system_mat = system_mat + seq_len * reg_param * jnp.eye(seq_len * num_basis, dtype=Z.dtype)
@@ -892,14 +900,42 @@ def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num
     params = params.reshape(seq_len, num_basis)
     params = ft.real_vec_to_dft_domain(params, scale=True) # (num_real_freqs, num_basis)
 
-    z_eval = jnp.stack([pw.plane_wave(pos_eval, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / jnp.sqrt(num_basis)
-    z_eval = jnp.moveaxis(z_eval, 0, 1) # (num_eval, num_real_freqs, num_basis)
+    p_est = reconstruct_moving_mic_rff(params, pos_eval, wave_num, basis_directions, same_direction_for_all_freqs)
 
-    p_est = jnp.sum(z_eval * params[None,:,:], axis=-1).T #(num_eval, seq_len)
+    #z_eval = _get_rff_basis_vec(pos_eval, basis_directions, wave_num, same_direction_for_all_freqs)
+    #p_est = jnp.sum(z_eval * params[:,None,:], axis=-1) #(num_real_freqs, num_eval)
 
+
+    # if same_direction_for_all_freqs:
+    #     z_eval = pw.plane_wave(pos_eval, basis_directions, wave_num) / jnp.sqrt(num_basis)
+    # else:
+    #     z_eval = jnp.stack([pw.plane_wave(pos_eval, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / jnp.sqrt(num_basis)
+    #z_eval = jnp.moveaxis(z_eval, 0, 1) # (num_eval, num_real_freqs, num_basis)
     if return_params:
-        return p_est, params, Z
+        return p_est, params, basis_directions, Z
     return p_est # (num_real_freqs, num_eval)
+
+
+def _get_rff_basis_vec(pos, basis_directions, wave_num, same_direction_for_all_freqs):
+    """
+
+    Parameters
+    ----------
+    basis_directions : array of shape (num_basis, 3) or (num_real_freqs, num_basis, 3)
+        the former must be used if same_direction_for_all_freqs is True.
+        the latter must be used if same_direction_for_all_freqs is False
+
+    returns z of shape (num_real_freqs, num_pos, num_basis)
+    """
+    num_real_freqs = wave_num.shape[-1]
+    if same_direction_for_all_freqs:
+        num_basis = basis_directions.shape[0]
+        z = pw.plane_wave(pos, basis_directions, wave_num) / jnp.sqrt(num_basis)
+    else:
+        num_basis = basis_directions.shape[1]
+        z = jnp.stack([pw.plane_wave(pos, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / jnp.sqrt(num_basis)
+    return z
+
 
 # @partial(jax.jit, static_argnames=["num_basis", "seq_len", "num_periods", "N"])
 # def _rff_compilable_subproblem(p, pos, pos_eval, sequence, samplerate, c, reg_param, num_basis, seq_len, N, num_periods, key):
@@ -926,10 +962,16 @@ def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num
 #     p_est = jnp.sum(z_eval * params[None,:,:], axis=-1).T #(num_eval, seq_len)
 #     return p_est, params, Z
 
-@partial(jax.jit, static_argnames=["num_basis", "seq_len", "N"])
-def _rff_z_matrix(pos, wave_num, phi_f, basis_directions, num_basis, seq_len, N):
-    num_real_freqs = wave_num.shape[-1]
-    Z = jnp.stack([pw.plane_wave(pos, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / jnp.sqrt(num_basis)
+
+@partial(jax.jit, static_argnames=["num_basis", "seq_len", "N", "same_direction_for_all_freqs"])
+def _rff_z_matrix(pos, wave_num, phi_f, basis_directions, num_basis, seq_len, N, same_direction_for_all_freqs):
+
+    Z = _get_rff_basis_vec(pos, basis_directions, wave_num, same_direction_for_all_freqs)
+    # num_real_freqs = wave_num.shape[-1]
+    # if same_direction_for_all_freqs:
+    #     Z = pw.plane_wave(pos, basis_directions, wave_num) / jnp.sqrt(num_basis)
+    # else:
+    #     Z = jnp.stack([pw.plane_wave(pos, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / jnp.sqrt(num_basis)
 
     Z = Z * phi_f[:,:,None]
     Z = ft.dft_domain_to_real_vec(Z, even=True, scale=True)  # (seq_len, N, num_basis)

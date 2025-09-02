@@ -136,7 +136,7 @@ def soundfield_estimation_comparison(
         image_true=None,
         pos_image=None,
         remove_freqs_below=0,
-        remove_freqs_above=None,
+        remove_freqs_above=np.inf,
         num_examples = 4,
         points_for_errors = None,
     ):
@@ -286,12 +286,16 @@ def _cleanup_args(p_est, p_true, num_ls = 1):
     if isinstance(p_est, np.ndarray):
         p_est = {"estimate" : p_est}
     for name, est in p_est.items():
-        if est.ndim == 3 and est.shape[-1] == 1:
-            p_est[name] = np.squeeze(est, axis=-1)
+        if est.ndim == 3 and est.shape[-1] == 1: # assume we have vectors that have not been squeezed properly
+            p_est[name] = np.squeeze(p_est[name], axis=-1)
         if num_ls == 1:
-            p_est[name] = p_est[name][:,None,:]
-        elif num_ls > 1:
-            assert est.shape[1] == num_ls
+            #if est.ndim == 3:
+            #    assert est.shape[1] == 1
+            #    p_est[name] = np.squeeze(est, axis=1) # squeeze the loudspeaker dim
+            if p_est[name].ndim == 2: # add the singleton loudspeaker axis
+                p_est[name] = p_est[name][:,None,:]
+        #elif num_ls > 1:
+        #    assert est.shape[1] == num_ls
             #raise NotImplementedError("The reshaping must be looked at since switching to aspcol fft function")
             #td_est = ft.irfft(p_est[name])
             #assert td_est.shape[1] % num_ls == 0
@@ -299,6 +303,8 @@ def _cleanup_args(p_est, p_true, num_ls = 1):
             #num_eval = td_est.shape[1]
             #td_est = np.reshape(td_est.T, (num_eval, num_ls, rir_len))
             #p_est[name] = ft.rfft(td_est, axis=-1).T
+        assert p_est[name].ndim == 3
+        assert p_est[name].shape[1] == num_ls
 
     if p_true.ndim == 3 and p_true.shape[-1] == 1:
         p_true = np.squeeze(p_true, axis=-1)
