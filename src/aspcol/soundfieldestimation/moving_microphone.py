@@ -206,7 +206,7 @@ def _est_inf_dimensional_shd_omni(p, pos, pos_eval, sequence, samplerate, c, reg
 
 
 
-def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_param, r_max=None, verbose=False):
+def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_param, r_max=None, verbose=False, return_params = False):
     """Estimates the RIR at evaluation positions using data from a moving microphone
 
     Implements the method from Katzberg et al. "Spherical harmonic 
@@ -253,11 +253,10 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_
     seq_len = sequence.shape[0]
     num_periods = N // seq_len
     assert N % seq_len == 0
-    num_eval = pos_eval.shape[0]
+    #num_eval = pos_eval.shape[0]
 
-    k = ft.get_wavenum(seq_len, samplerate, c)
-    num_freqs = len(k)
-    num_real_freqs = len(ft.get_real_freqs(seq_len, samplerate))
+    wave_num = ft.get_real_wavenum(seq_len, samplerate, c)
+    num_real_freqs = wave_num.shape[-1] #len(ft.get_real_freqs(seq_len, samplerate))
 
     r, angles = util.cart2spherical(pos)
 
@@ -266,16 +265,16 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_
 
     if r_max is None:
         r_max = np.max(r)
-    max_orders = shd.shd_min_order(k[:num_real_freqs], r_max)
+    max_orders = shd.shd_min_order(wave_num, r_max)
     max_orders = np.concatenate((max_orders, np.flip(max_orders[1:])))
     
     Sigma = []
 
-    freq_idx_list = np.arange(num_real_freqs)
-    for f in freq_idx_list:#range(num_real_freqs):
+    #freq_idx_list = np.arange(num_real_freqs)
+    for f in range(num_real_freqs): #freq_idx_list:
         order, modes = shd.shd_num_degrees_vector(max_orders[f])
         Y_f = spspec.sph_harm(modes[None,:], order[None,:], angles[:,0:1], angles[:,1:2])
-        B_f = spspec.spherical_jn(order[None,:], k[f]*r[:,None])
+        B_f = spspec.spherical_jn(order[None,:], wave_num[f]*r[:,None])
 
        # D_f = spspec.spherical_jn(order, k[f]*r_max)
         S_f = phi[f,:]
@@ -294,12 +293,29 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_
     Sigma = np.concatenate(Sigma, axis=-1)
     system_mat = Sigma.conj().T @ Sigma + reg_param * np.eye(Sigma.shape[-1])
     print(f"Size of spatial spectrum system matrix: {system_mat.shape}")
-    a = splin.solve(system_mat, Sigma.conj().T @ p, assume_a="pos")
+    params = splin.solve(system_mat, Sigma.conj().T @ p, assume_a="pos")
     #a, residue, rank, singular_values = np.linalg.lstsq(Sigma, p, rcond=None)
     #a = lsqL2(Sigma, p, 1e-6)
 
-
+    rir_est = reconstruct_spatial_spectrum(params, pos_eval, wave_num, max_orders)
     # ======= Reconstruction of RIR =======
+    if verbose:
+        diagnostics = {}
+        diagnostics["condition number"] = np.linalg.cond(Sigma).tolist()
+        diagnostics["smallest singular value"] = splin.svdvals(Sigma)[0].tolist()
+        diagnostics["largest singular"] = splin.svdvals(Sigma)[-1].tolist()
+        diagnostics["r_max"] = r_max
+        if return_params:
+            return rir_est, params, max_orders, diagnostics
+        return rir_est, diagnostics
+    if return_params:
+        return rir_est, params, max_orders
+    return rir_est
+
+def reconstruct_spatial_spectrum(params, pos_eval, wave_num, max_orders):
+    num_real_freqs = wave_num.shape[-1]
+    num_eval = pos_eval.shape[0]
+
     rir_est = np.zeros((num_real_freqs, num_eval), dtype=complex)
     r_eval, angles_eval = util.cart2spherical(pos_eval)
     ord_idx = 0
@@ -308,19 +324,11 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_
         num_ord = len(order)
         
         #j_denom = spspec.spherical_jn(order, k[f]*r_max)
-        j_num = spspec.spherical_jn(order[None,:], k[f]*r_eval[:,None])
+        j_num = spspec.spherical_jn(order[None,:], wave_num[f]*r_eval[:,None])
 
         Y = spspec.sph_harm(modes[None,:], order[None,:], angles_eval[:,0:1], angles_eval[:,1:2])
-        rir_est[f, :] = np.sum(a[None,ord_idx:ord_idx+num_ord] * Y * j_num  , axis=-1) # / j_denom[None,:]
+        rir_est[f, :] = np.sum(params[None,ord_idx:ord_idx+num_ord] * Y * j_num  , axis=-1) # / j_denom[None,:]
         ord_idx += num_ord
-
-    if verbose:
-        diagnostics = {}
-        diagnostics["condition number"] = np.linalg.cond(Sigma).tolist()
-        diagnostics["smallest singular value"] = splin.svdvals(Sigma)[0].tolist()
-        diagnostics["largest singular"] = splin.svdvals(Sigma)[-1].tolist()
-        diagnostics["r_max"] = r_max
-        return rir_est, diagnostics
     return rir_est
 
 
