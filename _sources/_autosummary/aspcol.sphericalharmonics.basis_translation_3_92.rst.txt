@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.basis\_translation\_3\_92
+===================================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: basis_translation_3_92

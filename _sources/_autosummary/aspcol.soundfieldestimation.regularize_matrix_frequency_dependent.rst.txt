@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.regularize\_matrix\_frequency\_dependent
+====================================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: regularize_matrix_frequency_dependent

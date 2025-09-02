@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation\_jax.inf\_dimensional\_shd\_dynamic
+===============================================================
+
+.. currentmodule:: aspcol.soundfieldestimation_jax
+
+.. autofunction:: inf_dimensional_shd_dynamic

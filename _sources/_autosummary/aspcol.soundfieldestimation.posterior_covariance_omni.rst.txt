@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.posterior\_covariance\_omni
+=======================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: posterior_covariance_omni

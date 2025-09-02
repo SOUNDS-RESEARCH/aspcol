@@ -1,0 +1,6 @@
+aspcol.distance.angular\_distance
+=================================
+
+.. currentmodule:: aspcol.distance
+
+.. autofunction:: angular_distance

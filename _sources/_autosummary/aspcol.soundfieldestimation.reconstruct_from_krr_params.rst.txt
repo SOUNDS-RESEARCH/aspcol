@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.reconstruct\_from\_krr\_params
+==========================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: reconstruct_from_krr_params

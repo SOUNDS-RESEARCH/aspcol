@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.analytic\_kernel\_weighting\_disc\_2d
+================================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: analytic_kernel_weighting_disc_2d

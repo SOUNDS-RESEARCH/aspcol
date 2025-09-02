@@ -1,0 +1,36 @@
+﻿aspcol.spatialcovarianceestimation
+==================================
+
+.. automodule:: aspcol.spatialcovarianceestimation
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      krr_estimation_cov_informed
+      krr_estimation_sgd
+      reconstruct_freq
+      reconstruct_from_mat
+      spatial_cov_from_integral_weighting
+      spatial_cov_from_integral_weighting_diffuse
+      spatial_cov_weighting
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

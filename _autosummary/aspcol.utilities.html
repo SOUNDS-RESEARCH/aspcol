@@ -1,0 +1,186 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.utilities &mdash; aspcol 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=e3a6060d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.utilities.cart2pol" href="aspcol.utilities.cart2pol.html" />
+    <link rel="prev" title="aspcol.sphericalharmonics.triple_harmonic_integral" href="aspcol.sphericalharmonics.triple_harmonic_integral.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation_jax.html">aspcol.kernelinterpolation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.planewaves.html">aspcol.planewaves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.plot.html">aspcol.plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation_jax.html">aspcol.soundfieldestimation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.spatialcovarianceestimation.html">aspcol.spatialcovarianceestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">aspcol.utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.cart2pol.html">aspcol.utilities.cart2pol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.cart2spherical.html">aspcol.utilities.cart2spherical</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.db2mag.html">aspcol.utilities.db2mag</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.db2pow.html">aspcol.utilities.db2pow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.flatten_dict.html">aspcol.utilities.flatten_dict</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.get_time_string.html">aspcol.utilities.get_time_string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.get_unique_folder.html">aspcol.utilities.get_unique_folder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.mag2db.html">aspcol.utilities.mag2db</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.measure_time.html">aspcol.utilities.measure_time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.pol2cart.html">aspcol.utilities.pol2cart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.pow2db.html">aspcol.utilities.pow2db</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.restack_dict.html">aspcol.utilities.restack_dict</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.spherical2cart.html">aspcol.utilities.spherical2cart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.utilities.wraps.html">aspcol.utilities.wraps</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">aspcol.utilities</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.utilities.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-aspcol.utilities">
+<span id="aspcol-utilities"></span><h1>aspcol.utilities<a class="headerlink" href="#module-aspcol.utilities" title="Link to this heading"></a></h1>
+<p>Helper functions for various tasks without a clear category</p>
+<p class="rubric">References</p>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.utilities.cart2pol.html#aspcol.utilities.cart2pol" title="aspcol.utilities.cart2pol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cart2pol</span></code></a>(x, y)</p></td>
+<td><p>Transforms the provided cartesian coordinates to polar coordinates</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.utilities.cart2spherical.html#aspcol.utilities.cart2spherical" title="aspcol.utilities.cart2spherical"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cart2spherical</span></code></a>(cart_coord)</p></td>
+<td><p>Transforms the provided cartesian coordinates to spherical coordinates</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.utilities.db2mag.html#aspcol.utilities.db2mag" title="aspcol.utilities.db2mag"><code class="xref py py-obj docutils literal notranslate"><span class="pre">db2mag</span></code></a>(db)</p></td>
+<td><p>Transforms the provided decibel value to magnitude</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.utilities.db2pow.html#aspcol.utilities.db2pow" title="aspcol.utilities.db2pow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">db2pow</span></code></a>(db)</p></td>
+<td><p>Transforms the provided decibel value to power</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.utilities.flatten_dict.html#aspcol.utilities.flatten_dict" title="aspcol.utilities.flatten_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flatten_dict</span></code></a>(dict_to_flatten[, parent_key, sep])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.utilities.get_time_string.html#aspcol.utilities.get_time_string" title="aspcol.utilities.get_time_string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_string</span></code></a>([detailed])</p></td>
+<td><p>Returns a string with the current time in the format 'year_month_day_hour_minute'</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.utilities.get_unique_folder.html#aspcol.utilities.get_unique_folder" title="aspcol.utilities.get_unique_folder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_folder</span></code></a>(prefix, parent_folder[, ...])</p></td>
+<td><p>Returns a unique folder name in the parent folder with the prefix and the current time</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.utilities.mag2db.html#aspcol.utilities.mag2db" title="aspcol.utilities.mag2db"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mag2db</span></code></a>(amp)</p></td>
+<td><p>Transforms the provided magnitude to decibel</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.utilities.measure_time.html#aspcol.utilities.measure_time" title="aspcol.utilities.measure_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure_time</span></code></a>(name)</p></td>
+<td><p>Use as decorator on a function to measure the time the function takes use as &#64;measure_time('print_this_as_name')</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.utilities.pol2cart.html#aspcol.utilities.pol2cart" title="aspcol.utilities.pol2cart"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pol2cart</span></code></a>(r, angle)</p></td>
+<td><p>Tranforms the provided polar coordinates to cartesian coordinates</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.utilities.pow2db.html#aspcol.utilities.pow2db" title="aspcol.utilities.pow2db"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pow2db</span></code></a>(power)</p></td>
+<td><p>Transforms the provided power to decibel</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.utilities.restack_dict.html#aspcol.utilities.restack_dict" title="aspcol.utilities.restack_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">restack_dict</span></code></a>(dict_to_stack[, sep])</p></td>
+<td><p>Only accepts dicts of depth 2.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.utilities.spherical2cart.html#aspcol.utilities.spherical2cart" title="aspcol.utilities.spherical2cart"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spherical2cart</span></code></a>(r, angle)</p></td>
+<td><p>Transforms the provided spherical coordinates to cartesian coordinates</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.utilities.wraps.html#aspcol.utilities.wraps" title="aspcol.utilities.wraps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wraps</span></code></a>(wrapped[, assigned, updated])</p></td>
+<td><p>Decorator factory to apply update_wrapper() to a wrapper function</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.sphericalharmonics.triple_harmonic_integral.html" class="btn btn-neutral float-left" title="aspcol.sphericalharmonics.triple_harmonic_integral" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.utilities.cart2pol.html" class="btn btn-neutral float-right" title="aspcol.utilities.cart2pol" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

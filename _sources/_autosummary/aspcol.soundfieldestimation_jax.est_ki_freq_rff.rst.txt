@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation\_jax.est\_ki\_freq\_rff
+===================================================
+
+.. currentmodule:: aspcol.soundfieldestimation_jax
+
+.. autofunction:: est_ki_freq_rff

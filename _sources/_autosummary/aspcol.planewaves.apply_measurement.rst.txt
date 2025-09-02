@@ -1,0 +1,6 @@
+aspcol.planewaves.apply\_measurement
+====================================
+
+.. currentmodule:: aspcol.planewaves
+
+.. autofunction:: apply_measurement

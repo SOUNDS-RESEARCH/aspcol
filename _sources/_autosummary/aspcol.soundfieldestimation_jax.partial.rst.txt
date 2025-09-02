@@ -1,0 +1,33 @@
+aspcol.soundfieldestimation\_jax.partial
+========================================
+
+.. currentmodule:: aspcol.soundfieldestimation_jax
+
+.. autoclass:: partial
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~partial.__init__
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~partial.args
+      ~partial.func
+      ~partial.keywords
+   
+   

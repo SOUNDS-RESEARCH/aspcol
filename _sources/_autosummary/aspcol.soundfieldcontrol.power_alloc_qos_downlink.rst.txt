@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.power\_alloc\_qos\_downlink
+====================================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: power_alloc_qos_downlink

@@ -1,0 +1,173 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.kernelinterpolation_jax &mdash; aspcol 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=e3a6060d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.kernelinterpolation_jax.diffuse_kernel" href="aspcol.kernelinterpolation_jax.diffuse_kernel.html" />
+    <link rel="prev" title="aspcol.kernelinterpolation.time_domain_freq_dependent_directional_vonmises" href="aspcol.kernelinterpolation.time_domain_freq_dependent_directional_vonmises.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">aspcol.kernelinterpolation_jax</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation_jax.diffuse_kernel.html">aspcol.kernelinterpolation_jax.diffuse_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation_jax.directional_kernel_vonmises.html">aspcol.kernelinterpolation_jax.directional_kernel_vonmises</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation_jax.freq_to_time_domain_kernel_matrix.html">aspcol.kernelinterpolation_jax.freq_to_time_domain_kernel_matrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation_jax.multifreq_diffuse_kernel.html">aspcol.kernelinterpolation_jax.multifreq_diffuse_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation_jax.time_domain_diffuse_kernel.html">aspcol.kernelinterpolation_jax.time_domain_diffuse_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation_jax.time_domain_directional_kernel_vonmises.html">aspcol.kernelinterpolation_jax.time_domain_directional_kernel_vonmises</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation_jax.time_domain_envelope_kernel.html">aspcol.kernelinterpolation_jax.time_domain_envelope_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation_jax.time_domain_envelope_kernel_r3.html">aspcol.kernelinterpolation_jax.time_domain_envelope_kernel_r3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation_jax.time_domain_frequency_weighted_kernel.html">aspcol.kernelinterpolation_jax.time_domain_frequency_weighted_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation_jax.partial.html">aspcol.kernelinterpolation_jax.partial</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.planewaves.html">aspcol.planewaves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.plot.html">aspcol.plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation_jax.html">aspcol.soundfieldestimation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.spatialcovarianceestimation.html">aspcol.spatialcovarianceestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">aspcol.kernelinterpolation_jax</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.kernelinterpolation_jax.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-aspcol.kernelinterpolation_jax">
+<span id="aspcol-kernelinterpolation-jax"></span><h1>aspcol.kernelinterpolation_jax<a class="headerlink" href="#module-aspcol.kernelinterpolation_jax" title="Link to this heading"></a></h1>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.kernelinterpolation_jax.diffuse_kernel.html#aspcol.kernelinterpolation_jax.diffuse_kernel" title="aspcol.kernelinterpolation_jax.diffuse_kernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">diffuse_kernel</span></code></a>(pos1, pos2, wave_num)</p></td>
+<td><p>Diffuse sound field kernel.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.kernelinterpolation_jax.directional_kernel_vonmises.html#aspcol.kernelinterpolation_jax.directional_kernel_vonmises" title="aspcol.kernelinterpolation_jax.directional_kernel_vonmises"><code class="xref py py-obj docutils literal notranslate"><span class="pre">directional_kernel_vonmises</span></code></a>(pos1, pos2, ...)</p></td>
+<td><p>Directional sound field kernel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.kernelinterpolation_jax.freq_to_time_domain_kernel_matrix.html#aspcol.kernelinterpolation_jax.freq_to_time_domain_kernel_matrix" title="aspcol.kernelinterpolation_jax.freq_to_time_domain_kernel_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">freq_to_time_domain_kernel_matrix</span></code></a>(freq_kernel)</p></td>
+<td><p>Turns a diagonal frequency domain kernel matrix into a time domain kernel matrix.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.kernelinterpolation_jax.multifreq_diffuse_kernel.html#aspcol.kernelinterpolation_jax.multifreq_diffuse_kernel" title="aspcol.kernelinterpolation_jax.multifreq_diffuse_kernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">multifreq_diffuse_kernel</span></code></a>(pos1, pos2, wave_num)</p></td>
+<td><p>Multiple frequency diffuse sound field kernel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.kernelinterpolation_jax.time_domain_diffuse_kernel.html#aspcol.kernelinterpolation_jax.time_domain_diffuse_kernel" title="aspcol.kernelinterpolation_jax.time_domain_diffuse_kernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_domain_diffuse_kernel</span></code></a>(pos1, pos2, wave_num)</p></td>
+<td><p>Time domain diffuse sound field kernel.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.kernelinterpolation_jax.time_domain_directional_kernel_vonmises.html#aspcol.kernelinterpolation_jax.time_domain_directional_kernel_vonmises" title="aspcol.kernelinterpolation_jax.time_domain_directional_kernel_vonmises"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_domain_directional_kernel_vonmises</span></code></a>(...)</p></td>
+<td><p>Time-domain directional sound field kernel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.kernelinterpolation_jax.time_domain_envelope_kernel.html#aspcol.kernelinterpolation_jax.time_domain_envelope_kernel" title="aspcol.kernelinterpolation_jax.time_domain_envelope_kernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_domain_envelope_kernel</span></code></a>(pos1, pos2, ...)</p></td>
+<td><p>The kernel Gamma_r(r, r') of the time domain diffuse sound field with envelope regularization.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.kernelinterpolation_jax.time_domain_envelope_kernel_r3.html#aspcol.kernelinterpolation_jax.time_domain_envelope_kernel_r3" title="aspcol.kernelinterpolation_jax.time_domain_envelope_kernel_r3"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_domain_envelope_kernel_r3</span></code></a>(pos1, pos2, ...)</p></td>
+<td><p>The kernel Gamma_{r^3}(r, r') of the time domain diffuse sound field with envelope regularization.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.kernelinterpolation_jax.time_domain_frequency_weighted_kernel.html#aspcol.kernelinterpolation_jax.time_domain_frequency_weighted_kernel" title="aspcol.kernelinterpolation_jax.time_domain_frequency_weighted_kernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_domain_frequency_weighted_kernel</span></code></a>(pos1, ...)</p></td>
+<td><p>Corresponds to the directional kernel, if the directional weighting is chosen to be a constant matrix (independent of direction).</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.kernelinterpolation_jax.partial.html#aspcol.kernelinterpolation_jax.partial" title="aspcol.kernelinterpolation_jax.partial"><code class="xref py py-obj docutils literal notranslate"><span class="pre">partial</span></code></a></p></td>
+<td><p>partial(func, <a href="#id1"><span class="problematic" id="id2">*</span></a>args, <a href="#id3"><span class="problematic" id="id4">**</span></a>keywords) - new function with partial application of the given arguments and keywords.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.kernelinterpolation.time_domain_freq_dependent_directional_vonmises.html" class="btn btn-neutral float-left" title="aspcol.kernelinterpolation.time_domain_freq_dependent_directional_vonmises" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.kernelinterpolation_jax.diffuse_kernel.html" class="btn btn-neutral float-right" title="aspcol.kernelinterpolation_jax.diffuse_kernel" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

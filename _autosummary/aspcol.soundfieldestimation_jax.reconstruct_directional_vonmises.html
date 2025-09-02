@@ -1,0 +1,176 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.soundfieldestimation_jax.reconstruct_directional_vonmises &mdash; aspcol 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=e3a6060d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.soundfieldestimation_jax.reconstruct_from_kernel" href="aspcol.soundfieldestimation_jax.reconstruct_from_kernel.html" />
+    <link rel="prev" title="aspcol.soundfieldestimation_jax.reconstruct_diffuse" href="aspcol.soundfieldestimation_jax.reconstruct_diffuse.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation_jax.html">aspcol.kernelinterpolation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.planewaves.html">aspcol.planewaves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.plot.html">aspcol.plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="aspcol.soundfieldestimation_jax.html">aspcol.soundfieldestimation_jax</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.calculate_psi.html">aspcol.soundfieldestimation_jax.calculate_psi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.est_ki_freq.html">aspcol.soundfieldestimation_jax.est_ki_freq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.est_ki_freq_rff.html">aspcol.soundfieldestimation_jax.est_ki_freq_rff</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.estimate_from_regressor.html">aspcol.soundfieldestimation_jax.estimate_from_regressor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.inf_dimensional_shd_dynamic.html">aspcol.soundfieldestimation_jax.inf_dimensional_shd_dynamic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.krr_moving_mic_diffuse.html">aspcol.soundfieldestimation_jax.krr_moving_mic_diffuse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.krr_moving_mic_directional.html">aspcol.soundfieldestimation_jax.krr_moving_mic_directional</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.krr_moving_mic_rff.html">aspcol.soundfieldestimation_jax.krr_moving_mic_rff</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.krr_stationary_mics.html">aspcol.soundfieldestimation_jax.krr_stationary_mics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.krr_stationary_mics_directional_vonmises.html">aspcol.soundfieldestimation_jax.krr_stationary_mics_directional_vonmises</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.krr_stationary_mics_envelope_regularized.html">aspcol.soundfieldestimation_jax.krr_stationary_mics_envelope_regularized</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.krr_stationary_mics_envelope_regularized_changedip.html">aspcol.soundfieldestimation_jax.krr_stationary_mics_envelope_regularized_changedip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.krr_stationary_mics_frequency_weighted.html">aspcol.soundfieldestimation_jax.krr_stationary_mics_frequency_weighted</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.reconstruct_diffuse.html">aspcol.soundfieldestimation_jax.reconstruct_diffuse</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">aspcol.soundfieldestimation_jax.reconstruct_directional_vonmises</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#aspcol.soundfieldestimation_jax.reconstruct_directional_vonmises"><code class="docutils literal notranslate"><span class="pre">reconstruct_directional_vonmises()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.reconstruct_from_kernel.html">aspcol.soundfieldestimation_jax.reconstruct_from_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.reconstruct_krr_moving_mic_diffuse.html">aspcol.soundfieldestimation_jax.reconstruct_krr_moving_mic_diffuse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.reconstruct_krr_moving_mic_directional.html">aspcol.soundfieldestimation_jax.reconstruct_krr_moving_mic_directional</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.reconstruct_moving_mic_rff.html">aspcol.soundfieldestimation_jax.reconstruct_moving_mic_rff</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation_jax.partial.html">aspcol.soundfieldestimation_jax.partial</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.spatialcovarianceestimation.html">aspcol.spatialcovarianceestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="aspcol.soundfieldestimation_jax.html">aspcol.soundfieldestimation_jax</a></li>
+      <li class="breadcrumb-item active">aspcol.soundfieldestimation_jax.reconstruct_directional_vonmises</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.soundfieldestimation_jax.reconstruct_directional_vonmises.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="aspcol-soundfieldestimation-jax-reconstruct-directional-vonmises">
+<h1>aspcol.soundfieldestimation_jax.reconstruct_directional_vonmises<a class="headerlink" href="#aspcol-soundfieldestimation-jax-reconstruct-directional-vonmises" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="aspcol.soundfieldestimation_jax.reconstruct_directional_vonmises">
+<span class="sig-prename descclassname"><span class="pre">aspcol.soundfieldestimation_jax.</span></span><span class="sig-name descname"><span class="pre">reconstruct_directional_vonmises</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos_eval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_mic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">krr_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aspcol.soundfieldestimation_jax.reconstruct_directional_vonmises" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>pos_eval<span class="classifier">np.ndarray of shape (num_eval, 3)</span></dt><dd><p>The position of the evaluation points.</p>
+</dd>
+<dt>pos_mic<span class="classifier">np.ndarray of shape (num_mics, 3)</span></dt><dd><p>The position of the microphones.</p>
+</dd>
+<dt>wave_num<span class="classifier">np.ndarray of shape (num_real_freqs,)</span></dt><dd><p>The wave numbers defined as 2 * np.pi * freqs / c</p>
+</dd>
+<dt>krr_params<span class="classifier">np.ndarray of shape (num_pos, ir_len) or (num_pos * ir_len,)</span></dt><dd><p>The kernel ridge regression parameters, denoted by a in the paper [brunnströmTimedomain2025]’</p>
+</dd>
+<dt>batch_size<span class="classifier">int,</span></dt><dd><p>The number of evaluation points to process in parallell. Default is 20.
+A higher number generally increases the speed, but also the memory usage,
+the latter of which can be extremely high for many evaluation points.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ir_eval</strong> – The estimated impulse responses at the evaluation points.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray of shape (num_eval, ir_len)</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>[brunnströmTimedomain2025]</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.soundfieldestimation_jax.reconstruct_diffuse.html" class="btn btn-neutral float-left" title="aspcol.soundfieldestimation_jax.reconstruct_diffuse" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.soundfieldestimation_jax.reconstruct_from_kernel.html" class="btn btn-neutral float-right" title="aspcol.soundfieldestimation_jax.reconstruct_from_kernel" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,197 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.soundfieldestimation.posterior_mean_omni &mdash; aspcol 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=e3a6060d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.soundfieldestimation.pseq_nearest_neighbour" href="aspcol.soundfieldestimation.pseq_nearest_neighbour.html" />
+    <link rel="prev" title="aspcol.soundfieldestimation.posterior_covariance_omni" href="aspcol.soundfieldestimation.posterior_covariance_omni.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation_jax.html">aspcol.kernelinterpolation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.planewaves.html">aspcol.planewaves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.plot.html">aspcol.plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement.html">aspcol.soundfieldestimation.apply_measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement_conj.html">aspcol.soundfieldestimation.apply_measurement_conj</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement_conj_omni.html">aspcol.soundfieldestimation.apply_measurement_conj_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement_omni.html">aspcol.soundfieldestimation.apply_measurement_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.calculate_psi.html">aspcol.soundfieldestimation.calculate_psi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki.html">aspcol.soundfieldestimation.est_ki</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_diffuse.html">aspcol.soundfieldestimation.est_ki_diffuse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_diffuse_freq.html">aspcol.soundfieldestimation.est_ki_diffuse_freq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_freq.html">aspcol.soundfieldestimation.est_ki_freq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_freq_rff.html">aspcol.soundfieldestimation.est_ki_freq_rff</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_rff.html">aspcol.soundfieldestimation.est_ki_rff</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_spatial_spectrum_dynamic.html">aspcol.soundfieldestimation.est_spatial_spectrum_dynamic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.estimate_from_regressor.html">aspcol.soundfieldestimation.estimate_from_regressor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.inf_dim_shd_analysis.html">aspcol.soundfieldestimation.inf_dim_shd_analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd.html">aspcol.soundfieldestimation.inf_dimensional_shd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd_dynamic.html">aspcol.soundfieldestimation.inf_dimensional_shd_dynamic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd_omni.html">aspcol.soundfieldestimation.inf_dimensional_shd_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd_omni_prior.html">aspcol.soundfieldestimation.inf_dimensional_shd_omni_prior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_moving_mic.html">aspcol.soundfieldestimation.krr_moving_mic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_moving_mic_rff.html">aspcol.soundfieldestimation.krr_moving_mic_rff</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics.html">aspcol.soundfieldestimation.krr_stationary_mics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized.html">aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_approx.html">aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_approx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_changedip.html">aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_changedip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_rdft.html">aspcol.soundfieldestimation.krr_stationary_mics_rdft</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized.html">aspcol.soundfieldestimation.krr_stationary_mics_regularized</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_changedip.html">aspcol.soundfieldestimation.krr_stationary_mics_regularized_changedip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_rdft.html">aspcol.soundfieldestimation.krr_stationary_mics_regularized_rdft</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_simplified.html">aspcol.soundfieldestimation.krr_stationary_mics_regularized_simplified</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_with_l2_norm.html">aspcol.soundfieldestimation.krr_stationary_mics_regularized_with_l2_norm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.measurement_conj_omni.html">aspcol.soundfieldestimation.measurement_conj_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.measurement_omni.html">aspcol.soundfieldestimation.measurement_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.nearest_neighbour_freq.html">aspcol.soundfieldestimation.nearest_neighbour_freq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.posterior_covariance_omni.html">aspcol.soundfieldestimation.posterior_covariance_omni</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">aspcol.soundfieldestimation.posterior_mean_omni</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#aspcol.soundfieldestimation.posterior_mean_omni"><code class="docutils literal notranslate"><span class="pre">posterior_mean_omni()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.pseq_nearest_neighbour.html">aspcol.soundfieldestimation.pseq_nearest_neighbour</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.reconstruct.html">aspcol.soundfieldestimation.reconstruct</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.reconstruct_from_krr_params.html">aspcol.soundfieldestimation.reconstruct_from_krr_params</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.reconstruct_spatial_spectrum.html">aspcol.soundfieldestimation.reconstruct_spatial_spectrum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.regularize_matrix_frequency_dependent.html">aspcol.soundfieldestimation.regularize_matrix_frequency_dependent</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation_jax.html">aspcol.soundfieldestimation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.spatialcovarianceestimation.html">aspcol.spatialcovarianceestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+      <li class="breadcrumb-item active">aspcol.soundfieldestimation.posterior_mean_omni</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.soundfieldestimation.posterior_mean_omni.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="aspcol-soundfieldestimation-posterior-mean-omni">
+<h1>aspcol.soundfieldestimation.posterior_mean_omni<a class="headerlink" href="#aspcol-soundfieldestimation-posterior-mean-omni" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="aspcol.soundfieldestimation.posterior_mean_omni">
+<span class="sig-prename descclassname"><span class="pre">aspcol.soundfieldestimation.</span></span><span class="sig-name descname"><span class="pre">posterior_mean_omni</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior_covariance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aspcol.soundfieldestimation.posterior_mean_omni" title="Link to this definition"></a></dt>
+<dd><p>Computes the posterior mean of the spherical harmonic coefficients, under a Gaussian assumption</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_real_freqs</em><em>, </em><em>num_mics</em><em>)</em>) – complex sound pressure for each microphone and frequency</p></li>
+<li><p><strong>pos</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_mics</em><em>, </em><em>3</em><em>)</em>) – positions of the microphones</p></li>
+<li><p><strong>exp_center</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>1</em><em>, </em><em>3</em><em>)</em>) – expansion center of the spherical harmonics</p></li>
+<li><p><strong>max_order</strong> (<em>int</em>) – maximum order of the spherical harmonics</p></li>
+<li><p><strong>wave_num</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_real_freqs</em><em>,</em><em>)</em>) – wavenumber, defined as w / c where w is the angular frequency
+and c is the speed of sound</p></li>
+<li><p><strong>noise_power</strong> (<em>float</em>) – variance of the noise in the measurement equation. The noise covariance matrix
+is assumed to be a identity matrix scaled by this value</p></li>
+<li><p><strong>prior_mean</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_real_freqs</em><em>, </em><em>num_coeffs</em><em>)</em><em>, </em><em>optional</em>) – mean of the prior distribution for the sherical harmonic coefficients
+If not provided, the prior mean is assumed to be zero</p></li>
+<li><p><strong>prior_covariance</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_real_freqs</em><em>, </em><em>num_coeffs</em><em>, </em><em>num_coeffs</em><em>)</em><em>,</em>) – or ndarray of shape (num_real_freqs,) if the covariance is a scalar matrix
+or float if the covariance is a scalar matrix, identical for all frequencies.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>shd_coeffs</strong> – posterior mean of the harmonic coefficients</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>complex ndarray of shape (num_real_freqs, num_coeffs)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.soundfieldestimation.posterior_covariance_omni.html" class="btn btn-neutral float-left" title="aspcol.soundfieldestimation.posterior_covariance_omni" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.soundfieldestimation.pseq_nearest_neighbour.html" class="btn btn-neutral float-right" title="aspcol.soundfieldestimation.pseq_nearest_neighbour" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

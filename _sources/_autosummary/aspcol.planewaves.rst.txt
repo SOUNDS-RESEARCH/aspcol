@@ -1,0 +1,36 @@
+﻿aspcol.planewaves
+=================
+
+.. automodule:: aspcol.planewaves
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      apply_measurement
+      find_matching_plane_wave
+      linear_directivity_function
+      omni_directivity_function
+      plane_wave
+      plane_wave_integral
+      shd_coeffs_for_planewave
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

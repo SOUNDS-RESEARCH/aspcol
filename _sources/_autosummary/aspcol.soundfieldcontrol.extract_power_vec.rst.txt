@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.extract\_power\_vec
+============================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: extract_power_vec

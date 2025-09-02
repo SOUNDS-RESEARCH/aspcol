@@ -1,0 +1,6 @@
+aspcol.plot.soundfield\_image
+=============================
+
+.. currentmodule:: aspcol.plot
+
+.. autofunction:: soundfield_image

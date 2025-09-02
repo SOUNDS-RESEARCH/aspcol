@@ -1,0 +1,43 @@
+﻿aspcol.utilities
+================
+
+.. automodule:: aspcol.utilities
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      cart2pol
+      cart2spherical
+      db2mag
+      db2pow
+      flatten_dict
+      get_time_string
+      get_unique_folder
+      mag2db
+      measure_time
+      pol2cart
+      pow2db
+      restack_dict
+      spherical2cart
+      wraps
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

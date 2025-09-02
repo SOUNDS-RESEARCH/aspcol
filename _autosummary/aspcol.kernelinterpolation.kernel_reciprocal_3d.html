@@ -1,0 +1,184 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.kernelinterpolation.kernel_reciprocal_3d &mdash; aspcol 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=e3a6060d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.kernelinterpolation.learn_kernel_params_directional_l2" href="aspcol.kernelinterpolation.learn_kernel_params_directional_l2.html" />
+    <link rel="prev" title="aspcol.kernelinterpolation.kernel_helmholtz_3d_slow" href="aspcol.kernelinterpolation.kernel_helmholtz_3d_slow.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.analytic_kernel_weighting_disc_2d.html">aspcol.kernelinterpolation.analytic_kernel_weighting_disc_2d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.freq_to_time_domain_kernel_matrix.html">aspcol.kernelinterpolation.freq_to_time_domain_kernel_matrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.get_interpolation_params.html">aspcol.kernelinterpolation.get_interpolation_params</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.get_kernel_weighting_filter.html">aspcol.kernelinterpolation.get_kernel_weighting_filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.get_krr_params.html">aspcol.kernelinterpolation.get_krr_params</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.kernel_directional_3d.html">aspcol.kernelinterpolation.kernel_directional_3d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.kernel_directional_3d_combined.html">aspcol.kernelinterpolation.kernel_directional_3d_combined</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.kernel_directional_3d_slow.html">aspcol.kernelinterpolation.kernel_directional_3d_slow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.kernel_gaussian.html">aspcol.kernelinterpolation.kernel_gaussian</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.kernel_helmholtz_2d.html">aspcol.kernelinterpolation.kernel_helmholtz_2d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.kernel_helmholtz_3d.html">aspcol.kernelinterpolation.kernel_helmholtz_3d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.kernel_helmholtz_3d_slow.html">aspcol.kernelinterpolation.kernel_helmholtz_3d_slow</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">aspcol.kernelinterpolation.kernel_reciprocal_3d</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#aspcol.kernelinterpolation.kernel_reciprocal_3d"><code class="docutils literal notranslate"><span class="pre">kernel_reciprocal_3d()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.learn_kernel_params_directional_l2.html">aspcol.kernelinterpolation.learn_kernel_params_directional_l2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.multifreq_diffuse_kernel.html">aspcol.kernelinterpolation.multifreq_diffuse_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.multifreq_directional_kernel_vonmises.html">aspcol.kernelinterpolation.multifreq_directional_kernel_vonmises</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.multifreq_envelope_kernel.html">aspcol.kernelinterpolation.multifreq_envelope_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.multifreq_envelope_kernel_r2.html">aspcol.kernelinterpolation.multifreq_envelope_kernel_r2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.multifreq_envelope_kernel_r3.html">aspcol.kernelinterpolation.multifreq_envelope_kernel_r3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.reconstruct_freq.html">aspcol.kernelinterpolation.reconstruct_freq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.soundfield_interpolation.html">aspcol.kernelinterpolation.soundfield_interpolation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.soundfield_interpolation_fir.html">aspcol.kernelinterpolation.soundfield_interpolation_fir</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.time_domain_diffuse_kernel.html">aspcol.kernelinterpolation.time_domain_diffuse_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.time_domain_directional_kernel.html">aspcol.kernelinterpolation.time_domain_directional_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.time_domain_directional_kernel_vonmises.html">aspcol.kernelinterpolation.time_domain_directional_kernel_vonmises</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.time_domain_directional_kernel_vonmises_approx.html">aspcol.kernelinterpolation.time_domain_directional_kernel_vonmises_approx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.time_domain_envelope_integral_kernel.html">aspcol.kernelinterpolation.time_domain_envelope_integral_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.time_domain_envelope_integral_kernel_r3.html">aspcol.kernelinterpolation.time_domain_envelope_integral_kernel_r3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.time_domain_envelope_kernel.html">aspcol.kernelinterpolation.time_domain_envelope_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.time_domain_envelope_kernel_r2.html">aspcol.kernelinterpolation.time_domain_envelope_kernel_r2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.time_domain_envelope_kernel_r3.html">aspcol.kernelinterpolation.time_domain_envelope_kernel_r3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.kernelinterpolation.time_domain_freq_dependent_directional_vonmises.html">aspcol.kernelinterpolation.time_domain_freq_dependent_directional_vonmises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation_jax.html">aspcol.kernelinterpolation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.planewaves.html">aspcol.planewaves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.plot.html">aspcol.plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation_jax.html">aspcol.soundfieldestimation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.spatialcovarianceestimation.html">aspcol.spatialcovarianceestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+      <li class="breadcrumb-item active">aspcol.kernelinterpolation.kernel_reciprocal_3d</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.kernelinterpolation.kernel_reciprocal_3d.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="aspcol-kernelinterpolation-kernel-reciprocal-3d">
+<h1>aspcol.kernelinterpolation.kernel_reciprocal_3d<a class="headerlink" href="#aspcol-kernelinterpolation-kernel-reciprocal-3d" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="aspcol.kernelinterpolation.kernel_reciprocal_3d">
+<span class="sig-prename descclassname"><span class="pre">aspcol.kernelinterpolation.</span></span><span class="sig-name descname"><span class="pre">kernel_reciprocal_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_num</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aspcol.kernelinterpolation.kernel_reciprocal_3d" title="Link to this definition"></a></dt>
+<dd><p>Reciprocal kernel for room impulse response interpolation. Definition found in
+‘Kernel interpolation of acoustic transfer function between regions considering reciprocity’
+by Ribeiro, Ueno, Koyama, Saruwatari.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points1</strong> (<em>2-tuple</em><em> of </em><em>(</em><em>mic_points1</em><em>, </em><em>src_points1</em><em>)</em>) – where mic_points ndarray of shape (num_mic1, 3)
+and src_points ndarray of shape (num_src1, 3)</p></li>
+<li><p><strong>points2</strong> (<em>same type</em><em> of </em><em>object as points1</em><em>,</em>) – although the ndarray shapes can be different</p></li>
+<li><p><strong>wave_num</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_freqs</em><em>,</em><em>)</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>When flattened, the index for microphone m, speaker l is m+l*M. i.e.
+the microphone index changes faster.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (num_freqs, num_mic1*num_src1, num_mic2*num_src2)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.kernelinterpolation.kernel_helmholtz_3d_slow.html" class="btn btn-neutral float-left" title="aspcol.kernelinterpolation.kernel_helmholtz_3d_slow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.kernelinterpolation.learn_kernel_params_directional_l2.html" class="btn btn-neutral float-right" title="aspcol.kernelinterpolation.learn_kernel_params_directional_l2" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.shd\_min\_order
+=========================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: shd_min_order

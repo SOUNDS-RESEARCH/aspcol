@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.calculate\_psi
+==========================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: calculate_psi

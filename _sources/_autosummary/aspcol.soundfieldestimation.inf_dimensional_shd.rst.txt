@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.inf\_dimensional\_shd
+=================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: inf_dimensional_shd

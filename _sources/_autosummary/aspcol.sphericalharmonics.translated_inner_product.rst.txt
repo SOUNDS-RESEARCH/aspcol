@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.translated\_inner\_product
+====================================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: translated_inner_product

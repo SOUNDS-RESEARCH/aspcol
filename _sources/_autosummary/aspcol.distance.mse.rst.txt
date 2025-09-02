@@ -1,0 +1,6 @@
+aspcol.distance.mse
+===================
+
+.. currentmodule:: aspcol.distance
+
+.. autofunction:: mse

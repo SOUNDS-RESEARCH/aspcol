@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.nearest\_neighbour\_freq
+====================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: nearest_neighbour_freq

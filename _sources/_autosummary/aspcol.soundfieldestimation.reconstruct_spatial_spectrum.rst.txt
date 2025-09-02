@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.reconstruct\_spatial\_spectrum
+==========================================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: reconstruct_spatial_spectrum

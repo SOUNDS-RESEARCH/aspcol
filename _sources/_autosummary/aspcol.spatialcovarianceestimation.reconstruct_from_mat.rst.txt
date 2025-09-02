@@ -1,0 +1,6 @@
+aspcol.spatialcovarianceestimation.reconstruct\_from\_mat
+=========================================================
+
+.. currentmodule:: aspcol.spatialcovarianceestimation
+
+.. autofunction:: reconstruct_from_mat

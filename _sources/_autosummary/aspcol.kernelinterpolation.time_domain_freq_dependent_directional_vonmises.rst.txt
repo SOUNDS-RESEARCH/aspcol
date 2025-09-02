@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.time\_domain\_freq\_dependent\_directional\_vonmises
+===============================================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: time_domain_freq_dependent_directional_vonmises

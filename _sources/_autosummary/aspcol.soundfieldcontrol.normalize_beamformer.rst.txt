@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.normalize\_beamformer
+==============================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: normalize_beamformer

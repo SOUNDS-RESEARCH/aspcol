@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.time\_domain\_directional\_kernel
+============================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: time_domain_directional_kernel

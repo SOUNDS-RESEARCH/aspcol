@@ -1,0 +1,6 @@
+aspcol.utilities.db2pow
+=======================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: db2pow

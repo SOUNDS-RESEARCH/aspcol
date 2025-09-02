@@ -1,0 +1,6 @@
+aspcol.distance.corr\_matrix\_distance
+======================================
+
+.. currentmodule:: aspcol.distance
+
+.. autofunction:: corr_matrix_distance

@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.sum\_pow\_of\_vec
+==========================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: sum_pow_of_vec

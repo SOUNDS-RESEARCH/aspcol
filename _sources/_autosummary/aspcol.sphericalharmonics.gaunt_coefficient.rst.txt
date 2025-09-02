@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.gaunt\_coefficient
+============================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: gaunt_coefficient

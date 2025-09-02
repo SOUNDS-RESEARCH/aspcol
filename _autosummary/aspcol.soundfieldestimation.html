@@ -1,0 +1,288 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.soundfieldestimation &mdash; aspcol 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=e3a6060d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.soundfieldestimation.apply_measurement" href="aspcol.soundfieldestimation.apply_measurement.html" />
+    <link rel="prev" title="aspcol.soundfieldcontrol.PressureMatchingWOLA" href="aspcol.soundfieldcontrol.PressureMatchingWOLA.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation_jax.html">aspcol.kernelinterpolation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.planewaves.html">aspcol.planewaves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.plot.html">aspcol.plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">aspcol.soundfieldestimation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement.html">aspcol.soundfieldestimation.apply_measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement_conj.html">aspcol.soundfieldestimation.apply_measurement_conj</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement_conj_omni.html">aspcol.soundfieldestimation.apply_measurement_conj_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement_omni.html">aspcol.soundfieldestimation.apply_measurement_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.calculate_psi.html">aspcol.soundfieldestimation.calculate_psi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki.html">aspcol.soundfieldestimation.est_ki</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_diffuse.html">aspcol.soundfieldestimation.est_ki_diffuse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_diffuse_freq.html">aspcol.soundfieldestimation.est_ki_diffuse_freq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_freq.html">aspcol.soundfieldestimation.est_ki_freq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_freq_rff.html">aspcol.soundfieldestimation.est_ki_freq_rff</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_rff.html">aspcol.soundfieldestimation.est_ki_rff</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.est_spatial_spectrum_dynamic.html">aspcol.soundfieldestimation.est_spatial_spectrum_dynamic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.estimate_from_regressor.html">aspcol.soundfieldestimation.estimate_from_regressor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.inf_dim_shd_analysis.html">aspcol.soundfieldestimation.inf_dim_shd_analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd.html">aspcol.soundfieldestimation.inf_dimensional_shd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd_dynamic.html">aspcol.soundfieldestimation.inf_dimensional_shd_dynamic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd_omni.html">aspcol.soundfieldestimation.inf_dimensional_shd_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd_omni_prior.html">aspcol.soundfieldestimation.inf_dimensional_shd_omni_prior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_moving_mic.html">aspcol.soundfieldestimation.krr_moving_mic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_moving_mic_rff.html">aspcol.soundfieldestimation.krr_moving_mic_rff</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics.html">aspcol.soundfieldestimation.krr_stationary_mics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized.html">aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_approx.html">aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_approx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_changedip.html">aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_changedip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_rdft.html">aspcol.soundfieldestimation.krr_stationary_mics_rdft</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized.html">aspcol.soundfieldestimation.krr_stationary_mics_regularized</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_changedip.html">aspcol.soundfieldestimation.krr_stationary_mics_regularized_changedip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_rdft.html">aspcol.soundfieldestimation.krr_stationary_mics_regularized_rdft</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_simplified.html">aspcol.soundfieldestimation.krr_stationary_mics_regularized_simplified</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_with_l2_norm.html">aspcol.soundfieldestimation.krr_stationary_mics_regularized_with_l2_norm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.measurement_conj_omni.html">aspcol.soundfieldestimation.measurement_conj_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.measurement_omni.html">aspcol.soundfieldestimation.measurement_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.nearest_neighbour_freq.html">aspcol.soundfieldestimation.nearest_neighbour_freq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.posterior_covariance_omni.html">aspcol.soundfieldestimation.posterior_covariance_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.posterior_mean_omni.html">aspcol.soundfieldestimation.posterior_mean_omni</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.pseq_nearest_neighbour.html">aspcol.soundfieldestimation.pseq_nearest_neighbour</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.reconstruct.html">aspcol.soundfieldestimation.reconstruct</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.reconstruct_from_krr_params.html">aspcol.soundfieldestimation.reconstruct_from_krr_params</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.reconstruct_spatial_spectrum.html">aspcol.soundfieldestimation.reconstruct_spatial_spectrum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldestimation.regularize_matrix_frequency_dependent.html">aspcol.soundfieldestimation.regularize_matrix_frequency_dependent</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation_jax.html">aspcol.soundfieldestimation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.spatialcovarianceestimation.html">aspcol.spatialcovarianceestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">aspcol.soundfieldestimation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.soundfieldestimation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-aspcol.soundfieldestimation">
+<span id="aspcol-soundfieldestimation"></span><h1>aspcol.soundfieldestimation<a class="headerlink" href="#module-aspcol.soundfieldestimation" title="Link to this heading"></a></h1>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement.html#aspcol.soundfieldestimation.apply_measurement" title="aspcol.soundfieldestimation.apply_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_measurement</span></code></a>(shd_coeffs, pos, ...[, ...])</p></td>
+<td><p>Applies the measurement operator to a sequence of spherical harmonic coefficients</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement_conj.html#aspcol.soundfieldestimation.apply_measurement_conj" title="aspcol.soundfieldestimation.apply_measurement_conj"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_measurement_conj</span></code></a>(vec, pos, exp_center, ...)</p></td>
+<td><p>Applies the conjugate measurement operator to a complex vector</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement_conj_omni.html#aspcol.soundfieldestimation.apply_measurement_conj_omni" title="aspcol.soundfieldestimation.apply_measurement_conj_omni"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_measurement_conj_omni</span></code></a>(vec, pos, ...)</p></td>
+<td><p>Applies the conjugate measurement operator to a complex vector</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.apply_measurement_omni.html#aspcol.soundfieldestimation.apply_measurement_omni" title="aspcol.soundfieldestimation.apply_measurement_omni"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_measurement_omni</span></code></a>(shd_coeffs, pos, ...)</p></td>
+<td><p>Applies the measurement operator to a sequence of spherical harmonic coefficients</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.calculate_psi.html#aspcol.soundfieldestimation.calculate_psi" title="aspcol.soundfieldestimation.calculate_psi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_psi</span></code></a>(pos, dir_coeffs, k, Phi, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.est_ki.html#aspcol.soundfieldestimation.est_ki" title="aspcol.soundfieldestimation.est_ki"><code class="xref py py-obj docutils literal notranslate"><span class="pre">est_ki</span></code></a>(p, seq, pos, pos_eval, samplerate, c, ...)</p></td>
+<td><p>Estimates the RIR in the frequency domain using kernel interpolation Assumes seq is a perfect periodic sequence</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_diffuse.html#aspcol.soundfieldestimation.est_ki_diffuse" title="aspcol.soundfieldestimation.est_ki_diffuse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">est_ki_diffuse</span></code></a>(p, seq, pos, pos_eval, ...)</p></td>
+<td><p>DEPRECATED: Use est_ki instead.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_diffuse_freq.html#aspcol.soundfieldestimation.est_ki_diffuse_freq" title="aspcol.soundfieldestimation.est_ki_diffuse_freq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">est_ki_diffuse_freq</span></code></a>(p_freq, pos, pos_eval, ...)</p></td>
+<td><p>DEPRECATED: Use est_ki_freq instead.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_freq.html#aspcol.soundfieldestimation.est_ki_freq" title="aspcol.soundfieldestimation.est_ki_freq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">est_ki_freq</span></code></a>(p_freq, pos, pos_eval, wave_num, ...)</p></td>
+<td><p>Estimates the RIR in the frequency domain using kernel interpolation</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_freq_rff.html#aspcol.soundfieldestimation.est_ki_freq_rff" title="aspcol.soundfieldestimation.est_ki_freq_rff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">est_ki_freq_rff</span></code></a>(p_freq, pos, pos_eval, k, ...)</p></td>
+<td><p>Estimates the RIR in the frequency domain using random Fourier features</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.est_ki_rff.html#aspcol.soundfieldestimation.est_ki_rff" title="aspcol.soundfieldestimation.est_ki_rff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">est_ki_rff</span></code></a>(p, seq, pos, pos_eval, ...[, ...])</p></td>
+<td><p>Estimates the RIR in the frequency domain using random Fourier features Assumes seq is a perfect periodic sequence</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.est_spatial_spectrum_dynamic.html#aspcol.soundfieldestimation.est_spatial_spectrum_dynamic" title="aspcol.soundfieldestimation.est_spatial_spectrum_dynamic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">est_spatial_spectrum_dynamic</span></code></a>(p, pos, ...[, ...])</p></td>
+<td><p>Estimates the RIR at evaluation positions using data from a moving microphone</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.estimate_from_regressor.html#aspcol.soundfieldestimation.estimate_from_regressor" title="aspcol.soundfieldestimation.estimate_from_regressor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimate_from_regressor</span></code></a>(regressor, pos, ...)</p></td>
+<td><p>Takes the regressor from inf_dimensional_shd_dynamic, and gives back a sound field estimate.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.inf_dim_shd_analysis.html#aspcol.soundfieldestimation.inf_dim_shd_analysis" title="aspcol.soundfieldestimation.inf_dim_shd_analysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inf_dim_shd_analysis</span></code></a>(p_freq, pos, pos_eval, ...)</p></td>
+<td><p>Estimates the sound field using directional microphones</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd.html#aspcol.soundfieldestimation.inf_dimensional_shd" title="aspcol.soundfieldestimation.inf_dimensional_shd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inf_dimensional_shd</span></code></a>(p, pos, exp_center, ...)</p></td>
+<td><p>Estimates the spherical harmonic coefficients with Bayesian inference, allows for arbitrary directivity</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd_dynamic.html#aspcol.soundfieldestimation.inf_dimensional_shd_dynamic" title="aspcol.soundfieldestimation.inf_dimensional_shd_dynamic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inf_dimensional_shd_dynamic</span></code></a>(p, pos, ...[, ...])</p></td>
+<td><p>Estimates the RIR at evaluation positions using data from a moving microphone using Bayesian inference of an infinite sequence of spherical harmonics</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd_omni.html#aspcol.soundfieldestimation.inf_dimensional_shd_omni" title="aspcol.soundfieldestimation.inf_dimensional_shd_omni"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inf_dimensional_shd_omni</span></code></a>(p, pos, exp_center, ...)</p></td>
+<td><p>Estimates the spherical harmonic coefficients with Bayesian inference</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.inf_dimensional_shd_omni_prior.html#aspcol.soundfieldestimation.inf_dimensional_shd_omni_prior" title="aspcol.soundfieldestimation.inf_dimensional_shd_omni_prior"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inf_dimensional_shd_omni_prior</span></code></a>(p, pos, ...)</p></td>
+<td><p>Estimates spherical harmonic coefficients with Bayesian inference of an infinite sequence of spherical harmonics</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_moving_mic.html#aspcol.soundfieldestimation.krr_moving_mic" title="aspcol.soundfieldestimation.krr_moving_mic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_moving_mic</span></code></a>(p, pos, pos_eval, sequence, ...)</p></td>
+<td><p>Estimates the RIR at evaluation positions using data from a moving microphone using Bayesian inference of an infinite sequence of spherical harmonics</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_moving_mic_rff.html#aspcol.soundfieldestimation.krr_moving_mic_rff" title="aspcol.soundfieldestimation.krr_moving_mic_rff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_moving_mic_rff</span></code></a>(p, pos, pos_eval, ...[, ...])</p></td>
+<td><p>Sound field estimation with moving microphone using KRR with random Fourier features</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics.html#aspcol.soundfieldestimation.krr_stationary_mics" title="aspcol.soundfieldestimation.krr_stationary_mics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_stationary_mics</span></code></a>(ir_mic, pos_mic, ...[, ...])</p></td>
+<td><p>Estimates the impulse responses at the evaluation points using kernel ridge regression.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized.html#aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized" title="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_stationary_mics_direction_regularized</span></code></a>(...)</p></td>
+<td><p>Estimates the impulse responses at the evaluation points using kernel ridge regression.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_approx.html#aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_approx" title="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_approx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_stationary_mics_direction_regularized_approx</span></code></a>(...)</p></td>
+<td><p>Estimates the impulse responses at the evaluation points using kernel ridge regression.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_changedip.html#aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_changedip" title="aspcol.soundfieldestimation.krr_stationary_mics_direction_regularized_changedip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_stationary_mics_direction_regularized_changedip</span></code></a>(...)</p></td>
+<td><p>Estimates the impulse responses at the evaluation points using kernel ridge regression.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_rdft.html#aspcol.soundfieldestimation.krr_stationary_mics_rdft" title="aspcol.soundfieldestimation.krr_stationary_mics_rdft"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_stationary_mics_rdft</span></code></a>(ir_mic, pos_mic, ...)</p></td>
+<td><p>Estimates the impulse responses at the evaluation points using kernel ridge regression.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized.html#aspcol.soundfieldestimation.krr_stationary_mics_regularized" title="aspcol.soundfieldestimation.krr_stationary_mics_regularized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_stationary_mics_regularized</span></code></a>(ir_mic, ...)</p></td>
+<td><p>Estimates the impulse responses at the evaluation points using kernel ridge regression.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_changedip.html#aspcol.soundfieldestimation.krr_stationary_mics_regularized_changedip" title="aspcol.soundfieldestimation.krr_stationary_mics_regularized_changedip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_stationary_mics_regularized_changedip</span></code></a>(...)</p></td>
+<td><p>Estimates the impulse responses at the evaluation points using kernel ridge regression.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_rdft.html#aspcol.soundfieldestimation.krr_stationary_mics_regularized_rdft" title="aspcol.soundfieldestimation.krr_stationary_mics_regularized_rdft"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_stationary_mics_regularized_rdft</span></code></a>(ir_mic, ...)</p></td>
+<td><p>Estimates the impulse responses at the evaluation points using kernel ridge regression.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_simplified.html#aspcol.soundfieldestimation.krr_stationary_mics_regularized_simplified" title="aspcol.soundfieldestimation.krr_stationary_mics_regularized_simplified"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_stationary_mics_regularized_simplified</span></code></a>(...)</p></td>
+<td><p>Estimates the impulse responses at the evaluation points using kernel ridge regression.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.krr_stationary_mics_regularized_with_l2_norm.html#aspcol.soundfieldestimation.krr_stationary_mics_regularized_with_l2_norm" title="aspcol.soundfieldestimation.krr_stationary_mics_regularized_with_l2_norm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">krr_stationary_mics_regularized_with_l2_norm</span></code></a>(...)</p></td>
+<td><p>Estimates the impulse responses at the evaluation points using kernel ridge regression.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.measurement_conj_omni.html#aspcol.soundfieldestimation.measurement_conj_omni" title="aspcol.soundfieldestimation.measurement_conj_omni"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measurement_conj_omni</span></code></a>(pos, exp_center, ...)</p></td>
+<td><p>Returns the adjoint measurement operator Xi^H</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.measurement_omni.html#aspcol.soundfieldestimation.measurement_omni" title="aspcol.soundfieldestimation.measurement_omni"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measurement_omni</span></code></a>(pos, exp_center, max_order, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.nearest_neighbour_freq.html#aspcol.soundfieldestimation.nearest_neighbour_freq" title="aspcol.soundfieldestimation.nearest_neighbour_freq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nearest_neighbour_freq</span></code></a>(p_freq, pos, pos_eval)</p></td>
+<td><p>Estimates the sound field at the evaluation points by simply selecting the value associated with the nearest microphone position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.posterior_covariance_omni.html#aspcol.soundfieldestimation.posterior_covariance_omni" title="aspcol.soundfieldestimation.posterior_covariance_omni"><code class="xref py py-obj docutils literal notranslate"><span class="pre">posterior_covariance_omni</span></code></a>(pos, exp_center, ...)</p></td>
+<td><p>Returns the posterior covariance of the spherical harmonic coefficients Assumes Gaussian priors for the spherical harmonic coefficients and Gaussian noise in the measurement equation</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.posterior_mean_omni.html#aspcol.soundfieldestimation.posterior_mean_omni" title="aspcol.soundfieldestimation.posterior_mean_omni"><code class="xref py py-obj docutils literal notranslate"><span class="pre">posterior_mean_omni</span></code></a>(p, pos, exp_center, ...)</p></td>
+<td><p>Computes the posterior mean of the spherical harmonic coefficients, under a Gaussian assumption</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.pseq_nearest_neighbour.html#aspcol.soundfieldestimation.pseq_nearest_neighbour" title="aspcol.soundfieldestimation.pseq_nearest_neighbour"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pseq_nearest_neighbour</span></code></a>(p, seq, pos, pos_eval)</p></td>
+<td><p>Estimates the sound field at the evaluation points by simply selecting the value associated with the nearest microphone position.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.reconstruct.html#aspcol.soundfieldestimation.reconstruct" title="aspcol.soundfieldestimation.reconstruct"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reconstruct</span></code></a>(pos_eval, pos_mic, wave_num, ...)</p></td>
+<td><p>Reconstruct the sound field function from estimated kernel ridge regression parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.reconstruct_from_krr_params.html#aspcol.soundfieldestimation.reconstruct_from_krr_params" title="aspcol.soundfieldestimation.reconstruct_from_krr_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reconstruct_from_krr_params</span></code></a>(krr_params, ...)</p></td>
+<td><p>Takes the regressor from inf_dimensional_shd_dynamic, and gives back a sound field estimate.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.reconstruct_spatial_spectrum.html#aspcol.soundfieldestimation.reconstruct_spatial_spectrum" title="aspcol.soundfieldestimation.reconstruct_spatial_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reconstruct_spatial_spectrum</span></code></a>(params, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldestimation.regularize_matrix_frequency_dependent.html#aspcol.soundfieldestimation.regularize_matrix_frequency_dependent" title="aspcol.soundfieldestimation.regularize_matrix_frequency_dependent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">regularize_matrix_frequency_dependent</span></code></a>(mat, ...)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.soundfieldcontrol.PressureMatchingWOLA.html" class="btn btn-neutral float-left" title="aspcol.soundfieldcontrol.PressureMatchingWOLA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.soundfieldestimation.apply_measurement.html" class="btn btn-neutral float-right" title="aspcol.soundfieldestimation.apply_measurement" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation\_jax.calculate\_psi
+===============================================
+
+.. currentmodule:: aspcol.soundfieldestimation_jax
+
+.. autofunction:: calculate_psi

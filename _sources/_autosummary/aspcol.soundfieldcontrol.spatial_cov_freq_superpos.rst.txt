@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.spatial\_cov\_freq\_superpos
+=====================================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: spatial_cov_freq_superpos

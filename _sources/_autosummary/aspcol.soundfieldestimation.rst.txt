@@ -1,0 +1,69 @@
+﻿aspcol.soundfieldestimation
+===========================
+
+.. automodule:: aspcol.soundfieldestimation
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      apply_measurement
+      apply_measurement_conj
+      apply_measurement_conj_omni
+      apply_measurement_omni
+      calculate_psi
+      est_ki
+      est_ki_diffuse
+      est_ki_diffuse_freq
+      est_ki_freq
+      est_ki_freq_rff
+      est_ki_rff
+      est_spatial_spectrum_dynamic
+      estimate_from_regressor
+      inf_dim_shd_analysis
+      inf_dimensional_shd
+      inf_dimensional_shd_dynamic
+      inf_dimensional_shd_omni
+      inf_dimensional_shd_omni_prior
+      krr_moving_mic
+      krr_moving_mic_rff
+      krr_stationary_mics
+      krr_stationary_mics_direction_regularized
+      krr_stationary_mics_direction_regularized_approx
+      krr_stationary_mics_direction_regularized_changedip
+      krr_stationary_mics_rdft
+      krr_stationary_mics_regularized
+      krr_stationary_mics_regularized_changedip
+      krr_stationary_mics_regularized_rdft
+      krr_stationary_mics_regularized_simplified
+      krr_stationary_mics_regularized_with_l2_norm
+      measurement_conj_omni
+      measurement_omni
+      nearest_neighbour_freq
+      posterior_covariance_omni
+      posterior_mean_omni
+      pseq_nearest_neighbour
+      reconstruct
+      reconstruct_from_krr_params
+      reconstruct_spatial_spectrum
+      regularize_matrix_frequency_dependent
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

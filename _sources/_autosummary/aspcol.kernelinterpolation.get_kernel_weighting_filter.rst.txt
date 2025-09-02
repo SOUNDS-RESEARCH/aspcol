@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.get\_kernel\_weighting\_filter
+=========================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: get_kernel_weighting_filter

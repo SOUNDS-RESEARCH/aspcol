@@ -1,0 +1,6 @@
+aspcol.utilities.restack\_dict
+==============================
+
+.. currentmodule:: aspcol.utilities
+
+.. autofunction:: restack_dict

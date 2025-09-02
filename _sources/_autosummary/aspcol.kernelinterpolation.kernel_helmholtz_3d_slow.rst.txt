@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.kernel\_helmholtz\_3d\_slow
+======================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: kernel_helmholtz_3d_slow

@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.krr\_moving\_mic
+============================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: krr_moving_mic

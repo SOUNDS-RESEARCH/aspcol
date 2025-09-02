@@ -1,0 +1,6 @@
+aspcol.plot.compare\_soundfields\_all\_freq
+===========================================
+
+.. currentmodule:: aspcol.plot
+
+.. autofunction:: compare_soundfields_all_freq

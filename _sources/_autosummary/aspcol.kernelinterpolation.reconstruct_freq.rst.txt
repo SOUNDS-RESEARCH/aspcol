@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.reconstruct\_freq
+============================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: reconstruct_freq

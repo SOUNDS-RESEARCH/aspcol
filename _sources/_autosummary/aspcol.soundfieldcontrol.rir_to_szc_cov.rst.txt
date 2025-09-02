@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.rir\_to\_szc\_cov
+==========================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: rir_to_szc_cov

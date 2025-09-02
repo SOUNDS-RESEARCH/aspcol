@@ -1,0 +1,6 @@
+aspcol.plot.time\_response
+==========================
+
+.. currentmodule:: aspcol.plot
+
+.. autofunction:: time_response

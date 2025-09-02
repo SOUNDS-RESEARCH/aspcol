@@ -1,0 +1,6 @@
+aspcol.plot.soundfield\_estimation\_comparison
+==============================================
+
+.. currentmodule:: aspcol.plot
+
+.. autofunction:: soundfield_estimation_comparison

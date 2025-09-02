@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation\_jax.reconstruct\_moving\_mic\_rff
+==============================================================
+
+.. currentmodule:: aspcol.soundfieldestimation_jax
+
+.. autofunction:: reconstruct_moving_mic_rff

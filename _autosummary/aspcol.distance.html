@@ -1,0 +1,163 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.distance &mdash; aspcol 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=e3a6060d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.distance.angular_distance" href="aspcol.distance.angular_distance.html" />
+    <link rel="prev" title="Audio Signal Processing Collection (aspcol)" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">aspcol.distance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.distance.angular_distance.html">aspcol.distance.angular_distance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.distance.corr_matrix_distance.html">aspcol.distance.corr_matrix_distance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.distance.cos_similary.html">aspcol.distance.cos_similary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.distance.covariance_distance_kl_divergence.html">aspcol.distance.covariance_distance_kl_divergence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.distance.covariance_distance_riemannian.html">aspcol.distance.covariance_distance_riemannian</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.distance.mse.html">aspcol.distance.mse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.distance.spatial_similarity.html">aspcol.distance.spatial_similarity</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation_jax.html">aspcol.kernelinterpolation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.planewaves.html">aspcol.planewaves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.plot.html">aspcol.plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation_jax.html">aspcol.soundfieldestimation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.spatialcovarianceestimation.html">aspcol.spatialcovarianceestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">aspcol.distance</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.distance.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-aspcol.distance">
+<span id="aspcol-distance"></span><h1>aspcol.distance<a class="headerlink" href="#module-aspcol.distance" title="Link to this heading"></a></h1>
+<p>Calculates distance measures for some different types of quantities.</p>
+<p>For all types of arrays, the mean square error can be computed. Vectors can be compared using angular distance or cosine similarity. For positive definite matrices, the correlation matrix distance, the affine invariant Riemannian metric, and the Kullback Leibler divergence between zero-mean Gaussian densities described by the compared matrices can be computed.</p>
+<p class="rubric">References</p>
+<p>[herdinCorrelation2005] M. Herdin, N. Czink, H. Ozcelik, and E. Bonek, ‘Correlation matrix distance, a meaningful measure for evaluation of non-stationary MIMO channels,’ in 2005 IEEE 61st Vehicular Technology Conference, May 2005, pp. 136-140 Vol. 1. doi: 10.1109/VETECS.2005.1543265. <a class="reference external" href="https://doi.org/10.1109/VETECS.2005.1543265">[link]</a></p>
+<p>[forstnermetric2003] W. Förstner and B. Moonen, ‘A metric for covariance matrices,’ in Geodesy-The Challenge of the 3rd Millennium, E. W. Grafarend, F. W. Krumm, and V. S. Schwarze, Eds., Berlin, Heidelberg: Springer Berlin Heidelberg, 2003, pp. 299–309. doi: 10.1007/978-3-662-05296-9_31. <a class="reference external" href="https://doi.org/10.1007/978-3-662-05296-9_31">[link]</a></p>
+<p>[duchiDerivations2016] J. Duchi, ‘Derivations for Linear Algebra and Optimization, 2016. <a class="reference external" href="https://web.stanford.edu/~jduchi/projects/general_notes.pdf">[link]</a></p>
+<p>[absilOptimization2008] P.-A. Absil, R. Mahony, and R. Sepulchre, Optimization algorithms on matrix manifolds. Princeton, N.J. ; Woodstock: Princeton University Press, 2008.</p>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.distance.angular_distance.html#aspcol.distance.angular_distance" title="aspcol.distance.angular_distance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">angular_distance</span></code></a>(vec1, vec2[, sign_invariant])</p></td>
+<td><p>A distance metric based on the cosine similary, that retains the</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.distance.corr_matrix_distance.html#aspcol.distance.corr_matrix_distance" title="aspcol.distance.corr_matrix_distance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">corr_matrix_distance</span></code></a>(mat1, mat2)</p></td>
+<td><p>Computes the correlation matrix distance</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.distance.cos_similary.html#aspcol.distance.cos_similary" title="aspcol.distance.cos_similary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cos_similary</span></code></a>(vec1, vec2)</p></td>
+<td><p>Computes &lt;vec1, vec2&gt; / (||vec1|| ||vec2||) which is cosine of the angle between the two vectors.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.distance.covariance_distance_kl_divergence.html#aspcol.distance.covariance_distance_kl_divergence" title="aspcol.distance.covariance_distance_kl_divergence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">covariance_distance_kl_divergence</span></code></a>(mat1, mat2)</p></td>
+<td><p>The Kullback Leibler divergence between two Gaussian distributions that has mat1 and mat2 as their covariance matrices.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.distance.covariance_distance_riemannian.html#aspcol.distance.covariance_distance_riemannian" title="aspcol.distance.covariance_distance_riemannian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">covariance_distance_riemannian</span></code></a>(mat1, mat2)</p></td>
+<td><p>Computes the covariance matrix distance</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.distance.mse.html#aspcol.distance.mse" title="aspcol.distance.mse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mse</span></code></a>(var1, var2)</p></td>
+<td><p>The normalized mean square error</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.distance.spatial_similarity.html#aspcol.distance.spatial_similarity" title="aspcol.distance.spatial_similarity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spatial_similarity</span></code></a>(vec1, vec2)</p></td>
+<td><p>Measures the spatial similarity between two vectors.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Audio Signal Processing Collection (aspcol)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.distance.angular_distance.html" class="btn btn-neutral float-right" title="aspcol.distance.angular_distance" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

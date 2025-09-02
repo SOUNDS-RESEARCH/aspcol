@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.multifreq\_envelope\_kernel
+======================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: multifreq_envelope_kernel

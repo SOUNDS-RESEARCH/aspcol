@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.pressure\_matching\_szc
+================================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: pressure_matching_szc

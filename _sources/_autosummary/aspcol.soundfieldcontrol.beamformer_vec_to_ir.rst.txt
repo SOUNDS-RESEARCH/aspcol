@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.beamformer\_vec\_to\_ir
+================================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: beamformer_vec_to_ir

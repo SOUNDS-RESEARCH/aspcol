@@ -1,0 +1,180 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.plot.soundfield_estimation_comparison &mdash; aspcol 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=e3a6060d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.plot.soundfield_image" href="aspcol.plot.soundfield_image.html" />
+    <link rel="prev" title="aspcol.plot.mse" href="aspcol.plot.mse.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation_jax.html">aspcol.kernelinterpolation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.planewaves.html">aspcol.planewaves</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="aspcol.plot.html">aspcol.plot</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.compare_soundfields.html">aspcol.plot.compare_soundfields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.compare_soundfields_all_freq.html">aspcol.plot.compare_soundfields_all_freq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.compare_soundfields_all_time.html">aspcol.plot.compare_soundfields_all_time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.compare_time_domain_soundfields.html">aspcol.plot.compare_time_domain_soundfields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.error_per_angle.html">aspcol.plot.error_per_angle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.error_per_frequency.html">aspcol.plot.error_per_frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.error_per_sample.html">aspcol.plot.error_per_sample</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.estimates_per_angle.html">aspcol.plot.estimates_per_angle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.example_responses.html">aspcol.plot.example_responses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.freq_response.html">aspcol.plot.freq_response</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.mse.html">aspcol.plot.mse</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">aspcol.plot.soundfield_estimation_comparison</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#aspcol.plot.soundfield_estimation_comparison"><code class="docutils literal notranslate"><span class="pre">soundfield_estimation_comparison()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.soundfield_image.html">aspcol.plot.soundfield_image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.plot.time_response.html">aspcol.plot.time_response</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation_jax.html">aspcol.soundfieldestimation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.spatialcovarianceestimation.html">aspcol.spatialcovarianceestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="aspcol.plot.html">aspcol.plot</a></li>
+      <li class="breadcrumb-item active">aspcol.plot.soundfield_estimation_comparison</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.plot.soundfield_estimation_comparison.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="aspcol-plot-soundfield-estimation-comparison">
+<h1>aspcol.plot.soundfield_estimation_comparison<a class="headerlink" href="#aspcol-plot-soundfield-estimation-comparison" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="aspcol.plot.soundfield_estimation_comparison">
+<span class="sig-prename descclassname"><span class="pre">aspcol.plot.</span></span><span class="sig-name descname"><span class="pre">soundfield_estimation_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos_est</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_est</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_ls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pdf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_mic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_true</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_freqs_below</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_freqs_above</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_examples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points_for_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aspcol.plot.soundfield_estimation_comparison" title="Link to this definition"></a></dt>
+<dd><p>Outputs a series of plots comparing a set of sound field estimates to the true sound field.</p>
+<p>The function accepts sound field estimates in the frequency domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pos_est</strong> (<em>np.ndarray</em>) – Positions of the estimated sound field. Shape (num_positions, spatial_dim)</p></li>
+<li><p><strong>p_est</strong> (<em>np.ndarray</em>) – Estimated sound field. Shape (num_freqs, num_ls, num_positions) or (num_freqs, num_positions)</p></li>
+<li><p><strong>p_true</strong> (<em>np.ndarray</em>) – True sound field. Shape (num_freqs, num_ls, num_positions) or (num_freqs, num_positions)</p></li>
+<li><p><strong>freqs</strong> (<em>np.ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_freqs</em><em>,</em><em>)</em>) – Frequencies used in the simulation.</p></li>
+<li><p><strong>fig_folder</strong> (<em>pathlib Path</em>) – Folder to save the figures in.</p></li>
+<li><p><strong>shape</strong> (<em>str</em><em>, </em><em>optional</em>) – Shape of the evaluation point array. If any of the valid options “rectangle”, “circle” is used, then a few more plots will be created.
+The default is “”.</p></li>
+<li><p><strong>center</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Center of the circle if shape is “circle”. The default is None.</p></li>
+<li><p><strong>num_ls</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of loudspeakers. The default is 1.</p></li>
+<li><p><strong>output_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Method for saving the plot. Options are ‘show’, ‘tikz’, ‘pdf’, ‘svg’, ‘none’.
+If ‘show’, the plot is shown in a window.
+If ‘tikz’, the plot is saved as a tikz file and a pdf file. Requires tikzplotlib installed.
+If ‘pdf’, the plot is saved as a pdf file.
+If ‘svg’, the plot is saved as a svg file.
+If ‘none’, the plot is not saved. The default is “pdf”.</p></li>
+<li><p><strong>pos_mic</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Positions of the microphones. Shape (num_mics, spatial_dim)
+The positions are added to the sound field images if supplied. The default is None.</p></li>
+<li><p><strong>images</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Estimated sound field on a grid array appropriate for creating a sound field image. Shape (num_freqs, num_image)</p></li>
+<li><p><strong>image_true</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – True sound field on a grid array appropriate for creating a sound field image. Shape (num_freqs, num_image)
+If supplied along with images, the error between the images and the true value will be shown.</p></li>
+<li><p><strong>pos_image</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Positions of the image array. Shape (num_image, spatial_dim)</p></li>
+<li><p><strong>remove_freqs_below</strong> (<em>float</em><em>, </em><em>optional</em>) – Remove frequencies below this value in Hz. The default is 0.</p></li>
+<li><p><strong>remove_freqs_above</strong> (<em>float; optional</em>) – Remove frequencies above this value in Hz.</p></li>
+<li><p><strong>points_for_errors</strong> (<em>np.ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_positions</em><em>,</em><em>) </em><em>with Boolean values</em><em>, </em><em>optional</em>) – Points which have True values are included in error calculations. The default is None.
+It also specifies which points to use in setting of colormap limits in the soundfield MSE plots. Useful if a few points
+are known exactly, which usually leads to useless sound field MSE plots.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.plot.mse.html" class="btn btn-neutral float-left" title="aspcol.plot.mse" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.plot.soundfield_image.html" class="btn btn-neutral float-right" title="aspcol.plot.soundfield_image" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

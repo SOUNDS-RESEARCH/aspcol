@@ -1,0 +1,174 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.spatialcovarianceestimation.krr_estimation_cov_informed &mdash; aspcol 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=e3a6060d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.spatialcovarianceestimation.krr_estimation_sgd" href="aspcol.spatialcovarianceestimation.krr_estimation_sgd.html" />
+    <link rel="prev" title="aspcol.spatialcovarianceestimation" href="aspcol.spatialcovarianceestimation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation_jax.html">aspcol.kernelinterpolation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.planewaves.html">aspcol.planewaves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.plot.html">aspcol.plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldcontrol.html">aspcol.soundfieldcontrol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation_jax.html">aspcol.soundfieldestimation_jax</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="aspcol.spatialcovarianceestimation.html">aspcol.spatialcovarianceestimation</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">aspcol.spatialcovarianceestimation.krr_estimation_cov_informed</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#aspcol.spatialcovarianceestimation.krr_estimation_cov_informed"><code class="docutils literal notranslate"><span class="pre">krr_estimation_cov_informed()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.spatialcovarianceestimation.krr_estimation_sgd.html">aspcol.spatialcovarianceestimation.krr_estimation_sgd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.spatialcovarianceestimation.reconstruct_freq.html">aspcol.spatialcovarianceestimation.reconstruct_freq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.spatialcovarianceestimation.reconstruct_from_mat.html">aspcol.spatialcovarianceestimation.reconstruct_from_mat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.spatialcovarianceestimation.spatial_cov_from_integral_weighting.html">aspcol.spatialcovarianceestimation.spatial_cov_from_integral_weighting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.spatialcovarianceestimation.spatial_cov_from_integral_weighting_diffuse.html">aspcol.spatialcovarianceestimation.spatial_cov_from_integral_weighting_diffuse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.spatialcovarianceestimation.spatial_cov_weighting.html">aspcol.spatialcovarianceestimation.spatial_cov_weighting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="aspcol.spatialcovarianceestimation.html">aspcol.spatialcovarianceestimation</a></li>
+      <li class="breadcrumb-item active">aspcol.spatialcovarianceestimation.krr_estimation_cov_informed</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.spatialcovarianceestimation.krr_estimation_cov_informed.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="aspcol-spatialcovarianceestimation-krr-estimation-cov-informed">
+<h1>aspcol.spatialcovarianceestimation.krr_estimation_cov_informed<a class="headerlink" href="#aspcol-spatialcovarianceestimation-krr-estimation-cov-informed" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="aspcol.spatialcovarianceestimation.krr_estimation_cov_informed">
+<span class="sig-prename descclassname"><span class="pre">aspcol.spatialcovarianceestimation.</span></span><span class="sig-name descname"><span class="pre">krr_estimation_cov_informed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ir_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_mic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integral_pos_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integral_volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_mc_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov_reg_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_func=&lt;function</span> <span class="pre">_cov_informed_krr_cost_frobenius&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_func=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_args=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_steps=10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate=0.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aspcol.spatialcovarianceestimation.krr_estimation_cov_informed" title="Link to this definition"></a></dt>
+<dd><p>The proposed spatial covariance estimation  method of [brunnstromSpatial2025].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ir_data</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_freq</em><em>, </em><em>num_source</em><em>, </em><em>num_data</em><em>)</em>) – the measured impulse responses to be used in the spatial covariance estimation</p></li>
+<li><p><strong>pos_mic</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_mic</em><em>, </em><em>3</em><em>)</em>) – positions of the microphones</p></li>
+<li><p><strong>wave_num</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_freqs</em><em>)</em>) – the wavenumbers of all considered frequencies, defined as 2 pi f / c, where c is the speed of sound</p></li>
+<li><p><strong>reg_param</strong> (<em>float</em>) – regularization parameter for the kernel ridge regression</p></li>
+<li><p><strong>integral_pos_func</strong> (<em>function</em><em> or </em><em>np.ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_positions</em><em>, </em><em>3</em><em>)</em>) – function that generates random positions with uniform distrbution for the integral.
+Should take an integer as input and return a ndarray of shape (num_positions, 3)
+alternatively a precomputed array of positions can be provided, in which case num_mc_samples is ignored</p></li>
+<li><p><strong>integral_volume</strong> (<em>float</em>) – volume of the integral region. Is needed to obtain the correct scaling of the spatial covariance</p></li>
+<li><p><strong>num_mc_samples</strong> (<em>int</em>) – number of Monte Carlo samples used in the integral approximation</p></li>
+<li><p><strong>cov_data</strong> (<em>ndarray</em><em> of </em><em>shape</em><em> (</em><em>num_mic</em><em>, </em><em>num_mic</em><em>, </em><em>num_freqs</em><em>)</em>) – the spatial covariance matrices to be used in the cost function. This represents the current best estimate of the spatial covariance.</p></li>
+<li><p><strong>cov_reg_param</strong> (<em>float</em>) – The scaling parameter of the spatial covariance fitting term in the cost function. If this is set higher, the spatial covariance will be fitted more closely,
+at the expense of the ir_data fitting term.</p></li>
+<li><p><strong>cost_func</strong> (<em>function</em><em>, </em><em>optional</em>) – The cost function to be used in the optimization. The default is _cov_informed_krr_cost_frobenius.
+Other options are _cov_informed_krr_cost_gevd, _cov_informed_krr_cost_wishart, _cov_informed_krr_cost_airm, _cov_informed_krr_cost_wasserstein.
+They are all similar in implementation, and so it should be easy to add new cost functions.</p></li>
+<li><p><strong>kernel_func</strong> (<em>function</em><em>, </em><em>optional</em>) – kernel function used in the spatial covariance, by default the diffuse kernel. Any single-frequency kernel from kernelinterpolation.py can be used, such as the directional kernel.</p></li>
+<li><p><strong>kernel_args</strong> (<em>list</em><em>, </em><em>optional</em>) – additional arguments to the kernel function, by default None.</p></li>
+<li><p><strong>num_steps</strong> (<em>int</em><em>, </em><em>optional</em>) – number of optimization steps, by default 10000</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>krr_params</strong> – The estimated kernel ridge regression parameters.
+They can be used to compute the spatial covariance using spatial_cov_from_integral_weighting.
+These could also be used to reconstruct the sound field at any position using the kernel interpolation method.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (num_freqs, num_source, num_mic)</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>[brunnstromSpatial2025] Jesper Brunnstrom, Martin Bo Møller, Jan Østergaard, Toon van Waterschoot, Marc Moonen, and Filip Elvander, Spatial covariance estimation for sound field reproduction using kernel ridge regression, European Signal Processing Conference (EUSIPCO), 2025.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.spatialcovarianceestimation.html" class="btn btn-neutral float-left" title="aspcol.spatialcovarianceestimation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.spatialcovarianceestimation.krr_estimation_sgd.html" class="btn btn-neutral float-right" title="aspcol.spatialcovarianceestimation.krr_estimation_sgd" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

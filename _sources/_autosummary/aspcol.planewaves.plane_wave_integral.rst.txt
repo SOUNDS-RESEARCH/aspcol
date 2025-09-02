@@ -1,0 +1,6 @@
+aspcol.planewaves.plane\_wave\_integral
+=======================================
+
+.. currentmodule:: aspcol.planewaves
+
+.. autofunction:: plane_wave_integral

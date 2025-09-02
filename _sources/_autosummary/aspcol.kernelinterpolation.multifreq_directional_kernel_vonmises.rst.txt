@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.multifreq\_directional\_kernel\_vonmises
+===================================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: multifreq_directional_kernel_vonmises

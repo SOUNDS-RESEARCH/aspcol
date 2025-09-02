@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation\_jax.reconstruct\_krr\_moving\_mic\_diffuse
+=======================================================================
+
+.. currentmodule:: aspcol.soundfieldestimation_jax
+
+.. autofunction:: reconstruct_krr_moving_mic_diffuse

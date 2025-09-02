@@ -1,0 +1,249 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aspcol.soundfieldcontrol &mdash; aspcol 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=e3a6060d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aspcol.soundfieldcontrol.acc" href="aspcol.soundfieldcontrol.acc.html" />
+    <link rel="prev" title="aspcol.plot.time_response" href="aspcol.plot.time_response.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aspcol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="aspcol.distance.html">aspcol.distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation.html">aspcol.kernelinterpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.kernelinterpolation_jax.html">aspcol.kernelinterpolation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.planewaves.html">aspcol.planewaves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.plot.html">aspcol.plot</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">aspcol.soundfieldcontrol</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.acc.html">aspcol.soundfieldcontrol.acc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.acc_time.html">aspcol.soundfieldcontrol.acc_time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.acc_time_all_zones.html">aspcol.soundfieldcontrol.acc_time_all_zones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.apply_power_vec.html">aspcol.soundfieldcontrol.apply_power_vec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.beamformer_vec_to_ir.html">aspcol.soundfieldcontrol.beamformer_vec_to_ir</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.extract_power_vec.html">aspcol.soundfieldcontrol.extract_power_vec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.fpaths_to_spatial_cov.html">aspcol.soundfieldcontrol.fpaths_to_spatial_cov</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.freq_to_time_beamformer.html">aspcol.soundfieldcontrol.freq_to_time_beamformer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.normalize_beamformer.html">aspcol.soundfieldcontrol.normalize_beamformer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.normalize_system.html">aspcol.soundfieldcontrol.normalize_system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.paths_to_spatial_cov.html">aspcol.soundfieldcontrol.paths_to_spatial_cov</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.paths_to_spatial_cov_delta.html">aspcol.soundfieldcontrol.paths_to_spatial_cov_delta</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.power_alloc_qos_downlink.html">aspcol.soundfieldcontrol.power_alloc_qos_downlink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.pressure_matching_sa.html">aspcol.soundfieldcontrol.pressure_matching_sa</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.pressure_matching_szc.html">aspcol.soundfieldcontrol.pressure_matching_szc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.rir_to_szc_cov.html">aspcol.soundfieldcontrol.rir_to_szc_cov</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.solve_power_weighted_qos_uplink.html">aspcol.soundfieldcontrol.solve_power_weighted_qos_uplink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.spatial_cov.html">aspcol.soundfieldcontrol.spatial_cov</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.spatial_cov_delta.html">aspcol.soundfieldcontrol.spatial_cov_delta</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.spatial_cov_freq.html">aspcol.soundfieldcontrol.spatial_cov_freq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.spatial_cov_freq_kernel.html">aspcol.soundfieldcontrol.spatial_cov_freq_kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.spatial_cov_freq_superpos.html">aspcol.soundfieldcontrol.spatial_cov_freq_superpos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.sum_pow_of_mat.html">aspcol.soundfieldcontrol.sum_pow_of_mat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.sum_pow_of_vec.html">aspcol.soundfieldcontrol.sum_pow_of_vec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.sum_weighted_pow.html">aspcol.soundfieldcontrol.sum_weighted_pow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.szc_transform_mwf.html">aspcol.soundfieldcontrol.szc_transform_mwf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.szc_transform_mwf_gevd.html">aspcol.soundfieldcontrol.szc_transform_mwf_gevd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.vast.html">aspcol.soundfieldcontrol.vast</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspcol.soundfieldcontrol.PressureMatchingWOLA.html">aspcol.soundfieldcontrol.PressureMatchingWOLA</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation.html">aspcol.soundfieldestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.soundfieldestimation_jax.html">aspcol.soundfieldestimation_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.spatialcovarianceestimation.html">aspcol.spatialcovarianceestimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.sphericalharmonics.html">aspcol.sphericalharmonics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspcol.utilities.html">aspcol.utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aspcol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">aspcol.soundfieldcontrol</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/aspcol.soundfieldcontrol.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-aspcol.soundfieldcontrol">
+<span id="aspcol-soundfieldcontrol"></span><h1>aspcol.soundfieldcontrol<a class="headerlink" href="#module-aspcol.soundfieldcontrol" title="Link to this heading"></a></h1>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.acc.html#aspcol.soundfieldcontrol.acc" title="aspcol.soundfieldcontrol.acc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acc</span></code></a>(Rb, Rd[, reg])</p></td>
+<td><p>Frequency-domain acoustic contrast control for sound zone control</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.acc_time.html#aspcol.soundfieldcontrol.acc_time" title="aspcol.soundfieldcontrol.acc_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acc_time</span></code></a>(Rb, Rd[, reg_param])</p></td>
+<td><p>Time domain acoustic contrast control</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.acc_time_all_zones.html#aspcol.soundfieldcontrol.acc_time_all_zones" title="aspcol.soundfieldcontrol.acc_time_all_zones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acc_time_all_zones</span></code></a>(R[, reg_param])</p></td>
+<td><p>Time-domain acoustic contrast control for all zones</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.apply_power_vec.html#aspcol.soundfieldcontrol.apply_power_vec" title="aspcol.soundfieldcontrol.apply_power_vec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_power_vec</span></code></a>(w, p)</p></td>
+<td><p>w is (num_freq, num_zones, num_sources), or (num_zones, bf_len)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.beamformer_vec_to_ir.html#aspcol.soundfieldcontrol.beamformer_vec_to_ir" title="aspcol.soundfieldcontrol.beamformer_vec_to_ir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">beamformer_vec_to_ir</span></code></a>(bf_vec, num_ls)</p></td>
+<td><p>Transforms a beamformer vector into a shape more appropriate for a filter impulse response</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.extract_power_vec.html#aspcol.soundfieldcontrol.extract_power_vec" title="aspcol.soundfieldcontrol.extract_power_vec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_power_vec</span></code></a>(w)</p></td>
+<td><p>Opposite of apply_power_vec This function takes a non-unit-vector w and returns a unit vector w_norm along with the power p such that apply_power_vec(w_norm, p) = w</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.fpaths_to_spatial_cov.html#aspcol.soundfieldcontrol.fpaths_to_spatial_cov" title="aspcol.soundfieldcontrol.fpaths_to_spatial_cov"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fpaths_to_spatial_cov</span></code></a>(arrays, fpaths, ...)</p></td>
+<td><p>utility function to be used with aspsim package.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.freq_to_time_beamformer.html#aspcol.soundfieldcontrol.freq_to_time_beamformer" title="aspcol.soundfieldcontrol.freq_to_time_beamformer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">freq_to_time_beamformer</span></code></a>(w, num_freqs)</p></td>
+<td><p>Tranforms a frequency domain beamformer / control filter to a time domain impulse response</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.normalize_beamformer.html#aspcol.soundfieldcontrol.normalize_beamformer" title="aspcol.soundfieldcontrol.normalize_beamformer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_beamformer</span></code></a>(w)</p></td>
+<td><p>Normalizes the beamformer vector w_k</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.normalize_system.html#aspcol.soundfieldcontrol.normalize_system" title="aspcol.soundfieldcontrol.normalize_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_system</span></code></a>(R, noise_pow)</p></td>
+<td><p>Normalize spatial covariance matrix by noise powers to get</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.paths_to_spatial_cov.html#aspcol.soundfieldcontrol.paths_to_spatial_cov" title="aspcol.soundfieldcontrol.paths_to_spatial_cov"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths_to_spatial_cov</span></code></a>(arrays, source_name, ...)</p></td>
+<td><p>utility function to be used with aspsim package.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.paths_to_spatial_cov_delta.html#aspcol.soundfieldcontrol.paths_to_spatial_cov_delta" title="aspcol.soundfieldcontrol.paths_to_spatial_cov_delta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths_to_spatial_cov_delta</span></code></a>(arrays, ...)</p></td>
+<td><p>utility function to be used with aspsim package.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.power_alloc_qos_downlink.html#aspcol.soundfieldcontrol.power_alloc_qos_downlink" title="aspcol.soundfieldcontrol.power_alloc_qos_downlink"><code class="xref py py-obj docutils literal notranslate"><span class="pre">power_alloc_qos_downlink</span></code></a>(w, R, noise_pow, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.pressure_matching_sa.html#aspcol.soundfieldcontrol.pressure_matching_sa" title="aspcol.soundfieldcontrol.pressure_matching_sa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pressure_matching_sa</span></code></a>(Hv, Hc)</p></td>
+<td><p>Frequency domain pressure matching to generate loudspeaker signals from virtual source signals</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.pressure_matching_szc.html#aspcol.soundfieldcontrol.pressure_matching_szc" title="aspcol.soundfieldcontrol.pressure_matching_szc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pressure_matching_szc</span></code></a>(Rb, Rd, rb, mu[, reg])</p></td>
+<td><p>Frequency-domain pressure matching for sound zone control</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.rir_to_szc_cov.html#aspcol.soundfieldcontrol.rir_to_szc_cov" title="aspcol.soundfieldcontrol.rir_to_szc_cov"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rir_to_szc_cov</span></code></a>(rir, ctrlfilt_len)</p></td>
+<td><p>Takes room impulse responses and computes a spatial covariance matrix for sound zone control</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.solve_power_weighted_qos_uplink.html#aspcol.soundfieldcontrol.solve_power_weighted_qos_uplink" title="aspcol.soundfieldcontrol.solve_power_weighted_qos_uplink"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_power_weighted_qos_uplink</span></code></a>(R, ...[, ...])</p></td>
+<td><p>Calculates a control filter and power allocation that solves the signal-weighted uplink Quality of Service problem in the time-domain</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.spatial_cov.html#aspcol.soundfieldcontrol.spatial_cov" title="aspcol.soundfieldcontrol.spatial_cov"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spatial_cov</span></code></a>(ir, source, filt_len, num_samples)</p></td>
+<td><p>Computes time-domain spatial covariance matrix from room impulse responses</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.spatial_cov_delta.html#aspcol.soundfieldcontrol.spatial_cov_delta" title="aspcol.soundfieldcontrol.spatial_cov_delta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spatial_cov_delta</span></code></a>(ir, filt_len)</p></td>
+<td><p>Calculates the spatial covariance matrices as if the input signal is a delta ir is the default shape given by arrays.paths (num_ls, num_mics, ir_len)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.spatial_cov_freq.html#aspcol.soundfieldcontrol.spatial_cov_freq" title="aspcol.soundfieldcontrol.spatial_cov_freq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spatial_cov_freq</span></code></a>(rir_freq)</p></td>
+<td><p>Calculates spatial covariance matrices from frequency domain room impulse responses</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.spatial_cov_freq_kernel.html#aspcol.soundfieldcontrol.spatial_cov_freq_kernel" title="aspcol.soundfieldcontrol.spatial_cov_freq_kernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spatial_cov_freq_kernel</span></code></a>(krr_params, pos_mic, ...)</p></td>
+<td><p>Calculates spatial covariance matrices in the frequency domain using kernel interpolation</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.spatial_cov_freq_superpos.html#aspcol.soundfieldcontrol.spatial_cov_freq_superpos" title="aspcol.soundfieldcontrol.spatial_cov_freq_superpos"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spatial_cov_freq_superpos</span></code></a>(Hb, Hd[, d])</p></td>
+<td><p>Calculates spatial covariance matrices from transfer function matrices</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.sum_pow_of_mat.html#aspcol.soundfieldcontrol.sum_pow_of_mat" title="aspcol.soundfieldcontrol.sum_pow_of_mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sum_pow_of_mat</span></code></a>(bf_mat)</p></td>
+<td><p>bf_mat is the beamformer matrix obtained from semidefinite relaxation,</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.sum_pow_of_vec.html#aspcol.soundfieldcontrol.sum_pow_of_vec" title="aspcol.soundfieldcontrol.sum_pow_of_vec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sum_pow_of_vec</span></code></a>(bf_vec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.sum_weighted_pow.html#aspcol.soundfieldcontrol.sum_weighted_pow" title="aspcol.soundfieldcontrol.sum_weighted_pow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sum_weighted_pow</span></code></a>(bf_vec, weighting_mat)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.szc_transform_mwf.html#aspcol.soundfieldcontrol.szc_transform_mwf" title="aspcol.soundfieldcontrol.szc_transform_mwf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">szc_transform_mwf</span></code></a>(Rb, Rd[, mu])</p></td>
+<td><p>Calculates the linear transformation to apply to loudspeaker signals to obtain sound zones.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.szc_transform_mwf_gevd.html#aspcol.soundfieldcontrol.szc_transform_mwf_gevd" title="aspcol.soundfieldcontrol.szc_transform_mwf_gevd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">szc_transform_mwf_gevd</span></code></a>(Rb, Rd, rank[, mu])</p></td>
+<td><p>Calculates the linear transformation to apply to loudspeaker signals to obtain sound zones.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.vast.html#aspcol.soundfieldcontrol.vast" title="aspcol.soundfieldcontrol.vast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vast</span></code></a>(Rb, Rd, rb, mu, rank[, reg])</p></td>
+<td><p>Frequency domain variable span trade-off filter for sound zone control</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="aspcol.soundfieldcontrol.PressureMatchingWOLA.html#aspcol.soundfieldcontrol.PressureMatchingWOLA" title="aspcol.soundfieldcontrol.PressureMatchingWOLA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PressureMatchingWOLA</span></code></a>(audio_src, Hv, Hc, ...)</p></td>
+<td><p>Sound field reproduction with pressure matching in the WOLA domain</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aspcol.plot.time_response.html" class="btn btn-neutral float-left" title="aspcol.plot.time_response" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aspcol.soundfieldcontrol.acc.html" class="btn btn-neutral float-right" title="aspcol.soundfieldcontrol.acc" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jesper Brunnström.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

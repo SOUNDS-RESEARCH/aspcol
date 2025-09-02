@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation\_jax.time\_domain\_frequency\_weighted\_kernel
+=========================================================================
+
+.. currentmodule:: aspcol.kernelinterpolation_jax
+
+.. autofunction:: time_domain_frequency_weighted_kernel

@@ -1,0 +1,6 @@
+aspcol.distance.spatial\_similarity
+===================================
+
+.. currentmodule:: aspcol.distance
+
+.. autofunction:: spatial_similarity

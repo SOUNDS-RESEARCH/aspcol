@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.soundfield\_interpolation\_fir
+=========================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: soundfield_interpolation_fir

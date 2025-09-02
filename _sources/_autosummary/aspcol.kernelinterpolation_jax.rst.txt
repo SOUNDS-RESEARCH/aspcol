@@ -1,0 +1,46 @@
+﻿aspcol.kernelinterpolation\_jax
+===============================
+
+.. automodule:: aspcol.kernelinterpolation_jax
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      diffuse_kernel
+      directional_kernel_vonmises
+      freq_to_time_domain_kernel_matrix
+      multifreq_diffuse_kernel
+      time_domain_diffuse_kernel
+      time_domain_directional_kernel_vonmises
+      time_domain_envelope_kernel
+      time_domain_envelope_kernel_r3
+      time_domain_frequency_weighted_kernel
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: new-class-template.rst
+   
+      partial
+   
+   
+
+   
+   
+   
+
+
+

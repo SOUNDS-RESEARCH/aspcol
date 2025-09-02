@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.kernel\_gaussian
+===========================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: kernel_gaussian

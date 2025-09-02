@@ -1,0 +1,6 @@
+aspcol.plot.error\_per\_frequency
+=================================
+
+.. currentmodule:: aspcol.plot
+
+.. autofunction:: error_per_frequency

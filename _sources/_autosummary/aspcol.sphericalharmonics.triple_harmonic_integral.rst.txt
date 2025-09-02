@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.triple\_harmonic\_integral
+====================================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: triple_harmonic_integral

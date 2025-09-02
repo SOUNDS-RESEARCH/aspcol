@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation.kernel\_directional\_3d\_combined
+============================================================
+
+.. currentmodule:: aspcol.kernelinterpolation
+
+.. autofunction:: kernel_directional_3d_combined

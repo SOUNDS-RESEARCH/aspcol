@@ -1,0 +1,36 @@
+﻿aspcol.distance
+===============
+
+.. automodule:: aspcol.distance
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      angular_distance
+      corr_matrix_distance
+      cos_similary
+      covariance_distance_kl_divergence
+      covariance_distance_riemannian
+      mse
+      spatial_similarity
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

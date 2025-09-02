@@ -1,0 +1,6 @@
+aspcol.spatialcovarianceestimation.spatial\_cov\_weighting
+==========================================================
+
+.. currentmodule:: aspcol.spatialcovarianceestimation
+
+.. autofunction:: spatial_cov_weighting

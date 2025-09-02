@@ -1,0 +1,6 @@
+aspcol.distance.cos\_similary
+=============================
+
+.. currentmodule:: aspcol.distance
+
+.. autofunction:: cos_similary

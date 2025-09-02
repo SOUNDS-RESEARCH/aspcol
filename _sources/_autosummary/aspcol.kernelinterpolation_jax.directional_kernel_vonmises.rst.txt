@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation\_jax.directional\_kernel\_vonmises
+=============================================================
+
+.. currentmodule:: aspcol.kernelinterpolation_jax
+
+.. autofunction:: directional_kernel_vonmises

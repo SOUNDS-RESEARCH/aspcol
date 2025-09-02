@@ -1,0 +1,27 @@
+aspcol.soundfieldcontrol.PressureMatchingWOLA
+=============================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autoclass:: PressureMatchingWOLA
+   :show-inheritance:
+   :inherited-members:
+   :members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~PressureMatchingWOLA.__init__
+      ~PressureMatchingWOLA.get_samples
+      ~PressureMatchingWOLA.update
+   
+   
+
+   
+   
+   

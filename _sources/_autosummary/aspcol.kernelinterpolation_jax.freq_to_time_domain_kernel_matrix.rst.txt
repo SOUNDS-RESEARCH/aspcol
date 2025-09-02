@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation\_jax.freq\_to\_time\_domain\_kernel\_matrix
+======================================================================
+
+.. currentmodule:: aspcol.kernelinterpolation_jax
+
+.. autofunction:: freq_to_time_domain_kernel_matrix

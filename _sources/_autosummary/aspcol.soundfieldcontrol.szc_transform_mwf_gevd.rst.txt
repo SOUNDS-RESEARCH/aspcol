@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.szc\_transform\_mwf\_gevd
+==================================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: szc_transform_mwf_gevd

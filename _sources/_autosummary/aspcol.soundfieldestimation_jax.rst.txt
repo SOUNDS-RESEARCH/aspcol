@@ -1,0 +1,56 @@
+﻿aspcol.soundfieldestimation\_jax
+================================
+
+.. automodule:: aspcol.soundfieldestimation_jax
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      calculate_psi
+      est_ki_freq
+      est_ki_freq_rff
+      estimate_from_regressor
+      inf_dimensional_shd_dynamic
+      krr_moving_mic_diffuse
+      krr_moving_mic_directional
+      krr_moving_mic_rff
+      krr_stationary_mics
+      krr_stationary_mics_directional_vonmises
+      krr_stationary_mics_envelope_regularized
+      krr_stationary_mics_envelope_regularized_changedip
+      krr_stationary_mics_frequency_weighted
+      reconstruct_diffuse
+      reconstruct_directional_vonmises
+      reconstruct_from_kernel
+      reconstruct_krr_moving_mic_diffuse
+      reconstruct_krr_moving_mic_directional
+      reconstruct_moving_mic_rff
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: new-class-template.rst
+   
+      partial
+   
+   
+
+   
+   
+   
+
+
+

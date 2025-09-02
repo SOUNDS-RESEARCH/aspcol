@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation.est\_ki\_rff
+========================================
+
+.. currentmodule:: aspcol.soundfieldestimation
+
+.. autofunction:: est_ki_rff

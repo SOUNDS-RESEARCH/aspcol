@@ -1,0 +1,6 @@
+aspcol.kernelinterpolation\_jax.multifreq\_diffuse\_kernel
+==========================================================
+
+.. currentmodule:: aspcol.kernelinterpolation_jax
+
+.. autofunction:: multifreq_diffuse_kernel

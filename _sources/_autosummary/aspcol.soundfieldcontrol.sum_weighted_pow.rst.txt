@@ -1,0 +1,6 @@
+aspcol.soundfieldcontrol.sum\_weighted\_pow
+===========================================
+
+.. currentmodule:: aspcol.soundfieldcontrol
+
+.. autofunction:: sum_weighted_pow

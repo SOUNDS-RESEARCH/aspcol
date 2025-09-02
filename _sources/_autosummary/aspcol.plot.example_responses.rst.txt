@@ -1,0 +1,6 @@
+aspcol.plot.example\_responses
+==============================
+
+.. currentmodule:: aspcol.plot
+
+.. autofunction:: example_responses

@@ -1,0 +1,6 @@
+aspcol.sphericalharmonics.directivity\_linear
+=============================================
+
+.. currentmodule:: aspcol.sphericalharmonics
+
+.. autofunction:: directivity_linear

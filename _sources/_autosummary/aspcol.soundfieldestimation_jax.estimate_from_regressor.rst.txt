@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation\_jax.estimate\_from\_regressor
+==========================================================
+
+.. currentmodule:: aspcol.soundfieldestimation_jax
+
+.. autofunction:: estimate_from_regressor

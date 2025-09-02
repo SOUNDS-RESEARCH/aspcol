@@ -1,0 +1,6 @@
+aspcol.soundfieldestimation\_jax.reconstruct\_from\_kernel
+==========================================================
+
+.. currentmodule:: aspcol.soundfieldestimation_jax
+
+.. autofunction:: reconstruct_from_kernel
