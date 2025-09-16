@@ -56,7 +56,6 @@ def _cov_informed_krr_cost_wishart(krr_params, ir_data, data_weighting, reg_para
     cov_error = -jax.vmap(covdist.wishart_log_likelihood, in_axes=(0,0,None,None))(N * cov_data, cov_est, N, 1e8)
     C = C + cov_reg_param * cov_error
 
-    #cost_per_freq = jnp.mean(C, axis=-1)
     total_cost = jnp.mean(C)
     return total_cost
 
@@ -64,7 +63,6 @@ def _cov_informed_krr_cost_airm(krr_params, ir_data, data_weighting, reg_param, 
     C = _standard_krr_cost(krr_params, ir_data, data_weighting, reg_param, reconstruct_mat)
 
     cov_est = spatial_cov_from_integral_weighting(krr_params, integral_weighting)
-    #cov_data = jax.vmap(jmat.regularize_matrix_with_condition_number, in_axes=(0, None))(cov_data, 1e8)
     cov_est = jax.vmap(jmat.regularize_matrix_with_condition_number, in_axes=(0, None))(cov_est, 1e6)
     cov_error = jax.vmap(covdist.airm)(cov_est, cov_data)
     C = C + cov_reg_param * cov_error
@@ -75,7 +73,6 @@ def _cov_informed_krr_cost_wasserstein(krr_params, ir_data, data_weighting, reg_
     C = _standard_krr_cost(krr_params, ir_data, data_weighting, reg_param, reconstruct_mat)
 
     cov_est = spatial_cov_from_integral_weighting(krr_params, integral_weighting)
-    #cov_data = jax.vmap(jmat.regularize_matrix_with_condition_number, in_axes=(0, None))(cov_data, 1e8)
     cov_est = jax.vmap(jmat.regularize_matrix_with_condition_number, in_axes=(0, None))(cov_est, 1e9)
     cov_error = jax.vmap(covdist.wasserstein_distance)(cov_est, cov_data)
     C = C + cov_reg_param * cov_error

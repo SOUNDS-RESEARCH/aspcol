@@ -7,9 +7,12 @@ References
 import matplotlib.pyplot as plt
 import numpy as np
 import json
+import jax
 
 import aspcore.fouriertransform as ft
 import aspcore.utilities as utils
+
+import riecovest.distance as covdist
 
 # import tikzplotlib
 # try:
@@ -700,3 +703,208 @@ def _get_num_pixels(pos, pos_decimals=5):
     num_rows = len(pos_rows)
     num_cols = len(pos_cols)
     return num_rows, num_cols
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def evaluate_freq_spatial_cov(estimates, cov_true, fig_path, freqs=None, plot_method="pdf", name_suffix=""):
+    estimates_all = {key : val for key, val in estimates.items()}
+    estimates_all["true"] = cov_true
+
+    num_freqs = cov_true.shape[0]
+    if freqs is None:
+        freqs = np.arange(num_freqs)
+
+    mse = {name : np.mean(np.abs(est - cov_true)**2) / np.mean(np.abs(cov_true)**2) for name, est in estimates.items()}
+    mse_db = {name : 10 * np.log10(m) for name, m in mse.items()}
+    with open(fig_path / f"cov_mse_db{name_suffix}.json", "w") as f:
+        json.dump(mse_db, f, indent=4)
+
+    with open(fig_path / f"cov_mse{name_suffix}.json", "w") as f:
+        json.dump(mse, f, indent=4)
+
+
+    # ====== ERROR METRICS COMPARED TO TRUE COVARIANCE
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    for est_name, est in estimates.items():
+        mse = np.mean(np.abs(est - cov_true)**2, axis=(-1, -2)) / np.mean(np.abs(cov_true)**2, axis=(-1, -2))
+        mse_db = 10  *np.log10(mse)
+        ax.plot(freqs, mse_db, label=est_name)
+    ax.legend()
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("MSE (dB)")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(plot_method, fig_path, f"spatial_cov_mse_db{name_suffix}")
+
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    for est_name, est in estimates.items():
+        mse = np.mean(np.abs(est - cov_true)**2, axis=(-1, -2))
+        mse_db = 10  *np.log10(mse)
+        ax.plot(freqs, mse_db, label=est_name)
+    ax.legend()
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("MSE (dB)")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(plot_method, fig_path, f"spatial_cov_mse_db_no_normalization{name_suffix}")
+
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    est_true_normalized = cov_true / np.trace(cov_true, axis1=-2, axis2=-1)[:,None,None] 
+    for est_name, est in estimates.items():
+        est_normalized = est / np.trace(est, axis1=-2, axis2=-1)[:,None,None] 
+        mse = np.sum(np.abs(est_normalized - est_true_normalized)**2, axis=(-1, -2)) #/ np.sum(np.abs(est_true_normalized)**2, axis=(-1, -2))
+        mse_db = 10  *np.log10(mse)
+        ax.plot(freqs, mse_db, label=est_name)
+    ax.legend()
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("MSE (dB)")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(plot_method, fig_path, f"spatial_cov_mse_tracenormalized_db{name_suffix}")
+
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    est_true_normalized = cov_true / np.mean(np.abs(cov_true)**2, axis=(-1, -2), keepdims=True)
+    for est_name, est in estimates.items():
+        est_normalized = est / np.mean(np.abs(est)**2, axis=(-1, -2), keepdims=True)
+        mse = np.sum(np.abs(est_normalized - est_true_normalized)**2, axis=(-1, -2)) #/ np.sum(np.abs(est_true_normalized)**2, axis=(-1, -2))
+        mse_db = 10  *np.log10(mse)
+        ax.plot(freqs, mse_db, label=est_name)
+    ax.legend()
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("MSE (dB)")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(plot_method, fig_path, f"spatial_cov_mse_frobnormalized_db{name_suffix}")
+
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    mean_airm = {}
+    for est_name, est in estimates.items():
+        airm = jax.vmap(covdist.airm, in_axes=(0,0))(est, cov_true)
+        mean_airm[est_name] = np.mean(airm).tolist()
+        #airm = covdist.airm(est, cov_true)
+        ax.plot(freqs, airm, label=est_name)
+    ax.legend()
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("AIRM")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(plot_method, fig_path, f"spatial_cov_airm{name_suffix}")
+    with open(fig_path / f"cov_airm{name_suffix}.json", "w") as f:
+        json.dump(mean_airm, f, indent=4)
+
+
+    mean_frob_gevd = {}
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    for est_name, est in estimates.items():
+        frob_gevd = jax.vmap(covdist.frob_gevd_weighted, in_axes=(0,0))(est, cov_true)
+        mean_frob_gevd[est_name] = np.mean(frob_gevd).tolist()
+        ax.plot(freqs, 10 * np.log10(frob_gevd), label=est_name)
+    ax.legend()
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("Frob. GEVD (dB)")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(plot_method, fig_path, f"spatial_cov_frob_gevd{name_suffix}")
+    with open(fig_path / f"cov_frob_gevd{name_suffix}.json", "w") as f:
+        json.dump(mean_frob_gevd, f, indent=4)
+
+
+    mean_wishart_ll = {}
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    for est_name, est in estimates.items():
+        wishart_ll = jax.vmap(covdist.wishart_log_likelihood, in_axes=(0,0, None))(est, cov_true, 5)# covdist.wishart_log_likelihood(cov_true, est, 5)
+        mean_wishart_ll[est_name] = np.mean(wishart_ll).tolist()
+        ax.plot(freqs, wishart_ll, label=est_name)
+    ax.legend()
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("Wishart log likelihood")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(plot_method, fig_path, f"spatial_cov_wishart_ll{name_suffix}")
+    with open(fig_path / f"cov_wishart_ll{name_suffix}.json", "w") as f:
+        json.dump(mean_wishart_ll, f, indent=4)
+
+    mean_wasserstein = {}
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    for est_name, est in estimates.items():
+        wasserstein = jax.vmap(covdist.wasserstein_distance, in_axes=(0,0))(est, cov_true)
+        mean_wasserstein[est_name] = np.mean(wasserstein).tolist()
+        ax.plot(freqs, wasserstein, label=est_name)
+    ax.legend()
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("Wasserstein distance")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(plot_method, fig_path, f"spatial_cov_wasserstein{name_suffix}")
+    with open(fig_path / f"cov_wasserstein{name_suffix}.json", "w") as f:
+        json.dump(mean_wasserstein, f, indent=4)
+
+
+    # ====== PROPERTIES OF THE ESTIMATES
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    for est_name, est in estimates.items():
+        trace = np.real(np.trace(est, axis1=-1, axis2=-2))
+        ax.plot(freqs, trace, label=est_name)
+    ax.legend()
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("Trace of matrix")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(plot_method, fig_path, f"spatial_cov_trace{name_suffix}")
+
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    for est_name, est in estimates.items():
+        cond = np.log10(np.linalg.cond(est))
+        ax.plot(freqs, cond, label=est_name)
+    ax.legend()
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("Condition number (log10)")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(plot_method, fig_path, f"spatial_cov_cond{name_suffix}")
+
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    for est_name, est in estimates.items():
+        try:
+            eigvals = np.linalg.eigvalsh(est)
+            ax.plot(freqs, np.log10(np.max(eigvals, axis=-1)), label=est_name)
+            
+        except np.linalg.LinAlgError:
+            print(f"Could not compute eigenvalues of spatial cov for {est_name}")
+
+    ax.legend()
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("Maximum eigenvalue (log10)")
+    utils.set_basic_plot_look(ax)
+    utils.save_plot(plot_method, fig_path, f"spatial_cov_max_eigval{name_suffix}")
+
+    # ====== EXAMPLES OF THE ESTIMATES
+    num_examples = 5
+    freq_example_idxs = np.linspace(0, num_freqs, num_examples+2).astype(int)[1:-1]
+
+    for freq_example_idx in freq_example_idxs:
+    #freq_example_idx = np.min((20, num_freqs // 2))
+        freq_example = freqs[freq_example_idx]
+        fig, ax = plt.subplots(len(estimates_all), 3, figsize=(12, 4 * len(estimates_all)))
+        for k, (est_name, est) in enumerate(estimates_all.items()):
+            est_example = est[freq_example_idx,:,:]
+            clr = ax[k, 0].matshow(np.real(est_example))
+            fig.colorbar(clr, ax=ax[k,0])
+
+            clr = ax[k, 1].matshow(np.imag(est_example))
+            fig.colorbar(clr, ax=ax[k, 1])
+
+            clr = ax[k, 2].matshow(np.abs(est_example))
+            fig.colorbar(clr, ax=ax[k, 2])
+
+            ax[k,0].set_title(f"{est_name} : Real")
+            ax[k,1].set_title(f"{est_name} : Imag")
+            ax[k,2].set_title(f"{est_name} : Abs")
+
+        for ax in np.ravel(ax):
+            utils.set_basic_plot_look(ax)
+        utils.save_plot(plot_method, fig_path, f"spatial_cov_examples_freq_{freq_example}Hz{name_suffix}")
+
+
+
