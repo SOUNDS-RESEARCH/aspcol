@@ -1,478 +1,601 @@
+"""Interpolation of a sound field taking physical properties of sound into account.
+
+The estimation methods are written generally to allow for any kernel function to be given as argument, 
+and then functions implementing the kernel functions associated with the papers below are provided. 
+
+A number of kernels are implemented
+
+- Gaussian kernel
+
+- Diffuse kernel in 2D [itoFeedforward2019] and 3D [uenoKernel2018]
+
+- Directional kernel in 3D [uenoDirectionally2021, koyamaSpatial2021]
+
+- Reciprocal kernel for RIR estimation [ribeiroKernel2020]
+
+References
+----------
+[uenoKernel2018] N. Ueno, S. Koyama, and H. Saruwatari, “Kernel ridge regression with constraint of Helmholtz equation for sound field interpolation,” in 2018 16th International Workshop on Acoustic Signal Enhancement (IWAENC), Tokyo, Japan: IEEE, Sep. 2018, pp. 436–440. doi: 10.1109/IWAENC.2018.8521334. `[link] <https://doi.org/10.1109/IWAENC.2018.8521334>`__ \n
+[uenoDirectionally2021] N. Ueno, S. Koyama, and H. Saruwatari, “Directionally weighted wave field estimation exploiting prior information on source direction,” IEEE Transactions on Signal Processing, vol. 69, pp. 2383–2395, Apr. 2021, doi: 10.1109/TSP.2021.3070228. `[link] <https://doi.org/10.1109/TSP.2021.3070228>`__ \n
+[ribeiroKernel2020] J. G. C. Ribeiro, N. Ueno, S. Koyama, and H. Saruwatari, “Kernel interpolation of acoustic transfer function between regions considering reciprocity,” in 2020 IEEE 11th Sensor Array and Multichannel Signal Processing Workshop (SAM), Jun. 2020, pp. 1–5. doi: 10.1109/SAM48682.2020.9104256. `[link] <https://doi.org/10.1109/SAM48682.2020.9104256>`__ \n
+[koyamaSpatial2021] S. Koyama, J. Brunnström, H. Ito, N. Ueno, and H. Saruwatari, “Spatial active noise control based on kernel interpolation of sound field,” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 29, pp. 3052–3063, Aug. 2021, doi: 10.1109/TASLP.2021.3107983. `[link] <https://doi.org/10.1109/TASLP.2021.3107983>`__ \n
+[brunnstromVariable2022] J. Brunnström, S. Koyama, and M. Moonen, “Variable span trade-off filter for sound zone control with kernel interpolation weighting,” in ICASSP 2022 - 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), May 2022, pp. 1071–1075. doi: 10.1109/ICASSP43922.2022.9746550. `[link] <https://doi.org/10.1109/ICASSP43922.2022.9746550>`__ \n
+[itoFeedforward2019] H. Ito, S. Koyama, N. Ueno, and H. Saruwatari, “Feedforward spatial active noise control based on kernel interpolation of sound field,” in IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Brighton, United Kingdom: IEEE, May 2019, pp. 511–515. doi: 10.1109/ICASSP.2019.8683067. `[link] <https://doi.org/10.1109/ICASSP.2019.8683067>`__ \n
+"""
 import numpy as np
+import scipy.spatial.distance as distfuncs
+import scipy.special as special
+import numba as nb
 
-import scipy.linalg as splin
-
-import aspcol.kernelinterpolation.single_frequency_kernels as ki
+import aspcol.utilities as util
 import aspcore.fouriertransform as ft
+import aspcore.montecarlo as mc
+import aspcore.filterdesign as fd
+
 import aspcore.matrices as aspmat
 
-import aspcol.planewaves as pw
-import aspcore.montecarlo as mc
-
-def multifreq_diffuse_kernel(pos1, pos2, wave_num, diag_mat=True):
-    """Multiple frequency diffuse sound field kernel. 
-
-    Defined for each position pair as diag{}_{i=0}^{L//2} j_0 (k_i lVert r - r' rVert_2^2) 
-    where L is the (even) length of the real DFT, and hence L//2 + 1 is the number of real frequencies. 
+def kernel_gaussian(points1, points2, scale):
+    """
+    Guassian kernel, also known as the radial basis function kernel. 
 
     Parameters
     ----------
-    pos1 : np.ndarray of shape (num_points1, 3)
-        Position of the first point.
-    pos2 : np.ndarray of shape (num_points2, 3)
-        Position of the second point.
-    wave_num : np.ndarray of shape (num_real_freqs,)
-        Wave number, defined as 2*pi*f/c, where f is the frequency and c is the speed of sound.
+    points1 : ndarray of shape (num_points1, spatial_dim)
+    points2 : ndarray of shape (num_points2, spatial_dim)
+    scale : ndarray of shape (num_scales,)
 
     Returns
     -------
-    np.ndarray of shape (num_points1, num_points2, num_real_freqs, num_real_freqs)
-        Returned if diag_mat is true. Is a diagonal matrix
-    np.ndarray of shape (num_points1, num_points2, num_real_freqs)
-        Returned if diag_mat is false. Contains the same values as the diagonal matrix, so 
-        is a more space-efficient representation. 
+    ndarray of shape (num_scales, num_points1, num_points2)
+    """
+    dist_mat = distfuncs.cdist(points1, points2)**2
+    return np.exp(-scale[:,None,None]**2 * dist_mat[None,:,:])
+
+def kernel_diffuse_2d(points1, points2, wave_num):
+    """
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_points1, 2)
+    points2 : ndarray of shape (num_points2, 2)
+    wave_num : ndarray of shape (num_freqs,)
+
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_points1, num_points2)
+    """
+    dist_mat = distfuncs.cdist(points1, points2)
+    return special.j0(dist_mat[None,:,:] * wave_num[:,None,None])
+
+
+def kernel_diffuse_slow(points1, points2, wave_num):
+    """
+    Identical to kernel_diffuse_3d, but is not JIT compiled by numba. 
+    This is faster if the kernel is only evaluated once, but slower if it is evaluated many times
+    
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_points1, 3)
+    points2 : ndarray of shape (num_points2, 3)
+    wave_num : ndarray of shape (num_freqs,)
+
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_points1, num_points2)
+    """
+    distMat = distfuncs.cdist(points1, points2)
+    return special.spherical_jn(0, distMat[None,:,:] * wave_num[:,None,None])
+
+
+@nb.njit
+def kernel_diffuse(points1, points2, wave_num):
+    """
+    Diffuse kernel for 3D sound field interpolation. Defined in 
+    'Spatial active noise control based on kernel interpolation 
+    of sound field' by Koyama et al.
+
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_points1, 3)
+    points2 : ndarray of shape (num_points2, 3)
+    wave_num : ndarray of shape (num_freqs,)
+
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_points1, num_points2)
+    """
+    #distMat = distfuncs.cdist(points1, points2)
+
+    dist_mat = np.sqrt(np.sum((np.expand_dims(points1,1) - np.expand_dims(points2,0))**2, axis=-1))
+    return np.sinc(np.expand_dims(dist_mat,0) * wave_num.reshape(-1, 1,1) / np.pi)
+
+
+def kernel_directional_slow(points1, points2, wave_num, angle, beta):    
+    """
+    Identical to kernel_directional_3d, but is not JIT compiled by numba. 
+    This is faster if the kernel is only evaluated once, but slower if it is evaluated many times
+
+    In addition, this only allows for a single angle to be evaluated at a time.
+
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_points1, 3)
+    points2 : ndarray of shape (num_points2, 3)
+    wave_num : ndarray of shape (num_freqs,)
+    angle : tuple (theta, phi) defined as in util.spherical2cart
+    beta : sets the strength of the directional weighting
+
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_points1, num_points2)
+    """
+    rDiff = points1[:,None,:] - points2[None,:,:]
+    angleFactor = beta * util.spherical2cart(np.ones((1,1)), np.array(angle)[None,:])[None,None,...]
+    posFactor = 1j * wave_num[:,None,None,None] * rDiff[None,...]
+    return special.spherical_jn(0, 1j*np.sqrt(np.sum((angleFactor + posFactor)**2, axis=-1)))
+
+@nb.njit
+def kernel_directional(points1, points2, wave_num, direction_vec, beta):
+    """
+    Directionally weighted kernel for 3D sound field interpolation. 
+    Defined in 'Spatial active noise control based on kernel interpolation 
+    of sound field' by Koyama, Brunnström, Ito, Ueno, Saruwatari.
+
+    If used for sound field estimation, the direction should be set in the preferred propagation direction
+    This means that for a receiver at [0,0,0] and a source at [10,0,0], the direction should be [-1,0,0]
+    
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_points1, 3)
+    points2 : ndarray of shape (num_points2, 3)
+    wave_num : ndarray of shape (num_freqs,)
+    direction_vec : ndarray of shape (num_angles, 3)
+        unit vectors describing the arrival direction
+    beta : float nonnegative 
+        sets the strength of the directional weighting
+
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_angles, num_points1, num_points2)
+    """
+    angle_term = 1j * beta * direction_vec.reshape((1,-1,1,1,direction_vec.shape[-1]))
+    pos_term = wave_num.reshape((-1,1,1,1,1)) * (points1.reshape((1,1,-1,1,points1.shape[-1])) - points2.reshape((1,1,1,-1,points2.shape[-1])))
+    return np.sinc(np.sqrt(np.sum((pos_term - angle_term)**2, axis=-1)) / np.pi)
+
+
+def kernel_reciprocal(points1, points2, wave_num):
+    """
+    Reciprocal kernel for room impulse response interpolation. Definition found in
+    'Kernel interpolation of acoustic transfer function between regions considering reciprocity'
+    by Ribeiro, Ueno, Koyama, Saruwatari.
+
+    Parameters
+    ----------
+    points1 : 2-tuple of (mic_points1, src_points1)
+        where mic_points ndarray of shape (num_mic1, 3)
+        and src_points ndarray of shape (num_src1, 3)
+    points2 : same type of object as points1, 
+        although the ndarray shapes can be different
+    wave_num : ndarray of shape (num_freqs,)
+
+    Returns
+    -------
+    ndarray of shape (num_freqs, num_mic1*num_src1, num_mic2*num_src2)
+        When flattened, the index for microphone m, speaker l is m+l*M. i.e.
+        the microphone index changes faster. 
+    """
+    wave_num = wave_num[:,None,None,None,None]
+    mic_dist = distfuncs.cdist(points1[0], points2[0])[None,None,:,None,:]
+    src_dist = distfuncs.cdist(points1[1], points2[1])[None,:,None,:,None]
+    mix_dist1 = distfuncs.cdist(points1[0], points2[1])[None,None,:,:,None]
+    mic_dist2 = distfuncs.cdist(points1[1], points2[0])[None,:,None,None,:]
+
+    k_val = 0.5 * (special.spherical_jn(0, wave_num * mic_dist) * \
+                        special.spherical_jn(0, wave_num * src_dist)) + \
+                        (special.spherical_jn(0, wave_num * mix_dist1) * \
+                        special.spherical_jn(0, wave_num * mic_dist2))
+    k_val = np.reshape(k_val, k_val.shape[:3]+(-1,))
+    k_val = np.reshape(k_val, (k_val.shape[0], -1,k_val.shape[-1]))
+    return k_val
+
+
+
+
+
+
+
+
+def kernel_directional_combined(points1, points2, wave_num, dirs, beta, kernel_weights):
+    """Computes the summed directional kernel for a number of directions and weights.
+
+    The kernel is exemplified in (19) in [1]
+
+    Parameters
+    ----------
+    points1 : ndarray of shape (num_pos1, 3)
+        The first set of positions where the kernel is evaluated
+    points2 : ndarray of shape (num_pos2, 3)
+        The second set of positions where the kernel is evaluated
+    dirs : ndarray of shape (num_dir, 3)
+        The directions for which the kernel is calculated
+    beta : ndarray of shape (num_beta,)
+        The strength of the directional weighting for each kernel
+    kernel_weights : ndarray of shape (num_dir, num_beta)
+        The positive factor determining the relative weight of the particular kernel
+        represented by gamma in [1]
+    
+    Returns
+    -------
+    ndarray of shape (num_pos1, num_pos2)
+        The directional kernel for each direction and beta value
+
+    References
+    ----------
+    [1] R. Horiuchi, S. Koyama, J. G. C. Ribeiro, N. Ueno, and H. Saruwatari, “Kernel learning for sound field estimation with l1 and l2 regularizations,” in 2021 IEEE Workshop on Applications of Signal Processing to Audio and Acoustics (WASPAA), Oct. 2021, pp. 261–265. doi: 10.1109/WASPAA52581.2021.9632731.
+    
+    """
+    raise NotImplementedError
+
+
+def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain, 
+                                mc_samples, num_freq, samplerate, c, *args):
+    """ 
+    Calculates kernel weighting filter A(w) in frequency domain
+    see 'Spatial active noise control based on kernel interpolation of sound field' by Koyama et al.     
+
+    Parameters
+    ----------
+    kernel_func : function
+        with calling signature kernel_func(points1, points2, waveNum, *args)
+    reg_param : float
+    mic_pos : ndarray of shape (num_mics, spatial_dim)
+    integral_domain : instance of any Region object found is aspsim package
+    mc_samples : int
+        how many monte carlo samples to be drawn for integration
+    num_freq : int
+    samplerate : int
+    c : float
+        speed of sound
+    *args : arguments needed for kernel function except points1, points2, waveNum
+
+    Returns
+    -------
+    ndarray of shape (num_freq, num_mics, num_mics)
+    
+    For both diffuse and directional kernel P^H = P, so the hermitian tranpose should not do anything
+    It is left in place in case a kernel function in the future changes that identity. 
+    """
+    freqs = ft.get_real_freqs(num_freq, samplerate)
+    wave_num = 2 * np.pi * freqs / c
+
+    def integrable_func(r):
+        kappa = kernel_func(r, mic_pos, wave_num, *args)
+        kappa = np.transpose(kappa,(0,2,1))
+        return kappa.conj()[:,:,None,:] * kappa[:,None,:,:]
+
+    num_mics = mic_pos.shape[0]
+    K = kernel_func(mic_pos, mic_pos, wave_num, *args)
+    P = np.linalg.pinv(K + reg_param * np.eye(num_mics))
+
+    integral_value = mc.integrate(integrable_func, integral_domain.sample_points, mc_samples, integral_domain.volume)
+    weighting_filter = np.transpose(P,(0,2,1)).conj() @ integral_value @ P
+
+    weighting_filter = ft.insert_negative_frequencies(weighting_filter, even=True)
+    return weighting_filter
+
+
+
+def reconstruct_freq(krr_params, pos_output, pos_data, wave_num, kernel_func=None, kernel_args=None):
+    """Reconstruct the function from kernel ridge regression parameters
+    
+    Parameters
+    ----------
+    krr_params : ndarray of shape (num_freq, num_pos_data)
+        the kernel ridge regression parameters, referred to with "a" in many papers
+    pos_output : ndarray of shape (num_pos_output, 3)
+        positions where the function is to be estimated
+    pos_data : ndarray of shape (num_pos_data, 3)
+        positions where the function has been measured
+    wave_num : ndarray of shape (num_freq,)
+        the wave number for the sound field, defined as 2*pi*freq/c
+    kernel_func : callable
+        with calling signature kernel_func(pos1, pos2, wave_num, *kernel_args)
+        should return ndarray (..., num_pos1, num_pos2)
+    kernel_args : list
+        extra arguments that are needed for the kernel function
+
+    Returns
+    -------
+    ndarray of shape (num_freq, num_pos_output)
+        the estimated function at pos_output
+    """
+    if kernel_func is None:
+        kernel_func = kernel_diffuse
+        assert kernel_args is None, "kernel_args must be None if kernel_func is None"
+    if kernel_args is None:
+        kernel_args = []
+
+    kernel_val = kernel_func(pos_output, pos_data, wave_num, *kernel_args)
+    if kernel_val.ndim == 4:
+        kernel_val = np.squeeze(kernel_val, axis=1)
+
+    reconstructed = kernel_val @ krr_params[:,:,None]
+    return np.squeeze(reconstructed, axis=-1)
+
+
+def get_krr_params(data, pos, wave_num, reg_param, kernel_func=None, kernel_args=None):
+    """Calculates the kernel ridge regression parameter vector a for a standard l2 KRR problem
+
+    The optimal estimate according to KRR is u(r) = sum_{m=1}^{M} kernel_func(r, r_m) a_m
+    This function returns the parameter vector a. 
+
+    Parameters
+    ----------
+    data : ndarray of shape (num_freq, num_pos)
+        the data measured at pos
+    pos : ndarray of shape (num_pos, 3)
+        positions where the function has been measured
+    wave_num : ndarray of shape (num_freq)
+    reg_param : float
+        positive value to regularize the problem. Corresponds to lambda in the optimization problem. 
+    kernel_func : callable
+        with calling signature kernel_func(pos1, pos2, *kernel_args)
+        should return ndarray (..., num_pos1, num_pos2)
+    kernel_args : list
+        extra arguments that are needed for the kernel function
+
+    Returns
+    -------
+
 
     Notes
     -----
-    Clearly this is space-inefficient implementation as a diagonal matrix is stored as a full matrix. But it 
-    is provided to easy combine with other functions and check correctness. 
-
-    References
-    ----------
-    [uenoKernel2018]
-    [brunnströmTime2025]
+    The optimal parameter a is of course dependent on what optimization problem is being solved. In this 
+    case we assume that the problem is 
+    sum_{m=1}^{M} vert h(r_m) - u(r_m) vert_2^2 + lambda lVert u rVert_H^2
     """
-    kernel_val = ki.kernel_helmholtz_3d(pos1, pos2, wave_num)
-    kernel_val = np.moveaxis(kernel_val, 0, -1)
+    if kernel_func is None:
+        kernel_func = kernel_diffuse
+        assert kernel_args is None, "kernel_args must be None if kernel_func is None"
+    if kernel_args is None:
+        kernel_args = []
 
-    if diag_mat:
-        kernel_matrix = np.eye(kernel_val.shape[-1])[None,None,...] * kernel_val[...,None,:]
-        return kernel_matrix
-    return kernel_val
+    K = kernel_func(pos, pos, wave_num, *kernel_args)
+    if K.ndim == 4: #if using the directional kernel
+        K = np.squeeze(K, axis=1) 
+    K_reg = K + reg_param * np.eye(K.shape[-1])[None,:,:]
 
-def multifreq_directional_kernel_vonmises(pos1, pos2, wave_num, direction, beta, diag_mat=True):
-    """Multiple frequency directional sound field kernel. 
+    K_reg = aspmat.regularize_matrix_with_condition_number(K_reg, 1e8)
+    a = np.linalg.solve(K_reg, data)
+    return a
 
-    Defined for each position pair as diag{}_{i=0}^{L//2} j_0 (k_i lVert r - r' rVert_2^2) 
-    where L is the (even) length of the real DFT, and hence L//2 + 1 is the number of real frequencies. 
 
+def get_interpolation_params(kernel_func, reg_param, output_arg, data_arg, *args):
+    """
+    Calculates parameter vector or matrix given a kernel function for Kernel Ridge Regression.
+    The returned parameter Z is the optimal interpolation filter from the data points to
+    the output points. Apply filter as Z @ y, where y are the labels for data at data_arg positions
+    
     Parameters
     ----------
-    pos1 : np.ndarray of shape (num_points1, 3)
-        Position of the first point.
-    pos2 : np.ndarray of shape (num_points2, 3)
-        Position of the second point.
-    wave_num : np.ndarray of shape (num_real_freqs,)
-        Wave number, defined as 2*pi*f/c, where f is the frequency and c is the speed of sound.
-    direction : np.ndarray of shape (3,1)
-        The direction of the directional weighting.
-    beta : float
-        The strength of the directional weighting. A larger value will give more regularization.
-
+    data_arg : ndarray (num_data_points, data_dim)
+    output_arg : ndarray (num_out_points, data_dim)
+    kernel_func : function 
+        with calling signature kernel_func(output_arg, data_arg, \*args)
+        should return ndarray (..., num_out_points, num_data_poins)
+    
     Returns
     -------
-    np.ndarray of shape (num_points1, num_points2, num_real_freqs, num_real_freqs)
-        The kernel matrix.
+    params : ndarray (..., num_out_points, num_data_points)
 
     Notes
     -----
-    Clearly this is space-inefficient implementation as a diagonal matrix is stored as a full matrix. But it 
-    is provided to easy combine with other functions and check correctness. 
-
-    References
-    ----------
-    [uenoDirectionally2021]
-    [brunnströmTime2025]
+    This quantity is highly related to get_krr_params. Both are almost complete expressions of the optimal estimated
+    function evaluated at a point, but missing one argument. This function is missing the data, and get_krr_params is missing 
+    the point at which to evaluate the estimated function. 
     """
-    # minus direction because the ki module uses the other time convention (and therefore plane wave definitions)
-    kernel_val = ki.kernel_directional_3d(pos1, pos2, wave_num, direction, beta)
-    kernel_val = np.squeeze(kernel_val, axis=1)
-    kernel_val = np.moveaxis(kernel_val, 0, -1)
+    K = kernel_func(data_arg, data_arg, *args)
+    K_reg = K + reg_param * np.eye(K.shape[-1])
+    kappa = np.moveaxis(kernel_func(output_arg, data_arg, *args), -1, -2)
 
-    if diag_mat:
-        kernel_matrix = np.eye(kernel_val.shape[-1])[None,None,...] * kernel_val[...,None,:]
-        return kernel_matrix
-    return kernel_val
+    params = np.moveaxis(np.linalg.solve(np.moveaxis(K_reg, -1, -2), kappa), -1, -2)
+    return params
 
 
-
-def _weighting_mat_from_frequency_domain_envelope_reg(envelope_reg, num_freqs, dft_len, freqs_to_remove_low=0):
-    if envelope_reg.ndim == 2:
-        envelope_reg = envelope_reg[None,:,:]
-    c_diag = ft.rdft_weighting(num_freqs, dft_len, freqs_to_remove_low=freqs_to_remove_low)
-    envelope_reg_adjoint = (1/c_diag)[None,:,None] * c_diag[None,None,:] * np.moveaxis(envelope_reg.conj(), -1, -2) # equals C^{-1} @ envelope_reg^H @ C
-    weighting_mat = envelope_reg_adjoint @ envelope_reg
-    return weighting_mat
-
-def multifreq_envelope_kernel(pos1, pos2, wave_num, envelope_reg, reg_points, dft_len, freqs_to_remove_low=0):
-    """The kernel Gamma_r(r, r') of the time domain diffuse sound field with envelope regularization.
-
-    This is regularization option 2 in [brunnströmTime2025], which is constructed as a regularization
-    at a finite set of points. 
-
+def soundfield_interpolation_fir(
+    to_points, from_points, ir_len, reg_param, num_freq, spatial_dims, samplerate, c
+):
+    """
+    Convenience function for calculating the time domain causal FIR interpolation filter
+    from a set of points to another set of points. 
+    
     Parameters
     ----------
-    pos1 : np.ndarray of shape (num_points1, 3)
-        Position of the first set of points.
-    pos2 : np.ndarray of shape (num_points2, 3)
-        Position of the second set of points.
-    wave_num : np.ndarray of shape (num_real_freqs,)
-        Wave number, defined as 2*pi*f/c, where f is the frequency and c is the speed of sound.
-    envelope_reg : np.ndarray of shape (num_freqs, num_freqs) or (num_reg_points, num_freqs, num_freqs)
-        The envelope regularization weighting. Can be computed from the time-domain values of the envelope regularization
-        as D_f = F D_t F^{-1}. If only a single matrix is provided, it is assumed to be the same for all regularization points.
-    reg_points : np.ndarray of shape (num_reg_points, 3)
-        The regularization points. These are the points where the regularization is applied.
-        num_reg_points is V in [brunnströmTime2025].
+    to_points : ndarray of shape (num_to_points, spatial_dims)
+    from_points : ndarray of shape (num_from_points, spatial_dims)
+    ir_len : int
+        length of the impulse response
+    reg_param : float
+    num_freq : int
+    spatial_dims : int
+    samplerate : int
+    c : float
+        speed of sound
 
     Returns
     -------
-    np.ndarray of shape (num_points1, num_points2, dft_len, dft_len)
-        The time domain kernel matrix. 
-        The dft_len is assumed to be even, and the number of real frequencies is dft_len//2 + 1.
-
-    References
-    ----------
-    [brunnströmTime2025]
+    ndarray of shape (ir_len, num_to_points, num_from_points)    
     """
-    num_reg_points = reg_points.shape[0]
-    num_freqs = wave_num.shape[0]
+    assert num_freq > ir_len
+    freq_filter = soundfield_interpolation(
+        to_points, from_points, num_freq, reg_param, spatial_dims, samplerate, c
+    )
+    ki_filter,_ = fd.fir_from_freqs_window(freq_filter, ir_len)
+    return ki_filter
 
-    weight_mat, B = _weighting_mat_from_frequency_domain_envelope_reg(envelope_reg, num_freqs, dft_len, freqs_to_remove_low=freqs_to_remove_low)
-
-    gamma1 = multifreq_diffuse_kernel(pos1, reg_points, wave_num)
-    gamma2 = multifreq_diffuse_kernel(reg_points, pos2, wave_num)
-
-    gamma2 = weighting_mat[:,None,:,:] @ gamma2
-    return aspmat.matmul_param(gamma1, gamma2) / (num_reg_points**2)
-
-
-
-
-
-def time_domain_diffuse_kernel(pos1, pos2, wave_num):
-    """Time domain diffuse sound field kernel. 
-
-    Assumes the total DFT length was even. Any number of real frequencies / wave numbers can 
-    represent both an odd and even number of frequencies. 
-
-    Defined for each position pair as F^{-1} Gamma(r, r') F, where Gamma(r, r') is the multifrequency kernel, and
-    F and F^{-1} are the real DFT and inverse DFT transforms. 
-
+def soundfield_interpolation(
+    to_points, from_points, num_freq, reg_param, spatial_dims, samplerate, c
+):
+    """ Convenience function for calculating the frequency domain interpolation filter
+    from a set of points to another set of points. 
+    
     Parameters
     ----------
-    pos1 : np.ndarray of shape (num_points1, 3)
-        Position of the first point.
-    pos2 : np.ndarray of shape (num_points2, 3)
-        Position of the second point.
-    wave_num : np.ndarray of shape (num_real_freqs,)
-        Wave number, defined as 2*pi*f/c, where f is the frequency and c is the speed of sound.
+    to_points : ndarray of shape (num_to_points, spatial_dims)
+    from_points : ndarray of shape (num_from_points, spatial_dims)
+    num_freq : int
+    reg_param : float
+    spatial_dims : int
+    samplerate : int
+    c : float
+        speed of sound
 
     Returns
     -------
-    np.ndarray of shape (num_points1, num_points2, dft_len, dft_len)
-        The time domain kernel matrix. 
-        The dft_len is assumed to be even, and the number of real frequencies is dft_len//2 + 1.
-    
-    Notes
-    -----
-    This function can be substantially optimized by implementing in terms of only the real frequencies and the FFT rather
-    than DFT matrices. This is left for future work, whereas this is clear and easy to check for correctness. 
+    ndarray of shape (num_freq, num_to_points, num_from_points)
     """
-    freq_kernel = multifreq_diffuse_kernel(pos1, pos2, wave_num, diag_mat=False)
-    # for m in range(pos1.shape[0]):
-    #     for m2 in range(pos2.shape[0]):
-    #         if m != m2:
-    #             freq_kernel[m,m2,0] = 0.9
-    kernel_matrix = freq_to_time_domain_kernel_matrix(freq_kernel)
-    return kernel_matrix
-
-def time_domain_directional_kernel_vonmises(pos1, pos2, wave_num, direction, beta):
-    freq_kernel = multifreq_directional_kernel_vonmises(pos1, pos2, wave_num, direction, beta, diag_mat=False)
-    kernel_matrix = freq_to_time_domain_kernel_matrix(freq_kernel)
-    return kernel_matrix
-
-def time_domain_directional_kernel_vonmises_approx(pos1, pos2, wave_num, direction, beta):
-    if direction.ndim == 1:
-        direction = direction[None,:]
-
-    rng = np.random.default_rng(12345)
-    num_samples = int(1e4)
-
-    def _vonmises_dir_function(dir):
-        """The von Mises directional function.
-        dir : (num_dirs, 3)
-        """
-        return np.exp(beta * np.sum(direction * dir, axis=-1))
-    
-    pos_diff = pos1[:,None,:] - pos2[None,:,:]
-    pos_diff = np.reshape(pos_diff, (-1, 3))
-    integral = pw.plane_wave_integral(_vonmises_dir_function, pos_diff, np.zeros(3), wave_num, rng, num_samples)
-
-    kernel_matrix = np.reshape(integral, (wave_num.shape[0], pos1.shape[0], pos2.shape[0]))
-    kernel_matrix = np.moveaxis(kernel_matrix, 0, -1)
-    return freq_to_time_domain_kernel_matrix(kernel_matrix)
-
-def time_domain_directional_kernel(pos1, pos2, wave_num, dir_function):
-    """The time domain directional kernel for a general directional function.
-
-    The dir_function supplied to this function is W^H(d) W(d) in [brunnströmTime2025], as there is little 
-    reason to use a rectangular W in general. That means that the dir_function has to be positive semi-definite.
-    
-    Parameters
-    ----------
-    pos1 : np.ndarray of shape (num_points1, 3)
-        Position of the first set of points.
-    pos2 : np.ndarray of shape (num_points2, 3)
-        Position of the second set of points.
-    wave_num : np.ndarray of shape (num_real_freqs,)
-        Wave number, defined as 2*pi*f/c, where f is the frequency and c is the speed of sound.
-    dir_function : callable
-        A function that takes a set of direction unit vectors of shape (num_dirs, 3) 
-        and returns a positive semi-definite matrix for each direction, a ndarray of shape (num_dirs, num_real_freqs, num_real_freqs).
-    
-    Returns
-    -------
-    np.ndarray of shape (num_points1, num_points2, dft_len, dft_len)
-        The time domain kernel matrix. 
-        The dft_len is assumed to be even, and the number of real frequencies is dft_len//2 + 1.
-
-    References
-    ----------
-    [brunnströmTime2025]
-    """
-    assert pos1.ndim == 2 and pos2.ndim == 2, "The positions must be 2D arrays."
-    assert pos1.shape[1] == 3 and pos2.shape[1] == 3, "The positions must be 3-dimensional."
-    assert wave_num.ndim == 1, "The wave number must be a 1D array."
-    num_real_freqs = wave_num.shape[0]
-
-    rng = np.random.default_rng(12345)
-
-    num_samples = int(1e3)
-    dir_vecs = mc.uniform_random_on_sphere(num_samples, rng)
-
-    dir_matrices = dir_function(dir_vecs) #shape (num_dir, num_real_freqs, num_real_freqs)
-    E1 = pw.plane_wave(pos1, dir_vecs, wave_num).T # shape (num_dir, num_points1, num_real_freqs)
-    E2 = pw.plane_wave(-pos2, dir_vecs, wave_num).T # shape (num_dir, num_points2, num_real_freqs)
-
-    kernel_matrix = np.zeros((pos1.shape[0], pos2.shape[0], num_real_freqs, num_real_freqs), dtype=complex)
-    MAX_DIR = 100
-    num_batches = 1 + num_samples // MAX_DIR
-    for i in range(num_batches):
-        print(f"Batch {i+1} of {num_batches}")
-        start_idx = i*MAX_DIR 
-        end_idx = np.min([(i+1)*MAX_DIR, num_samples])
-        if start_idx == end_idx:
-            break
-
-        kernel_matrix += np.mean(E1[start_idx:end_idx,:,None,:,None] * 
-                                dir_matrices[start_idx:end_idx,None,None,:,:] * 
-                                E2[start_idx:end_idx,None,:,None,:], axis=0)
-
-    kernel_matrix *= 4 * np.pi / num_batches
-
-    #the expression before taking the mean should be of shape (num_dir, num_points1, num_points2, num_real_freqs, num_real_freqs)
-    #integral = 4 * np.pi *  np.mean(E1[:,:,None,:,None] * dir_matrices[:,None,None,:,:] * E2[:,None,:,None,:], axis=0)
-    return freq_to_time_domain_kernel_matrix(kernel_matrix)
-
-
-
-
-
-
-
-
-
-
-
-def freq_to_time_domain_kernel_matrix(freq_kernel):
-    """Turns a frequency domain kernel matrix into a time domain kernel matrix.
-
-    Could be made faster by using the RFFT directly, but this is a clear and easy to check implementation.
-    Write unit tests against this function to implement a faster version.
-    
-    Parameters
-    ----------
-    freq_kernel : np.ndarray of shape (num_points1, num_points2, num_real_freqs, num_real_freqs) 
-        or (num_points1, num_points2, num_real_freqs)
-        The frequency domain kernel matrix. If dimension is 3, the kernel is assumed to be diagonal.
-    
-    
-    """
-    assert freq_kernel.ndim == 4 or freq_kernel.ndim == 3
-    if freq_kernel.ndim == 3:
-        diag_mat = False
+    if spatial_dims == 3:
+        kernel_func = kernel_diffuse
+    elif spatial_dims == 2:
+        kernel_func = kernel_diffuse_2d
     else:
-        diag_mat = True
-    dft_len = freq_kernel.shape[-1] * 2 - 2
+        raise ValueError
 
-    #if diag_mat:
-    #    freq_kernel = np.diagonal(freq_kernel, axis1=-2, axis2=-1)
-    if not diag_mat:
-        freq_diag_mat = np.zeros((freq_kernel.shape[0], freq_kernel.shape[1], freq_kernel.shape[2], freq_kernel.shape[2]), dtype=complex)
-        for i in range(freq_kernel.shape[0]):
-            for j in range(freq_kernel.shape[1]):
-                freq_diag_mat[i,j,:,:] = np.diag(freq_kernel[i,j,:])
-        freq_kernel = freq_diag_mat
+    assert num_freq % 2 == 0
 
-    F = ft.rdft_mat(dft_len)[None, None,:,:]
-    B = ft.irdft_mat(dft_len)[None, None,:,:]
-    td_kernel = np.real(B @ freq_kernel @ F)
-
-    if not np.allclose(td_kernel.imag, 0):
-        raise ValueError("Something went wrong, the time domain kernel matrix is not real-valued.")
-    td_kernel = np.real(td_kernel)
-    return td_kernel
+    freqs = ft.get_real_freqs(num_freq, samplerate)
+    wave_num = 2 * np.pi * freqs / c
+    ip_params = get_interpolation_params(kernel_func, reg_param, to_points, from_points, wave_num)
+    ip_params = ft.insert_negative_frequencies(ip_params, even=True)
+    return ip_params
 
 
 
-def _freq_to_time_domain_kernel_matrix_diagonal(freq_kernel):
-    """Turns a diagonal frequency domain kernel matrix into a time domain kernel matrix.
 
-    Only really makes sense if the frequency domain kernel is diagonal.
-    
-    Parameters
-    ----------
-    freq_kernel : np.ndarray of shape (num_points1, num_points2, num_real_freqs, num_real_freqs)
-        The kernel matrix. Assumed to be diagonal
-
-    Returns
-    -------
-    np.ndarray of shape (num_points1, num_points2, dft_len, dft_len)
-        The time domain kernel matrix. 
-        The dft_len is assumed to be even, and the number of real frequencies is dft_len//2 + 1.
+def analytic_kernel_weighting_disc_2d(error_mic_pos, freq, reg_param, trunc_order, radius, c):
     """
-
-    assert freq_kernel.ndim == 4 or freq_kernel.ndim == 3
-    if freq_kernel.ndim == 3:
-        diag_mat = False
-    else:
-        diag_mat = True
-    dft_len = freq_kernel.shape[-1] * 2 - 2
-
-
-    #freq_kernel_dup = np.zeros((pos1.shape[0], pos2.shape[0], dft_len, dft_len))
-    #freq_kernel_dup[..., :num_real_freqs, :num_real_freqs] = kernel_matrix
-    #freq_kernel_dup[..., num_real_freqs:, num_real_freqs:] = np.flip(kernel_matrix[...,1:-1,1:-1], axis=(-2,-1))
-    if diag_mat:
-        freq_kernel = np.diagonal(freq_kernel, axis1=-2, axis2=-1)
-    a_ext = ft.insert_negative_frequencies(freq_kernel.T, even=True).T
-    a_mat = np.eye(dft_len)[None,None,...] * a_ext[...,None,:]
-
-    # The FFT is the correct fast way to do this 
-    #kernel_matrix = np.fft.fft(np.fft.ifft(a_mat, axis=-2), axis=-1)
-
-    # for consistency, we use the other time-convention as defined by aspcol
-    b = np.moveaxis(ft.ifft(np.moveaxis(a_mat,-2, 0)), -1, 2)
-    kernel_matrix = np.moveaxis(ft.fft(b), 0, -1)
-
-    # Below is a more readable version 
-    #F = splin.dft(dft_len)
-    #Finv = F.conj().T / dft_len
-    #kernel_matrix = Finv[None,None,...] @ a_mat @ F[None,None,...]
-
-    if not np.allclose(kernel_matrix.imag, 0):
-        raise ValueError("Something went wrong, the time domain kernel matrix is not real-valued.")
-    kernel_matrix = np.real(kernel_matrix)
-    return kernel_matrix
-
-
-
-
-def time_domain_envelope_kernel(pos1, pos2, wave_num, envelope_reg, reg_points):
-    """The kernel Gamma_r(r, r') of the time domain diffuse sound field with envelope regularization.
-
-    This is regularization option 2 in [brunnströmTime2025], which is constructed as a regularization
-    at a finite set of points. 
+    Analytic solution of the kernel interpolation weighting filter integral
+    in the frequency domain for a disc in 2D. See definition in [itoFeedforward2019]
 
     Parameters
     ----------
-    pos1 : np.ndarray of shape (num_points1, 3)
-        Position of the first set of points.
-    pos2 : np.ndarray of shape (num_points2, 3)
-        Position of the second set of points.
-    wave_num : np.ndarray of shape (num_real_freqs,)
-        Wave number, defined as 2*pi*f/c, where f is the frequency and c is the speed of sound.
-    envelope_reg : np.ndarray of shape (dft_len,) or (num_reg_points, dft_len)
-        The envelope regularization weighting. The values must be positive and real-valued. The parameter
-        represents the diagonal values of D^H D in [brunnströmTime2025].
-    reg_points : np.ndarray of shape (num_reg_points, 3)
-        The regularization points. These are the points where the regularization is applied.
-        num_reg_points is V in [brunnströmTime2025].
+    error_mic_pos : ndarray of shape (num_mics, spatial_dim)
+    freq : float or ndarray of shape (num_freqs,)
+    reg_param : float
+    trunc_order : int
+    radius : float
+    c : float
 
     Returns
     -------
-    np.ndarray of shape (num_points1, num_points2, dft_len, dft_len)
-        The time domain kernel matrix. 
-        The dft_len is assumed to be even, and the number of real frequencies is dft_len//2 + 1.
+    ndarray of shape (num_freqs, num_mics, num_mics)
 
     References
     ----------
-    [brunnströmTime2025]
+    [itoFeedforward2019] H. Ito, S. Koyama, N. Ueno, and H. Saruwatari, “Feedforward spatial active noise control based on kernel interpolation of sound field,” in ICASSP 2019 - 2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Brighton, United Kingdom: IEEE, May 2019, pp. 511–515. doi: 10.1109/ICASSP.2019.8683067.
     """
-    num_reg_points = reg_points.shape[0]
+    if isinstance(freq, (int, float)):
+        freq = np.array([freq])
+    if len(freq.shape) == 1:
+        freq = freq[:, np.newaxis, np.newaxis]
+    wave_number = 2 * np.pi * freq / c
+    K = special.j0(wave_number * distfuncs.cdist(error_mic_pos, error_mic_pos))
+    P = np.linalg.pinv(K + reg_param * np.eye(K.shape[-1]))
+    S = _get_s(trunc_order, wave_number, error_mic_pos)
+    gamma = _get_gamma(trunc_order, wave_number, radius)
+    A = (
+        np.transpose(P.conj(), (0, 2, 1))
+        @ np.transpose(S.conj(), (0, 2, 1))
+        @ gamma
+        @ S
+        @ P
+    )
+    return A
 
-    if envelope_reg.ndim == 1:
-        envelope_reg = envelope_reg[None,:]
+def _get_gamma(maxOrder, k, R):
+    matLen = 2 * maxOrder + 1
+    diagValues = _small_gamma(np.arange(-maxOrder, maxOrder + 1), k, R)
+    gamma = np.zeros((diagValues.shape[0], matLen, matLen))
 
-    gamma1 = time_domain_diffuse_kernel(pos1, reg_points, wave_num)
-    gamma2 = envelope_reg[:,None,:,None] * time_domain_diffuse_kernel(reg_points, pos2, wave_num) # equals diag(envelope_reg)[:,None,:,:] @ gamma2
-    return aspmat.matmul_param(gamma1, gamma2) / (num_reg_points**2)
+    gamma[:, np.arange(matLen), np.arange(matLen)] = diagValues
+    return gamma
 
-def time_domain_envelope_integral_kernel(pos1, pos2, wave_num, envelope_reg, reg_points, integral_volume):
-    """The kernel Gamma_r(r, r') of the time domain diffuse sound field with envelope regularization.
+def _small_gamma(mu, k, R):
+    Jfunc = special.jv((mu - 1, mu, mu + 1), k * R)
+    return np.pi * (R ** 2) * ((Jfunc[:, 1, :] ** 2) - Jfunc[:, 0, :] * Jfunc[:, 2, :])
+
+def _get_s(maxOrder, k, positions):
+    r, theta = util.cart2pol(positions[:, 0], positions[:, 1])
+
+    mu = np.arange(-maxOrder, maxOrder + 1)[:, np.newaxis]
+    S = special.jv(mu, k * r) * np.exp(theta * mu * (-1j))
+    return S
+
+
+
+
+
+
+
+
+
+def learn_kernel_params_directional_l2(pos, wave_num, dir_candidates, beta_candidates, reg_param, data_vec, num_iter=100):
+    """ Computes the directional kernel parameters for the directional kernel according to the L2 method in [1].
     
-    This is regularization option 1 in [brunnströmTime2025], which is constructed as a weighting of the 
-    sound field as a whole. 
-
     Parameters
     ----------
-    pos1 : np.ndarray of shape (num_points1, 3)
-        Position of the first set of points.
-    pos2 : np.ndarray of shape (num_points2, 3)
-        Position of the second set of points.
-    wave_num : np.ndarray of shape (num_real_freqs,)
-        Wave number, defined as 2*pi*f/c, where f is the frequency and c is the speed of sound.
-    envelope_reg : np.ndarray of shape (dft_len,)
-        The envelope regularization weighting. The values must be positive and real-valued. The parameter
-        represents the diagonal values of D^H D in [brunnströmTime2025]. 
-    reg_points : callable
-        A function that takes an integer and returns that many uniformly sampled points in the domain of the 
-        integral. The function should have signature reg_points(num_points), and return points of shape (num_points, 3).
-    integral_volume : float
-        The volume of the integral domain.
+    pos : ndarray of shape (num_pos, 3)
+        The positions where the kernel is evaluated
+    wave_num : ndarray of shape (num_freqs,)
+        The wave number for the kernel
+    dir_candidates : ndarray of shape (num_dir, 3) or int
+        If int, the candidates will be generated by the function
+    beta_candidates : ndarray of shape (num_beta,) or int
+        If int, the candidates will be generated by the function.
+    reg_param : float
+        The regularization parameter for the kernel learning
+    data_vec : ndarray of shape (num_freqs, num_pos)
+        The data vector for the kernel 
+    num_iter : int
+        The number of maximum iterations for the algorithm
+
+    Returns
+    -------
+    kernel_weights : ndarray of shape (num_dir, num_beta)
+        The positive factor determining the relative weight of the particular kernel
+        represented by gamma in [1]
+    dir_candidates : ndarray of shape (num_dir, 3)
+        The directions for which the kernel weights are calculated
+    beta_candidates : ndarray of shape (num_beta,)
+        The beta values for which the kernel weights are calculated
+
+    References
+    ----------
+    [1] R. Horiuchi, S. Koyama, J. G. C. Ribeiro, N. Ueno, and H. Saruwatari, “Kernel learning for sound field estimation with l1 and l2 regularizations,” in 2021 IEEE Workshop on Applications of Signal Processing to Audio and Acoustics (WASPAA), Oct. 2021, pp. 261–265. doi: 10.1109/WASPAA52581.2021.9632731.
     """
-    NUM_POINTS = 40
-    NUM_EACH_BATCH = 5
-    num_batches = NUM_POINTS // NUM_EACH_BATCH
+    # Parse arguments
+    rng = np.random.default_rng()
+    if isinstance(dir_candidates, int):
+        dir_candidates = mc.uniform_random_on_sphere(dir_candidates, rng)
+    if isinstance(beta_candidates, int):
+        beta_candidates = np.linspace(0, 9, beta_candidates)
 
-    assert envelope_reg.ndim == 1, "The envelope regularization must be a 1D array."
-    dft_len = envelope_reg.shape[0]
-    num_pos1 = pos1.shape[0]
-    num_pos2 = pos2.shape[0]
+    num_dir = dir_candidates.shape[0]
+    num_beta = beta_candidates.shape[0]
 
-    
-    if np.array_equal(pos1, pos2):
-        same_pos = True
-    else:
-        same_pos = False
+    # Initialize variables
+    sigma = 0.5
+    kernel_weights = np.ones((num_dir, num_beta)) / (num_dir * num_beta)
 
-    int_points = reg_points(NUM_POINTS)
+    K = kernel_directional_combined(pos, pos, wave_num, dir_candidates, beta_candidates, kernel_weights)
+    alpha = np.linalg.inv(K + reg_param * np.eye(K.shape[0]))
 
-    int_value = np.zeros((num_pos1, num_pos2, dft_len, dft_len), dtype=float)
-    for i in range(num_batches):
-        print(f"monte carlo batch for r {i+1} of {num_batches}")
-        int_batch = int_points[i*NUM_EACH_BATCH:(i+1)*NUM_EACH_BATCH,:]
-        gamma1 = time_domain_diffuse_kernel(pos1, int_batch, wave_num)
-        gamma1_weighted = gamma1 * envelope_reg[None,None,None,:] # equal to gamma @ np.diag(envelope_reg)[None,None,:,:]
+    # Run algorithm loop
+    for i in range(num_iter):
+        K_individual = np.stack([kernel_directional(pos, pos, wave_num, dir_candidates, beta) for beta in beta_candidates], axis=-1)
+        v = np.moveaxis(alpha, -1, -2) @ K_individual @ alpha
 
-        if same_pos:
-            gamma2 = aspmat.param_transpose(gamma1)
-        else:
-            gamma2 = time_domain_diffuse_kernel(int_batch, pos2, wave_num)
+        kernel_weights = v / np.linalg.norm(v, axis=-1)
+        K_reg = kernel_directional_combined(pos, pos, wave_num, dir_candidates, beta_candidates, kernel_weights) + reg_param * np.eye(K.shape[0])
+        alpha = sigma * alpha + (1 - sigma) * np.linalg.solve(K_reg, data_vec)
 
-        ival = aspmat.matmul_param(gamma1_weighted, gamma2)
-        int_value += ival
-    int_value *= integral_volume / NUM_POINTS
-    
-    return int_value
+    return kernel_weights, dir_candidates, beta_candidates

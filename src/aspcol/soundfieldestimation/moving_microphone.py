@@ -502,7 +502,7 @@ def _estimate_from_regressor_omni(regressor, pos_eval, pos, k):
 
     est_sound_pressure = np.zeros((num_real_freqs, pos_eval.shape[0]), dtype=complex)
     for f in range(num_real_freqs):
-        kernel_val = ki.kernel_helmholtz_3d(pos_eval, pos, k[f:f+1]).astype(complex)[0,:,:]
+        kernel_val = ki.kernel_diffuse(pos_eval, pos, k[f:f+1]).astype(complex)[0,:,:]
         est_sound_pressure[f, :] = np.sum(kernel_val * regressor[f,None,:], axis=-1)
     return est_sound_pressure
 
@@ -575,7 +575,7 @@ def krr_moving_mic(p, pos, pos_eval, sequence, samplerate, c, reg_param, kernel_
     N = p.shape[0]
 
     if kernel_func is None:
-        kernel_func = ki.kernel_helmholtz_3d
+        kernel_func = ki.kernel_diffuse
     if kernel_args is None:
         kernel_args = []
 

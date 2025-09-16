@@ -33,7 +33,7 @@ def test_uniform_rff_converges_to_the_diffuse_kernel_when_the_number_of_basis_fu
     #pos2 = rng.uniform(-1, 1, (num2, 3))
     key = jax.random.key(654378)
 
-    K = kernel.diffuse_kernel(pos, pos, wave_num)
+    K = kernel.kernel_diffuse(pos, pos, wave_num)
 
     # Test RFF convergence
     num_basis_list = [32, 64, 128, 256, 512, 1024]
@@ -71,7 +71,7 @@ def test_vonmisesfisher_rff_converges_to_the_directional_kernel_when_the_number_
 
     key = jax.random.key(7864584)
 
-    K = kernel.directional_kernel_vonmises(pos, pos, wave_num, direction, beta)
+    K = kernel.kernel_directional_vonmises(pos, pos, wave_num, direction, beta)
 
     # Test RFF convergence
     num_basis_list = [32, 64, 128, 256, 512, 1024, 2048]
@@ -173,13 +173,13 @@ def test_speed_of_directional_kernel_for_jax_verus_numpy():
     wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
     wave_num_np = ft_numpy.get_real_wavenum(ir_len, samplerate, c)
 
-    kdir = kernel.directional_kernel_vonmises(pos1, pos2, wave_num, direction, beta).block_until_ready()
+    kdir = kernel.kernel_directional_vonmises(pos1, pos2, wave_num, direction, beta).block_until_ready()
     start = time.time()
-    kdir = kernel.directional_kernel_vonmises(pos1, pos2, wave_num, direction, beta).block_until_ready()
+    kdir = kernel.kernel_directional_vonmises(pos1, pos2, wave_num, direction, beta).block_until_ready()
     jax_time = time.time() - start
 
     start = time.time()
-    kdir_np = kernel_numpy.kernel_directional_3d(pos1, pos2, wave_num_np, direction, beta)
+    kdir_np = kernel_numpy.kernel_directional(pos1, pos2, wave_num_np, direction, beta)
     np_time = time.time() - start
 
     print(f"JAX directional kernel shape: {kdir.shape}")
@@ -211,15 +211,15 @@ def test_speed_of_directional_kernel_versus_diffuse_kernel():
 
     wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
 
-    kdir = kernel.directional_kernel_vonmises(pos1, pos2, wave_num, direction, beta).block_until_ready() 
+    kdir = kernel.kernel_directional_vonmises(pos1, pos2, wave_num, direction, beta).block_until_ready() 
 
     start = time.time()
-    kdir = kernel.directional_kernel_vonmises(pos1, pos2, wave_num, direction, beta).block_until_ready() 
+    kdir = kernel.kernel_directional_vonmises(pos1, pos2, wave_num, direction, beta).block_until_ready() 
     dir_time = time.time() - start
 
-    kdiff = kernel.diffuse_kernel(pos1, pos2, wave_num).block_until_ready()
+    kdiff = kernel.kernel_diffuse(pos1, pos2, wave_num).block_until_ready()
     start = time.time()
-    kdiff = kernel.diffuse_kernel(pos1, pos2, wave_num).block_until_ready() 
+    kdiff = kernel.kernel_diffuse(pos1, pos2, wave_num).block_until_ready() 
     diff_time = time.time() - start
 
     print(f"dir shape: {kdir.shape}, diff shape: {kdiff.shape}")
@@ -241,7 +241,7 @@ def reconstruct_diffuse_without_map(pos_eval, pos_mic, wave_num, krr_params):
         krr_params = krr_params.reshape(num_mic, -1)
     assert krr_params.ndim == 2
 
-    gamma_eval = kernel.time_domain_diffuse_kernel(pos_eval, pos_mic, wave_num)
+    gamma_eval = kernel.kernel_diffuse_time_domain(pos_eval, pos_mic, wave_num)
     #estimate_each_mic = jnp.stack([gamma_eval[:,m,...] @ krr_params[m,:] for m in range(num_mic)], axis=0)
     estimate = jnp.squeeze(aspmat.matmul_param(gamma_eval, krr_params[:,None,:,None]), axis=(1,3))
 

@@ -175,7 +175,7 @@ def _spatial_cov_freq_kernel_diffuse(krr_params, pos_mic, wave_num, integral_pos
     -------
     spatial_cov
     """
-    kernel_func = ki.kernel_helmholtz_3d
+    kernel_func = ki.kernel_diffuse
     kernel_args = []
 
     assert krr_params.ndim == 3

@@ -819,7 +819,7 @@ def test_translated_inner_product_for_zero_order_is_sinc_function():
     freq = rng.uniform(100, 1000, size=(1,))
     wave_num = 2 * np.pi * freq / 343
     val = sph.translated_inner_product(pos1, pos2, sph.directivity_omni(), sph.directivity_omni(), wave_num)
-    val2 = ki.kernel_helmholtz_3d(pos1, pos2, wave_num)
+    val2 = ki.kernel_diffuse(pos1, pos2, wave_num)
     assert np.allclose(val, val2)
 
 def test_measurement_conj_omni_times_measurement_omni_is_kernel_matrix():
@@ -838,7 +838,7 @@ def test_measurement_conj_omni_times_measurement_omni_is_kernel_matrix():
 
     input_vec = rng.normal(size=(1, num_mic2)) + 1j * rng.normal(size=(1, num_mic2))
 
-    psi = ki.kernel_helmholtz_3d(pos1, pos2, wave_num)
+    psi = ki.kernel_diffuse(pos1, pos2, wave_num)
     vec_ip = np.squeeze(psi @ input_vec[...,None], axis=-1)
 
     mse = []

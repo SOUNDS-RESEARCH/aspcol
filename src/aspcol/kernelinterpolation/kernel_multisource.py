@@ -1,4 +1,4 @@
-import aspcol.kernelinterpolation.single_frequency_kernels as ki
+import aspcol.kernelinterpolation.kernel as ki
 import numpy as np
 
 
@@ -86,7 +86,7 @@ def multisource_kernel_crossdir(pos1, pos2, wave_num, src_idx1, src_idx2, src_we
     dir_matrix[np.arange(directions.shape[0]), np.arange(directions.shape[0])] *= 2
     dir_vec = dir_matrix.reshape(-1,3)
 
-    kernel_vals = ki.kernel_directional_3d(pos1, pos2, wave_num, dir_vec, beta)
+    kernel_vals = ki.kernel_directional(pos1, pos2, wave_num, dir_vec, beta)
 
     kernel_vals = kernel_vals.reshape((num_freq, num_src, num_src, num_pos1, num_pos2))
 
@@ -153,7 +153,7 @@ def multisource_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting =
     num_params2 = np.sum(src_idx2).astype(int) 
     
     if base_kernel is None:
-        base_kernel = ki.kernel_helmholtz_3d
+        base_kernel = ki.kernel_diffuse
     if base_kernel_args is None:
         base_kernel_args = []
     if src_weighting is None:
@@ -279,7 +279,7 @@ def directional_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, directions, bet
         which can be calculated as sum(src_idx1) and sum(src_idx2) respectively. This should be exactly the total
         number of measurements in total. 
     """
-    return multisource_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, base_kernel=ki.kernel_directional_3d, base_kernel_args=[directions, beta])
+    return multisource_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, base_kernel=ki.kernel_directional, base_kernel_args=[directions, beta])
 
 def src_weighted_directional_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting, directions, beta):
     """Kernel for joint estimation of a multisource sound field with non-identity source weighting and directional weighting.
@@ -312,14 +312,14 @@ def src_weighted_directional_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, sr
         which can be calculated as sum(src_idx1) and sum(src_idx2) respectively. This should be exactly the total
         number of measurements in total. 
     """
-    return multisource_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting, ki.kernel_directional_3d, [directions, beta])
+    return multisource_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting, ki.kernel_directional, [directions, beta])
 
 def diffuse_kernel_simple(pos1, pos2, wave_num, src_idx):
     """
     
     src_idx : ndarray of shape (num_src, num_pos) with boolean values
     """
-    kernel_vals = ki.kernel_helmholtz_3d(pos1, pos2, wave_num)
+    kernel_vals = ki.kernel_diffuse(pos1, pos2, wave_num)
 
     num_freq = wave_num.shape[0]
     num_src = src_idx.shape[0]
@@ -346,7 +346,7 @@ def src_weighted_kernel_simple(pos1, pos2, wave_num, src_idx, src_weighting):
 
     src_weighting : ndarray of shape (num_freq, num_src, num_src)
     """
-    kernel_vals = ki.kernel_helmholtz_3d(pos1, pos2, wave_num)
+    kernel_vals = ki.kernel_diffuse(pos1, pos2, wave_num)
 
     num_freq = wave_num.shape[0]
     num_src = src_idx.shape[0]

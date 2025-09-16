@@ -33,7 +33,7 @@ import aspcore.montecarlo_jax as mc
 import aspcol.sphericalharmonics_jax as shd
 import aspcol.planewaves_jax as pw
 
-import aspcol.kernelinterpolation_jax.kernel_jax as kernel
+import aspcol.kernelinterpolation_jax.kernel as kernel
 
 
 def _parse_moving_mic_args(p, pos, pos_eval, sequence):
@@ -609,7 +609,7 @@ def _calc_directional_kernel_mat(pos, wave_num, phi_f, direction, beta, seq_len,
     def _kernel_inner_loop(system_mat, scanned_args):
         (wave_num_single, phi_single, dft_weight) = scanned_args
         phi_rank1_matrix = phi_single[:,None].conj() * phi_single[None,:]
-        system_mat_incr = dft_weight * jnp.real(jnp.squeeze(kernel.directional_kernel_vonmises(pos, pos, wave_num_single, direction, beta)) * phi_rank1_matrix)
+        system_mat_incr = dft_weight * jnp.real(jnp.squeeze(kernel.kernel_directional_vonmises(pos, pos, wave_num_single, direction, beta)) * phi_rank1_matrix)
         system_mat = system_mat + system_mat_incr
         return system_mat, system_mat
 
@@ -637,7 +637,7 @@ def reconstruct_krr_moving_mic_directional(krr_params, pos_eval, pos_mic, wave_n
     est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
         estimated RIR per frequency at the evaluation points"""
     def _reconstruct_inner_loop(pos_eval_single):
-        kernel_val = kernel.directional_kernel_vonmises(pos_eval_single[None,:], pos_mic, wave_num, direction, beta).astype(complex)
+        kernel_val = kernel.kernel_directional_vonmises(pos_eval_single[None,:], pos_mic, wave_num, direction, beta).astype(complex)
         kernel_val = jnp.squeeze(kernel_val, axis=1) # remove axis corresponding to single_eval
         p_est = jnp.sum(kernel_val * krr_params, axis=-1)
         return p_est
@@ -696,7 +696,7 @@ def _calc_diffuse_kernel_mat(pos, wave_num, Phi, seq_len, batch_size=8):
     def _kernel_inner_loop(system_mat, scanned_args):
         (wave_num_single, phi_single, dft_weight) = scanned_args
         phi_rank1_matrix = phi_single[:,None].conj() * phi_single[None,:] #Phi[f,:,None] * Phi[f,None,:].conj()
-        system_mat_incr = dft_weight * jnp.real(jnp.squeeze(kernel.diffuse_kernel(pos, pos, wave_num_single)) * phi_rank1_matrix)
+        system_mat_incr = dft_weight * jnp.real(jnp.squeeze(kernel.kernel_diffuse(pos, pos, wave_num_single)) * phi_rank1_matrix)
         system_mat = system_mat + system_mat_incr
         return system_mat, system_mat
 
@@ -727,7 +727,7 @@ def reconstruct_krr_moving_mic_diffuse(krr_params, pos_eval, pos_mic, wave_num, 
         estimated RIR per frequency at the evaluation points
     """
     def _reconstruct_inner_loop(pos_eval_single):
-        kernel_val = kernel.diffuse_kernel(pos_eval_single[None,:], pos_mic, wave_num).astype(complex)
+        kernel_val = kernel.kernel_diffuse(pos_eval_single[None,:], pos_mic, wave_num).astype(complex)
         p_est = jnp.sum(kernel_val * krr_params[:,None,:], axis=-1)
         return jnp.squeeze(p_est, axis=-1)
     

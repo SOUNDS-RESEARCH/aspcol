@@ -31,7 +31,7 @@ def run_exp():
     estimates_jax = {}
 
     estimates_numpy["ki"] = sfe.est_ki_freq(p_mic, pos_mic, pos_eval, wave_num, reg_param)
-    estimates_numpy["ki_dir"] = sfe.est_ki_freq(p_mic, pos_mic, pos_eval, wave_num, reg_param, ki.kernel_directional_3d, [direction, beta])
+    estimates_numpy["ki_dir"] = sfe.est_ki_freq(p_mic, pos_mic, pos_eval, wave_num, reg_param, ki.kernel_directional, [direction, beta])
 
     estimates_numpy["rff"] = sfe.est_ki_freq_rff(p_mic, pos_mic, pos_eval, wave_num, reg_param, num_basis = 512)
     estimates_numpy["rff_dir"] = sfe.est_ki_freq_rff(p_mic, pos_mic, pos_eval, wave_num, reg_param, num_basis = 512, direction=direction, beta=beta)

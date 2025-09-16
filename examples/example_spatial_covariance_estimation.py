@@ -61,7 +61,7 @@ def main(cov_snr = 10):
 
     krr_params = {}
     used_pos = {}
-    krr_params["KRR"] = np.stack([ki.get_krr_params(ir_data[:,i,:], sim.arrays["bright_mic"].pos, wave_num, reg_param, ki.kernel_helmholtz_3d, []) for i in range(sim.arrays["src"].num)], axis=1)
+    krr_params["KRR"] = np.stack([ki.get_krr_params(ir_data[:,i,:], sim.arrays["bright_mic"].pos, wave_num, reg_param, ki.kernel_diffuse, []) for i in range(sim.arrays["src"].num)], axis=1)
     used_pos["KRR"] = sim.arrays["bright_mic"].pos
 
     krr_params[f"CIKRR frobenius"] = sce.krr_estimation_cov_informed(ir_data, pos_total, wave_num, reg_param, copy.deepcopy(sim.arrays["bright_eval"].region.sample_points), sim.arrays["bright_eval"].region.volume, spatial_cov_mc_samples, cov_true, cov_reg_param, cost_func=sce._cov_informed_krr_cost_frobenius, num_steps=steps, learning_rate = lr)
@@ -71,7 +71,7 @@ def main(cov_snr = 10):
     used_pos[f"CIKRR wasserstein"] = pos_total
 
     for krr_name, param_est in krr_params.items():
-        soundfield[krr_name] = np.stack([ki.reconstruct_freq(param_est[:,i,:], sim.arrays["bright_eval"].pos, used_pos[krr_name], wave_num, ki.kernel_helmholtz_3d, []) for i in range(sim.arrays["src"].num)], axis=1)
+        soundfield[krr_name] = np.stack([ki.reconstruct_freq(param_est[:,i,:], sim.arrays["bright_eval"].pos, used_pos[krr_name], wave_num, ki.kernel_diffuse, []) for i in range(sim.arrays["src"].num)], axis=1)
         estimates[krr_name] = sfc.spatial_cov_freq_kernel(param_est, used_pos[krr_name], wave_num, copy.deepcopy(sim.arrays["bright_eval"].region.sample_points), sim.arrays["bright_eval"].region.volume, spatial_cov_mc_samples)
 
     estimates["original data"] = cov_data

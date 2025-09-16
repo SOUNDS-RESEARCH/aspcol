@@ -61,12 +61,12 @@ def est_ki_freq(p_freq, pos, pos_eval, wave_num, reg_param, direction = None, be
 
     if direction is None:
         assert beta is None, "beta must be None if direction is None"
-        K = ki.diffuse_kernel(pos, pos, wave_num)
-        k_est = ki.diffuse_kernel(pos_eval, pos, wave_num)
+        K = ki.kernel_diffuse(pos, pos, wave_num)
+        k_est = ki.kernel_diffuse(pos_eval, pos, wave_num)
     else:
         assert beta is not None, "beta must be set if direction is set"
-        K = ki.directional_kernel_vonmises(pos, pos, wave_num, direction, beta)
-        k_est = ki.directional_kernel_vonmises(pos_eval, pos, wave_num, direction, beta)
+        K = ki.kernel_directional_vonmises(pos, pos, wave_num, direction, beta)
+        k_est = ki.kernel_directional_vonmises(pos_eval, pos, wave_num, direction, beta)
     
     reg_matrix = reg_param * jnp.eye(num_pos, dtype=K.dtype)[None,...]
     a = jnp.linalg.solve(K + reg_matrix, p_freq[...,None])

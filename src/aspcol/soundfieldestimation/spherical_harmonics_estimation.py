@@ -309,7 +309,7 @@ def inf_dimensional_shd_omni(p, pos, exp_center, max_order, wave_num, reg_param)
         reg_param = np.ones(num_freq) * reg_param
     noise_cov = np.eye(num_mic)[None,...] * reg_param[:,None,None]
 
-    psi = ki.kernel_helmholtz_3d(pos, pos, wave_num)
+    psi = ki.kernel_diffuse(pos, pos, wave_num)
     psi_plus_noise_cov = psi + noise_cov
     regression_vec = np.linalg.solve(psi_plus_noise_cov,  p)
 
@@ -347,7 +347,7 @@ def inf_dimensional_shd_omni_prior(p, pos, exp_center, max_order, wave_num, reg_
     """
     num_mic = pos.shape[0]
 
-    psi = ki.kernel_helmholtz_3d(pos, pos, wave_num) 
+    psi = ki.kernel_diffuse(pos, pos, wave_num) 
     psi_plus_noise_cov = psi + np.eye(num_mic) * reg_param
     p_prior = apply_measurement_omni(prior_mean, pos, exp_center, max_order, wave_num)
     regression_vec = np.linalg.solve(psi_plus_noise_cov,  p - p_prior)
@@ -410,7 +410,7 @@ def posterior_mean_omni(p, pos, exp_center, max_order, wave_num, prior_covarianc
     if prior_covariance.ndim == 1:
         assert prior_covariance.shape[0] == num_freq
         assert np.all(prior_covariance >= 0)
-        psi = ki.kernel_helmholtz_3d(pos, pos, wave_num) * prior_covariance[:,None,None]
+        psi = ki.kernel_diffuse(pos, pos, wave_num) * prior_covariance[:,None,None]
     elif prior_covariance.ndim == 3:
         assert prior_covariance.shape == (num_freq, num_coeffs, num_coeffs)
         psi = measure @ prior_covariance @ measure_conj
@@ -449,7 +449,7 @@ def _posterior_mean_omni_scalar_covariance(p, pos, exp_center, max_order, wave_n
 
     num_mic = pos.shape[0]
 
-    psi = ki.kernel_helmholtz_3d(pos, pos, wave_num) 
+    psi = ki.kernel_diffuse(pos, pos, wave_num) 
     psi_plus_noise_cov = psi + np.eye(num_mic) * noise_power / prior_variance 
     regression_vec = np.linalg.solve(psi_plus_noise_cov, p)
 
@@ -507,7 +507,7 @@ def _posterior_covariance_omni_scalar_covariance(pos, exp_center, max_order, wav
         #assert noise_power.shape[0] == num_freq
     #assert isinstance(noise_power, (int, float)) # not implemented for array noise power
 
-    psi = ki.kernel_helmholtz_3d(pos, pos, wave_num) #* prior_variance[:,None,None]
+    psi = ki.kernel_diffuse(pos, pos, wave_num) #* prior_variance[:,None,None]
     noise_cov = np.eye(num_mic)[None,:,:] * noise_power[:,None,None] / prior_variance[:,None,None]
     psi_plus_noise_cov = psi + noise_cov
 

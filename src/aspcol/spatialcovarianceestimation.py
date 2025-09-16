@@ -131,7 +131,7 @@ def krr_estimation_cov_informed(ir_data, pos_mic, wave_num, reg_param, integral_
     """
     rng = np.random.default_rng(1234567)
     if kernel_func is None:
-        kernel_func = ki.kernel_helmholtz_3d
+        kernel_func = ki.kernel_diffuse
     if kernel_args is None:
         kernel_args = []
 
@@ -211,7 +211,7 @@ def spatial_cov_weighting(pos_mic, wave_num, integral_pos_func, integral_volume,
     spatial_cov
     """
     if kernel_func is None:
-        kernel_func = ki.kernel_helmholtz_3d
+        kernel_func = ki.kernel_diffuse
     if kernel_args is None:
         kernel_args = []
 
@@ -242,7 +242,7 @@ def spatial_cov_from_integral_weighting_diffuse(krr_params, integral_weighting):
 
 def _spatial_cov_weighting_diffuse(pos_mic, wave_num, integral_pos_func, integral_volume, num_mc_samples, kernel_func=None, kernel_args=None):
     if kernel_func is None:
-        kernel_func = ki.kernel_helmholtz_3d
+        kernel_func = ki.kernel_diffuse
     if kernel_args is None:
         kernel_args = []
 
@@ -261,7 +261,7 @@ def _spatial_cov_weighting_diffuse(pos_mic, wave_num, integral_pos_func, integra
 
 @jax.jit
 def reconstruct_freq(krr_params, pos_output, pos_data, wave_num):
-    kernel_val = jki.diffuse_kernel(pos_output, pos_data, wave_num)
+    kernel_val = jki.kernel_diffuse(pos_output, pos_data, wave_num)
 
     reconstructed = kernel_val @ krr_params[:,:,None]
     return jnp.squeeze(reconstructed, axis=-1)
@@ -278,7 +278,7 @@ def reconstruct_from_mat(krr_params, kernel_mat):
 def krr_estimation_sgd(ir_data, pos_mic, wave_num, reg_param, kernel_func=None, kernel_args=None, num_steps=10000):
     rng = np.random.default_rng(1234567)
     if kernel_func is None:
-        kernel_func = ki.kernel_helmholtz_3d
+        kernel_func = ki.kernel_diffuse
     if kernel_args is None:
         kernel_args = []
 
