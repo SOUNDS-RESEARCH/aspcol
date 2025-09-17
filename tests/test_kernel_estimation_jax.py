@@ -241,7 +241,7 @@ def reconstruct_diffuse_without_map(pos_eval, pos_mic, wave_num, krr_params):
         krr_params = krr_params.reshape(num_mic, -1)
     assert krr_params.ndim == 2
 
-    gamma_eval = kernel.kernel_diffuse_time_domain(pos_eval, pos_mic, wave_num)
+    gamma_eval = kernel.kernel_time_domain_diffuse(pos_eval, pos_mic, wave_num)
     #estimate_each_mic = jnp.stack([gamma_eval[:,m,...] @ krr_params[m,:] for m in range(num_mic)], axis=0)
     estimate = jnp.squeeze(aspmat.matmul_param(gamma_eval, krr_params[:,None,:,None]), axis=(1,3))
 

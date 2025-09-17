@@ -2,7 +2,7 @@ import aspcol.kernelinterpolation.kernel as ki
 import numpy as np
 
 
-def reconstruct(krr_params, pos_output, pos_data, wave_num, kernel_func, kernel_args):
+def reconstruct_multisrc(krr_params, pos_output, pos_data, wave_num, kernel_func, kernel_args):
     num_freq = wave_num.shape[0]
     kernel_matrix = kernel_func(pos_output, pos_data, wave_num, *kernel_args)
 
@@ -11,8 +11,11 @@ def reconstruct(krr_params, pos_output, pos_data, wave_num, kernel_func, kernel_
     reconstructed = np.moveaxis(reconstructed, 1, 2)
     return reconstructed
 
-def get_krr_params(data, pos, wave_num, reg_param, kernel_func, kernel_args):
-    """
+def get_krr_params_multisrc(data, pos, wave_num, reg_param, kernel_func, kernel_args):
+    """Calculates the optimal KRR parameters for the standard kernel interpolation problem with multiple sources.
+
+    Parameters
+    ----------
     data : ndarray of shape (num_freq, num_measurements). 
         IMPORTANT: the data first has the measurements for pos[:,0] for all sources that was measured there,
         then the data for pos[:,1] and so on. 
@@ -30,6 +33,11 @@ def get_krr_params(data, pos, wave_num, reg_param, kernel_func, kernel_args):
         should return ndarray (..., num_pos1, num_pos2)
     kernel_args : list
         extra arguments that are needed for the kernel function
+
+    Returns
+    -------
+    a : ndarray of shape (num_freq, num_measurements)
+        The optimal KRR parameters for the given data and kernel.
     """
     num_measurements = data.shape[-1]
     kernel_matrix = kernel_func(pos, pos, wave_num, *kernel_args)
@@ -38,7 +46,7 @@ def get_krr_params(data, pos, wave_num, reg_param, kernel_func, kernel_args):
     a = np.linalg.solve(K_reg, data)
     return a
 
-def multisource_kernel_crossdir(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting, directions, beta):
+def kernel_multisrc_crossdir(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting, directions, beta):
     """Kernel for joint estimation of a multisource sound field with non-diagonal directional weighting
     
     Parameters
@@ -111,7 +119,7 @@ def multisource_kernel_crossdir(pos1, pos2, wave_num, src_idx1, src_idx2, src_we
 
 
 
-def multisource_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting = None, base_kernel = None, base_kernel_args = None):
+def kernel_multisrc(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting = None, base_kernel = None, base_kernel_args = None):
     """General kernel for joint estimation of a multisource sound field.
     
     Parameters
@@ -189,7 +197,7 @@ def multisource_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting =
     return full_kernel_matrix
 
 
-def diffuse_kernel(pos1, pos2, wave_num, src_idx1, src_idx2):
+def kernel_multisrc_diffuse(pos1, pos2, wave_num, src_idx1, src_idx2):
     """Diffuse kernel for joint estimation of a multisource sound field.
     
     Parameters
@@ -213,7 +221,7 @@ def diffuse_kernel(pos1, pos2, wave_num, src_idx1, src_idx2):
         which can be calculated as sum(src_idx1) and sum(src_idx2) respectively. This should be exactly the total
         number of measurements in total. 
     """
-    return multisource_kernel(pos1, pos2, wave_num, src_idx1, src_idx2)
+    return kernel_multisrc(pos1, pos2, wave_num, src_idx1, src_idx2)
 
 def _src_idx_to_projection(src_idx_col):
     prototype = np.eye(src_idx_col.shape[0])
@@ -221,7 +229,7 @@ def _src_idx_to_projection(src_idx_col):
     return P
 
 
-def src_weighted_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting):
+def kernel_multisrc_src_weighted(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting):
     """Kernel for joint estimation of a multisource sound field with non-identity source weighting.
 
     Parameters
@@ -245,10 +253,10 @@ def src_weighted_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting)
         which can be calculated as sum(src_idx1) and sum(src_idx2) respectively. This should be exactly the total
         number of measurements in total. 
     """
-    return multisource_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting)
+    return kernel_multisrc(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting)
 
 
-def directional_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, directions, beta):
+def kernel_multisrc_directional(pos1, pos2, wave_num, src_idx1, src_idx2, directions, beta):
     """Kernel for joint estimation of a multisource sound field with non-identity source weighting and directional weighting.
 
     Uses the von-mises fisher distribution to model the directional weighting, which gives a closed form solution for the kernel.
@@ -279,9 +287,9 @@ def directional_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, directions, bet
         which can be calculated as sum(src_idx1) and sum(src_idx2) respectively. This should be exactly the total
         number of measurements in total. 
     """
-    return multisource_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, base_kernel=ki.kernel_directional, base_kernel_args=[directions, beta])
+    return kernel_multisrc(pos1, pos2, wave_num, src_idx1, src_idx2, base_kernel=ki.kernel_directional, base_kernel_args=[directions, beta])
 
-def src_weighted_directional_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting, directions, beta):
+def kernel_multisrc_src_weighted_directional(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting, directions, beta):
     """Kernel for joint estimation of a multisource sound field with non-identity source weighting and directional weighting.
 
     Uses the von-mises fisher distribution to model the directional weighting, which gives a closed form solution for the kernel.
@@ -312,9 +320,9 @@ def src_weighted_directional_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, sr
         which can be calculated as sum(src_idx1) and sum(src_idx2) respectively. This should be exactly the total
         number of measurements in total. 
     """
-    return multisource_kernel(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting, ki.kernel_directional, [directions, beta])
+    return kernel_multisrc(pos1, pos2, wave_num, src_idx1, src_idx2, src_weighting, ki.kernel_directional, [directions, beta])
 
-def diffuse_kernel_simple(pos1, pos2, wave_num, src_idx):
+def kernel_multisrc_diffuse_simple(pos1, pos2, wave_num, src_idx):
     """
     
     src_idx : ndarray of shape (num_src, num_pos) with boolean values
@@ -339,7 +347,7 @@ def diffuse_kernel_simple(pos1, pos2, wave_num, src_idx):
             full_kernel_matrix[:, m*num_src:(m+1)*num_src, n*num_src:(n+1)*num_src] = np.eye(num_src)[None,:,:] * kernel_vals[:,m:m+1,n:n+1]
     return full_kernel_matrix
 
-def src_weighted_kernel_simple(pos1, pos2, wave_num, src_idx, src_weighting):
+def kernel_multisrc_src_weighted_simple(pos1, pos2, wave_num, src_idx, src_weighting):
     """
     
     src_idx : ndarray of shape (num_src, num_pos) with boolean values

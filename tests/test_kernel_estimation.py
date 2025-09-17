@@ -39,8 +39,8 @@ def test_time_domain_both_regularization_formulations_are_equivalent_for_diffuse
     pos_eval = rng.uniform(-1, 1, (num_eval, 3))
     ir_data = rng.uniform(-1, 1, (num_mic, ir_len))
 
-    est_std = sfe.krr_stationary_mics(ir_data, pos_mic, pos_eval, samplerate, c, reg_param, ki.time_domain_diffuse_kernel, [], verbose=False, max_cond=None, data_weighting = None)
-    est_reg = sfe.krr_stationary_mics_regularized(ir_data, pos_mic, pos_eval, samplerate, c, reg_param, ki.time_domain_diffuse_kernel, [], ki.time_domain_diffuse_kernel, [], verbose=False, max_cond=None, data_weighting = None)
+    est_std = sfe.krr_stationary_mics(ir_data, pos_mic, pos_eval, samplerate, c, reg_param, ki.kernel_time_domain_diffuse, [], verbose=False, max_cond=None, data_weighting = None)
+    est_reg = sfe.krr_stationary_mics_regularized(ir_data, pos_mic, pos_eval, samplerate, c, reg_param, ki.kernel_time_domain_diffuse, [], ki.kernel_time_domain_diffuse, [], verbose=False, max_cond=None, data_weighting = None)
     assert np.allclose(est_std, est_reg)
 
 
@@ -72,8 +72,8 @@ def test_time_domain_both_regularization_formulations_are_equivalent_for_directi
 
     #est_changedip = sfe.krr_stationary_mics_direction_regularized_changedip(ir_data, pos_mic, pos_eval, samplerate, c, reg_param, direction, beta)
 
-    est_std = sfe.krr_stationary_mics(ir_data, pos_mic, pos_eval, samplerate, c, reg_param, ki.time_domain_directional_kernel_vonmises, [-direction, beta], verbose=False, max_cond=None, data_weighting = None)
-    est_reg = sfe.krr_stationary_mics_regularized(ir_data, pos_mic, pos_eval, samplerate, c, reg_param, ki.time_domain_directional_kernel_vonmises, [direction, beta], ki.time_domain_directional_kernel_vonmises, [direction, 3*beta], verbose=False, max_cond=None, data_weighting = None)
+    est_std = sfe.krr_stationary_mics(ir_data, pos_mic, pos_eval, samplerate, c, reg_param, ki.kernel_time_domain_directional_vonmises, [-direction, beta], verbose=False, max_cond=None, data_weighting = None)
+    est_reg = sfe.krr_stationary_mics_regularized(ir_data, pos_mic, pos_eval, samplerate, c, reg_param, ki.kernel_time_domain_directional_vonmises, [direction, beta], ki.kernel_time_domain_directional_vonmises, [direction, 3*beta], verbose=False, max_cond=None, data_weighting = None)
 
     pass
     assert np.allclose(est_std, est_reg)

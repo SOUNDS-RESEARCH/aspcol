@@ -9,7 +9,7 @@ import aspcol.kernelinterpolation_jax.kernel_multifreq as kernel_multifreq
 
 
 @partial(jax.jit, static_argnames=["real_nyquist"])
-def kernel_diffuse_time_domain(pos1, pos2, wave_num, real_nyquist=False):
+def kernel_time_domain_diffuse(pos1, pos2, wave_num, real_nyquist=False):
     """Time domain diffuse sound field kernel. 
 
     Assumes the total DFT length was even. Any number of real frequencies / wave numbers can 
@@ -43,7 +43,7 @@ def kernel_diffuse_time_domain(pos1, pos2, wave_num, real_nyquist=False):
     This function can be substantially optimized by implementing in terms of only the real frequencies and the FFT rather
     than DFT matrices. This is left for future work, whereas this is clear and easy to check for correctness. 
     """
-    freq_kernel = kernel_multifreq.kernel_diffuse_multifreq(pos1, pos2, wave_num, diag_mat=False)
+    freq_kernel = kernel_multifreq.kernel_multifreq_diffuse(pos1, pos2, wave_num, diag_mat=False)
 
     if real_nyquist:
         nyquist_extra_kernel = kernel.kernel_diffuse(pos1, -pos2, wave_num[-1])[0,...]
@@ -54,7 +54,7 @@ def kernel_diffuse_time_domain(pos1, pos2, wave_num, real_nyquist=False):
     return kernel_matrix
 
 
-def kernel_directional_vonmises_time_domain(pos1, pos2, wave_num, direction, beta):
+def kernel_time_domain_directional_vonmises(pos1, pos2, wave_num, direction, beta):
     """Time-domain directional sound field kernel. 
 
     Parameters
@@ -139,7 +139,7 @@ def freq_to_time_domain_kernel_matrix(freq_kernel):
 
 
 @jax.jit
-def kernel_envelope_time_domain(pos1, pos2, wave_num, envelope_reg, reg_points):
+def kernel_time_domain_envelope(pos1, pos2, wave_num, envelope_reg, reg_points):
     """The kernel Gamma_r(r, r') of the time domain diffuse sound field with envelope regularization.
 
     This is regularization option 2 in [brunnströmTime2025], which is constructed as a regularization
@@ -179,8 +179,8 @@ def kernel_envelope_time_domain(pos1, pos2, wave_num, envelope_reg, reg_points):
 
     kernel_mat = jnp.zeros((pos1.shape[0], pos2.shape[0], envelope_reg.shape[-1], envelope_reg.shape[-1]))
     for i in range(num_loops):
-        gamma1 = kernel_diffuse_time_domain(pos1, reg_points[i*NUM_EACH_LOOP:(i+1)*NUM_EACH_LOOP,:], wave_num)
-        gamma2 = envelope_reg[:,None,:,None] * kernel_diffuse_time_domain(reg_points[i*NUM_EACH_LOOP:(i+1)*NUM_EACH_LOOP,:], pos2, wave_num)
+        gamma1 = kernel_time_domain_diffuse(pos1, reg_points[i*NUM_EACH_LOOP:(i+1)*NUM_EACH_LOOP,:], wave_num)
+        gamma2 = envelope_reg[:,None,:,None] * kernel_time_domain_diffuse(reg_points[i*NUM_EACH_LOOP:(i+1)*NUM_EACH_LOOP,:], pos2, wave_num)
     #gamma1 = gamma1 @ jnp.diag(envelope_reg)[None,None,:,:]
         kernel_mat = kernel_mat + _matmul_param(gamma1, gamma2) #/ (num_reg_points**2)
     return kernel_mat / num_reg_points

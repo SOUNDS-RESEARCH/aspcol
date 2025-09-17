@@ -7,7 +7,7 @@ import aspcore.fouriertransform_jax as ft
 import aspcol.kernelinterpolation_jax.kernel as kernel
 
 @partial(jax.jit, static_argnames=["diag_mat"])
-def kernel_diffuse_multifreq(pos1, pos2, wave_num, diag_mat=True):
+def kernel_multifreq_diffuse(pos1, pos2, wave_num, diag_mat=True):
     """Multiple frequency diffuse sound field kernel. 
 
     Defined for each position pair as diag{}_{i=0}^{L//2} j_0 (k_i lVert r - r' rVert_2^2) 

@@ -51,7 +51,7 @@ def reconstruct_diffuse(pos_eval, pos_mic, wave_num, krr_params, batch_size=20):
     #even_ir_length = False
 
     def _reconstruct_diffuse_inner_loop(pos_eval_batch):
-        gamma_eval = kernel.kernel_diffuse_time_domain(pos_eval_batch[None,:], pos_mic, wave_num, real_nyquist=even_ir_length)
+        gamma_eval = kernel.kernel_time_domain_diffuse(pos_eval_batch[None,:], pos_mic, wave_num, real_nyquist=even_ir_length)
         estimate = jnp.squeeze(aspmat.matmul_param(gamma_eval, krr_params[:,None,:,None]), axis=(0,1,3))
         return estimate
 
@@ -140,7 +140,7 @@ def krr_stationary_mics(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, ver
 
     mat_size = num_pos * ir_len
     wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
-    gamma = kernel.kernel_diffuse_time_domain(pos_mic, pos_mic, wave_num, real_nyquist=even_dft_length)
+    gamma = kernel.kernel_time_domain_diffuse(pos_mic, pos_mic, wave_num, real_nyquist=even_dft_length)
     gamma = aspmat.param2blockmat(gamma)
 
     if data_weighting is not None:
@@ -195,7 +195,7 @@ def krr_stationary_mics_directional_vonmises(ir_mic, pos_mic, pos_eval, samplera
     ir_len = ir_mic.shape[-1]
     wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
 
-    gamma = kernel.kernel_directional_vonmises_time_domain(pos_mic, pos_mic, wave_num, direction, beta)
+    gamma = kernel.kernel_time_domain_directional_vonmises(pos_mic, pos_mic, wave_num, direction, beta)
     krr_params = _calc_krr_parameters(gamma, ir_mic, reg_param, data_weighting, freq_weighting)
     estimate = reconstruct_directional_vonmises(pos_eval, pos_mic, wave_num, krr_params, direction, beta)
 
@@ -266,7 +266,7 @@ def reconstruct_directional_vonmises(pos_eval, pos_mic, wave_num, krr_params, di
     assert krr_params.ndim == 2
 
     def _reconstruct_inner_loop(pos_eval_batch):
-        gamma_eval = kernel.kernel_directional_vonmises_time_domain(pos_eval_batch[None,:], pos_mic, wave_num, direction, beta)
+        gamma_eval = kernel.kernel_time_domain_directional_vonmises(pos_eval_batch[None,:], pos_mic, wave_num, direction, beta)
         estimate = jnp.squeeze(aspmat.matmul_param(gamma_eval, krr_params[:,None,:,None]), axis=(0,1,3))
         return estimate
 
@@ -304,7 +304,7 @@ def krr_stationary_mics_envelope_regularized(ir_mic, pos_mic, pos_eval, samplera
     num_eval = pos_eval.shape[0]
     ir_len = ir_mic.shape[-1]
     wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
-    gamma = kernel.kernel_envelope_time_domain(pos_mic, pos_mic, wave_num, envelope_reg, reg_points)
+    gamma = kernel.kernel_time_domain_envelope(pos_mic, pos_mic, wave_num, envelope_reg, reg_points)
     gamma_r3 = kernel.time_domain_envelope_kernel_r3(pos_mic, pos_mic, wave_num, envelope_reg, reg_points)
         
     if data_weighting is not None:
@@ -341,7 +341,7 @@ def krr_stationary_mics_envelope_regularized(ir_mic, pos_mic, pos_eval, samplera
     krr_params = jnp.linalg.solve(system_matrix_reg, weighted_data_vector)
     krr_params = krr_params.reshape(num_pos, ir_len)
 
-    gamma_eval = kernel.kernel_envelope_time_domain(pos_eval, pos_mic, wave_num, envelope_reg, reg_points)
+    gamma_eval = kernel.kernel_time_domain_envelope(pos_eval, pos_mic, wave_num, envelope_reg, reg_points)
     estimate = reconstruct_from_kernel(gamma_eval, krr_params)
 
     if verbose:
@@ -387,7 +387,7 @@ def krr_stationary_mics_envelope_regularized_changedip(ir_mic, pos_mic, pos_eval
     ir_len = ir_mic.shape[-1]
     mat_size = num_pos * ir_len
     wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
-    gamma = kernel.kernel_envelope_time_domain(pos_mic, pos_mic, wave_num, envelope_reg, reg_points)
+    gamma = kernel.kernel_time_domain_envelope(pos_mic, pos_mic, wave_num, envelope_reg, reg_points)
     gamma = aspmat.param2blockmat(gamma)
 
     if data_weighting is not None:
@@ -421,7 +421,7 @@ def krr_stationary_mics_envelope_regularized_changedip(ir_mic, pos_mic, pos_eval
     # krr_params = jnp.linalg.solve(system_matrix_reg, weighted_data_vector)
     # krr_params = krr_params.reshape(num_pos, ir_len)
 
-    gamma_eval = kernel.kernel_envelope_time_domain(pos_eval, pos_mic, wave_num, envelope_reg, reg_points)
+    gamma_eval = kernel.kernel_time_domain_envelope(pos_eval, pos_mic, wave_num, envelope_reg, reg_points)
     estimate = reconstruct_from_kernel(gamma_eval, krr_params)
 
     if verbose:

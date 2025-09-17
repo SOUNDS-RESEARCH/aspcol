@@ -4,7 +4,7 @@ import aspcol.kernelinterpolation.kernel as ki
 import aspcore.fouriertransform as ft
 import aspcore.matrices as aspmat
 
-def multifreq_diffuse_kernel(pos1, pos2, wave_num, diag_mat=True):
+def kernel_multifreq_diffuse(pos1, pos2, wave_num, diag_mat=True):
     """Multiple frequency diffuse sound field kernel. 
 
     Defined for each position pair as diag{}_{i=0}^{L//2} j_0 (k_i lVert r - r' rVert_2^2) 
@@ -45,7 +45,7 @@ def multifreq_diffuse_kernel(pos1, pos2, wave_num, diag_mat=True):
         return kernel_matrix
     return kernel_val
 
-def multifreq_directional_kernel_vonmises(pos1, pos2, wave_num, direction, beta, diag_mat=True):
+def kernel_multifreq_directional_vonmises(pos1, pos2, wave_num, direction, beta, diag_mat=True):
     """Multiple frequency directional sound field kernel. 
 
     Defined for each position pair as diag{}_{i=0}^{L//2} j_0 (k_i lVert r - r' rVert_2^2) 
@@ -99,7 +99,7 @@ def _weighting_mat_from_frequency_domain_envelope_reg(envelope_reg, num_freqs, d
     weighting_mat = envelope_reg_adjoint @ envelope_reg
     return weighting_mat
 
-def multifreq_envelope_kernel(pos1, pos2, wave_num, envelope_reg, reg_points, dft_len, freqs_to_remove_low=0):
+def kernel_multifreq_envelope(pos1, pos2, wave_num, envelope_reg, reg_points, dft_len, freqs_to_remove_low=0):
     """The kernel Gamma_r(r, r') of the time domain diffuse sound field with envelope regularization.
 
     This is regularization option 2 in [brunnströmTime2025], which is constructed as a regularization
@@ -135,8 +135,8 @@ def multifreq_envelope_kernel(pos1, pos2, wave_num, envelope_reg, reg_points, df
 
     weight_mat, B = _weighting_mat_from_frequency_domain_envelope_reg(envelope_reg, num_freqs, dft_len, freqs_to_remove_low=freqs_to_remove_low)
 
-    gamma1 = multifreq_diffuse_kernel(pos1, reg_points, wave_num)
-    gamma2 = multifreq_diffuse_kernel(reg_points, pos2, wave_num)
+    gamma1 = kernel_multifreq_diffuse(pos1, reg_points, wave_num)
+    gamma2 = kernel_multifreq_diffuse(reg_points, pos2, wave_num)
 
     gamma2 = weight_mat[:,None,:,:] @ gamma2
     return aspmat.matmul_param(gamma1, gamma2) / (num_reg_points**2)

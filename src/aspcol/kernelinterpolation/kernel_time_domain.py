@@ -12,7 +12,7 @@ import aspcore.montecarlo as mc
 import aspcol.kernelinterpolation.kernel_multifreq as kernel_multifreq
 
 
-def time_domain_diffuse_kernel(pos1, pos2, wave_num):
+def kernel_time_domain_diffuse(pos1, pos2, wave_num):
     """Time domain diffuse sound field kernel. 
 
     Assumes the total DFT length was even. Any number of real frequencies / wave numbers can 
@@ -41,7 +41,7 @@ def time_domain_diffuse_kernel(pos1, pos2, wave_num):
     This function can be substantially optimized by implementing in terms of only the real frequencies and the FFT rather
     than DFT matrices. This is left for future work, whereas this is clear and easy to check for correctness. 
     """
-    freq_kernel = kernel_multifreq.multifreq_diffuse_kernel(pos1, pos2, wave_num, diag_mat=False)
+    freq_kernel = kernel_multifreq.kernel_multifreq_diffuse(pos1, pos2, wave_num, diag_mat=False)
     # for m in range(pos1.shape[0]):
     #     for m2 in range(pos2.shape[0]):
     #         if m != m2:
@@ -49,12 +49,12 @@ def time_domain_diffuse_kernel(pos1, pos2, wave_num):
     kernel_matrix = freq_to_time_domain_kernel_matrix(freq_kernel)
     return kernel_matrix
 
-def time_domain_directional_kernel_vonmises(pos1, pos2, wave_num, direction, beta):
-    freq_kernel = kernel_multifreq.multifreq_directional_kernel_vonmises(pos1, pos2, wave_num, direction, beta, diag_mat=False)
+def kernel_time_domain_directional_vonmises(pos1, pos2, wave_num, direction, beta):
+    freq_kernel = kernel_multifreq.kernel_multifreq_directional_vonmises(pos1, pos2, wave_num, direction, beta, diag_mat=False)
     kernel_matrix = freq_to_time_domain_kernel_matrix(freq_kernel)
     return kernel_matrix
 
-def time_domain_directional_kernel_vonmises_approx(pos1, pos2, wave_num, direction, beta):
+def kernel_time_domain_directional_vonmises_approx(pos1, pos2, wave_num, direction, beta):
     if direction.ndim == 1:
         direction = direction[None,:]
 
@@ -75,7 +75,7 @@ def time_domain_directional_kernel_vonmises_approx(pos1, pos2, wave_num, directi
     kernel_matrix = np.moveaxis(kernel_matrix, 0, -1)
     return freq_to_time_domain_kernel_matrix(kernel_matrix)
 
-def time_domain_directional_kernel(pos1, pos2, wave_num, dir_function):
+def kernel_time_domain_directional(pos1, pos2, wave_num, dir_function):
     """The time domain directional kernel for a general directional function.
 
     The dir_function supplied to this function is W^H(d) W(d) in [brunnströmTime2025], as there is little 
@@ -239,7 +239,7 @@ def _freq_to_time_domain_kernel_matrix_diagonal(freq_kernel):
 
 
 
-def time_domain_envelope_kernel(pos1, pos2, wave_num, envelope_reg, reg_points):
+def kernel_time_domain_envelope(pos1, pos2, wave_num, envelope_reg, reg_points):
     """The kernel Gamma_r(r, r') of the time domain diffuse sound field with envelope regularization.
 
     This is regularization option 2 in [brunnströmTime2025], which is constructed as a regularization
@@ -275,11 +275,11 @@ def time_domain_envelope_kernel(pos1, pos2, wave_num, envelope_reg, reg_points):
     if envelope_reg.ndim == 1:
         envelope_reg = envelope_reg[None,:]
 
-    gamma1 = time_domain_diffuse_kernel(pos1, reg_points, wave_num)
-    gamma2 = envelope_reg[:,None,:,None] * time_domain_diffuse_kernel(reg_points, pos2, wave_num) # equals diag(envelope_reg)[:,None,:,:] @ gamma2
+    gamma1 = kernel_time_domain_diffuse(pos1, reg_points, wave_num)
+    gamma2 = envelope_reg[:,None,:,None] * kernel_time_domain_diffuse(reg_points, pos2, wave_num) # equals diag(envelope_reg)[:,None,:,:] @ gamma2
     return aspmat.matmul_param(gamma1, gamma2) / (num_reg_points**2)
 
-def time_domain_envelope_integral_kernel(pos1, pos2, wave_num, envelope_reg, reg_points, integral_volume):
+def kernel_time_domain_envelope_integral(pos1, pos2, wave_num, envelope_reg, reg_points, integral_volume):
     """The kernel Gamma_r(r, r') of the time domain diffuse sound field with envelope regularization.
     
     This is regularization option 1 in [brunnströmTime2025], which is constructed as a weighting of the 
@@ -323,13 +323,13 @@ def time_domain_envelope_integral_kernel(pos1, pos2, wave_num, envelope_reg, reg
     for i in range(num_batches):
         print(f"monte carlo batch for r {i+1} of {num_batches}")
         int_batch = int_points[i*NUM_EACH_BATCH:(i+1)*NUM_EACH_BATCH,:]
-        gamma1 = time_domain_diffuse_kernel(pos1, int_batch, wave_num)
+        gamma1 = kernel_time_domain_diffuse(pos1, int_batch, wave_num)
         gamma1_weighted = gamma1 * envelope_reg[None,None,None,:] # equal to gamma @ np.diag(envelope_reg)[None,None,:,:]
 
         if same_pos:
             gamma2 = aspmat.param_transpose(gamma1)
         else:
-            gamma2 = time_domain_diffuse_kernel(int_batch, pos2, wave_num)
+            gamma2 = kernel_time_domain_diffuse(int_batch, pos2, wave_num)
 
         ival = aspmat.matmul_param(gamma1_weighted, gamma2)
         int_value += ival

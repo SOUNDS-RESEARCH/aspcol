@@ -84,7 +84,7 @@ def krr_stationary_mics(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, ker
     wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
 
     if kernel_func is None:
-        kernel_func = kernel.time_domain_diffuse_kernel
+        kernel_func = kernel.kernel_time_domain_diffuse
     if kernel_args is None:
         kernel_args = []
 
