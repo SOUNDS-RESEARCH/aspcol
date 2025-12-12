@@ -17,8 +17,8 @@ def get_krr_params_multisrc(data, pos, wave_num, reg_param, kernel_func, kernel_
     Parameters
     ----------
     data : ndarray of shape (num_freq, num_measurements). 
-        IMPORTANT: the data first has the measurements for pos[:,0] for all sources that was measured there,
-        then the data for pos[:,1] and so on. 
+        IMPORTANT: the data first has the measurements for pos[0,:] for all sources that was measured there,
+        then the data for pos[1,:] and so on. 
         num_measurements is somewhere between num_pos and num_pos * num_src, 
         depending on how many sources were measured at each position.
     pos : ndarray of shape (num_pos, 3)

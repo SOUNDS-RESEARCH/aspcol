@@ -135,3 +135,40 @@ def est_ki_freq_rff(p_freq, pos, pos_eval, wave_num, reg_param, num_basis = 64, 
     return jnp.squeeze(p_est, axis=-1)
 
 
+
+
+
+#@jax.jit
+def est_ki_freq_multisrc(p_freq, pos, pos_eval, wave_num, reg_param, src_weighting = None):
+    """Estimates the RIR in the frequency domain using kernel interpolation
+    
+    Uses the frequency domain sound pressure as input
+
+    Parameters
+    ----------
+    p_freq : ndarray of shape (num_real_freqs, num_src, num_mics)
+        sound pressure in frequency domain at num_mic microphone positions
+    pos : ndarray of shape (num_mic, 3)
+        positions of the microphones
+    pos_eval : ndarray of shape (num_eval, 3)
+        positions of the evaluation points
+    wave_num : ndarray of shape (num_real_freqs)
+        wavenumbers
+    reg_param : float
+        regularization parameter for kernel interpolation
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
+
+    References
+    ----------
+    [uenoKernel2018]
+    """
+    num_pos = pos.shape[0]
+    num_src = p_freq.shape[1]
+
+    krr_params = ki.get_krr_params_multisrc(p_freq, pos, wave_num, reg_param, ki.kernel_multisrc, [num_src, src_weighting])
+    p_est = ki.reconstruct_multisrc(krr_params, pos_eval, pos, wave_num, ki.kernel_multisrc, [num_src, src_weighting])
+    return p_est

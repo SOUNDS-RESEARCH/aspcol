@@ -10,45 +10,87 @@ when the sources are measured at different positions.
 import jax 
 import jax.numpy as jnp
 import aspcol.kernelinterpolation_jax.kernel as kernel
+import aspcol.planewaves_jax as pw
+import aspcore.montecarlo_jax as mc
 
 import aspcore.matrices_jax as aspmat
 
-
-
 def reconstruct_multisrc(krr_params, pos_output, pos_data, wave_num, kernel_func, kernel_args):
-    num_freq = wave_num.shape[0]
-    kernel_matrix = kernel_func(pos_output, pos_data, wave_num, *kernel_args)
+    """Reconstruct the sound field at the desired positions.
 
-    reconstructed = np.squeeze(kernel_matrix @ krr_params[:,:,None], axis=-1)
-    reconstructed = np.reshape(reconstructed, (num_freq, pos_output.shape[0], -1))
-    reconstructed = np.moveaxis(reconstructed, 1, 2)
+    Parameters
+    ----------
+    krr_params : ndarray of shape (num_freq, num_src, num_pos)
+        The KRR parameters obtained from get_krr_params_multisrc.
+    pos_output : ndarray of shape (num_eval, 3)
+        The positions where the sound field should be reconstructed.
+    pos_data : ndarray of shape (num_pos, 3)
+        The positions where the sound field was measured.
+    wave_num : ndarray of shape (num_freq)
+        wave numbers for the frequencies of interest, defined as 2*pi*f/c
+    kernel_func : callable
+        with calling signature kernel_func(pos1, pos2, wave_num, *kernel_args)
+        should return ndarray (num_freq, num_pos1, num_pos2, num_src, num_src)
+    kernel_args : list
+        extra arguments that are needed for the kernel function
+
+    Returns
+    -------
+    reconstructed : ndarray of shape (num_freq, num_src, num_eval)
+        The reconstructed sound field at the desired positions.
+    """
+    num_freq = wave_num.shape[0]
+    num_output = pos_output.shape[0]
+    num_src = krr_params.shape[1]
+
+    kernel_vals = kernel_func(pos_output, pos_data, wave_num, *kernel_args)
+    kernel_vals = aspmat.param2blockmat(kernel_vals)
+
+    krr_params = jnp.moveaxis(krr_params, 1, 2).reshape((num_freq, -1))
+    reconstructed = jnp.squeeze(kernel_vals @ krr_params[...,None], axis=-1)
+
+    reconstructed = jnp.moveaxis(jnp.reshape(reconstructed, (num_freq, num_output, num_src)), 1, 2)
     return reconstructed
 
 def get_krr_params_multisrc(data, pos, wave_num, reg_param, kernel_func, kernel_args):
-    """
-    data : ndarray of shape (num_freq, num_measurements). 
-        IMPORTANT: the data first has the measurements for pos[:,0] for all sources that was measured there,
-        then the data for pos[:,1] and so on. 
-        num_measurements is somewhere between num_pos and num_pos * num_src, 
-        depending on how many sources were measured at each position.
+    """Get the optimal KRR parameters for standard kernel interpolation with multiple sources.
+
+    Assumes that all sources are measured at the same positions.
+
+    The kernel function k(r,r') is matrix-valued, where each value is a matrix of size (num_src, num_src).
+    Therefore each kernel function should return something with shape (num_freq, num_pos1, num_pos2, num_src, num_src).
+
+    So the kernel matrix K has shape (num_freq, num_pos * num_src, num_pos * num_src).
+
+    Parameters
+    ----------
+    data : ndarray of shape (num_freq, num_src, num_pos). 
+        The measured complex sound pressure at the measurement positions.
     pos : ndarray of shape (num_pos, 3)
-        the positions of all measurements where at least one source was measured
-    src_idx : ndarray of shape (num_src, num_pos) with boolean values
-        indicates whether that source was measured at that position. 
+        the positions of the measurements 
     wave_num : ndarray of shape (num_freq)
     reg_param : float
         positive value to regularize the problem. Corresponds to lambda in the optimization problem. 
     kernel_func : callable
-        with calling signature kernel_func(pos1, pos2, *kernel_args)
-        should return ndarray (..., num_pos1, num_pos2)
+        with calling signature kernel_func(pos1, pos2, wave_num, *kernel_args)
+        should return ndarray (num_freq, num_pos1, num_pos2, num_src, num_src)
     kernel_args : list
         extra arguments that are needed for the kernel function
-    """
-    num_measurements = data.shape[-1]
-    kernel_matrix = kernel_func(pos, pos, wave_num, *kernel_args)
 
-    K_reg = kernel_matrix + reg_param * np.eye(num_measurements)[None,:,:]
-    a = np.linalg.solve(K_reg, data)
+    Returns
+    -------
+    krr_params : ndarray of shape (num_freq, num_src, num_pos)
+        The optimal KRR parameters for the given data and kernel.
+    """
+    num_pos = pos.shape[0]
+    num_src = data.shape[1]
+    kernel_vals = kernel_func(pos, pos, wave_num, *kernel_args)
+    K = aspmat.param2blockmat(kernel_vals)
+    K_reg = K + reg_param * jnp.eye(K.shape[-1])[None,:,:]
+
+    data = jnp.moveaxis(data, 1, 2).reshape((wave_num.shape[0], -1))
+    a = jnp.squeeze(jnp.linalg.solve(K_reg, data[...,None]), axis=-1)
+    a = jnp.moveaxis(jnp.reshape(a, (wave_num.shape[0], num_pos, num_src)), 1, 2)
     return a
 
 def kernel_multisrc(pos1, pos2, wave_num, num_src, weighting_func = None):
@@ -76,10 +118,11 @@ def kernel_multisrc(pos1, pos2, wave_num, num_src, weighting_func = None):
 
     num_freq = wave_num.shape[0]
     if weighting_func is None:
-        return _kernel_multisrc_diffuse(pos1, pos2, wave_num, num_src)
+        return kernel_multisrc_diffuse(pos1, pos2, wave_num, num_src)
     elif isinstance(weighting_func, jax.Array) or isinstance(weighting_func, jnp.ndarray):
-        return _kernel_multisrc_diffuse_srcweighted(pos1, pos2, wave_num, num_src, weighting_func)
-
+        return kernel_multisrc_diffuse_srcweighted(pos1, pos2, wave_num, num_src, weighting_func)
+    else: #assume its a callable 
+        return kernel_multisrc_numerical(pos1, pos2, wave_num, num_src, weighting_func)
     num_pos1 = pos1.shape[0]
     num_pos2 = pos2.shape[0]
     num_params1 = num_pos1 * num_src
@@ -102,7 +145,43 @@ def kernel_multisrc(pos1, pos2, wave_num, num_src, weighting_func = None):
 
     return full_kernel_matrix
 
-def _kernel_multisrc_diffuse(pos1, pos2, wave_num, num_src):
+
+def kernel_multisrc_numerical(pos1, pos2, wave_num, num_src, src_weighting, num_points = 256, key = None):
+    """General kernel for joint estimation of a multisource sound field.
+    
+    Parameters
+    ----------
+    pos1 : ndarray of shape (num_pos1, 3)
+    pos2 : ndarray of shape (num_pos2, 3)
+    wave_num : ndarray of shape (num_freq)
+        wave numbers for the frequencies of interest, defined as 2*pi*f/c
+    num_src : int
+        The number of sources.
+    src_idx1 : ndarray of shape (num_src, num_pos1), dtype=bool
+        Boolean array indicating which positions in pos1 correspond to which sources.
+        Each column should have exactly one True value, and each row should have at least one True
+        value.
+    """
+    num_freqs = wave_num.shape[0]
+    num_pos1 = pos1.shape[0]
+    num_pos2 = pos2.shape[0]
+
+    if key is None:
+        key = jax.random.PRNGKey(1234567)
+    directions = mc.uniform_random_on_sphere(num_points, key)
+
+    pos_diff = pos1[:,None,:] - pos2[None,:,:] # shape (num_pos1, num_pos2, 3)
+    plane_waves = pw.plane_wave(pos_diff.reshape(-1, 3), directions, wave_num) # shape (num_freq, num_pos^2, num_dirs)
+    plane_waves = jnp.reshape(plane_waves, (num_freqs, num_pos1, num_pos2, num_points)) # shape (num_freq, num_pos1, num_pos2, num_dirs)
+    plane_waves = jnp.moveaxis(plane_waves, -1, 1) # shape (num_freqs, num_dirs, num_pos1, num_pos2)
+
+    func_values = src_weighting(directions) # shape (num_freqs, num_dirs, num_src, num_src)
+     
+    kernel_val = 4 * jnp.pi * jnp.mean(func_values[:,:,None,None,:,:] * plane_waves[...,None,None], axis=1)
+
+    return kernel_val
+
+def kernel_multisrc_diffuse(pos1, pos2, wave_num, num_src):
     """Diffuse sound field kernel for multiple sources.
     
     Parameters
@@ -116,16 +195,17 @@ def _kernel_multisrc_diffuse(pos1, pos2, wave_num, num_src):
         
     Returns
     -------
-    full_kernel_matrix : ndarray of shape (num_freq, num_pos1 * num_src, num_pos2 * num_src)
-        The kernel matrix for the given positions and sources. num_params1 and num_params2 are the number of parameters
-        which can be calculated as num_src * num_pos1 and num_src * num_pos2 respectively. This should be exactly the total
-        number of measurements in total.
+    full_kernel_matrix : ndarray of shape (num_freq, num_pos1, num_pos2, num_src, num_src)
+        The kernel matrix for the given positions and sources. The matrix consists of blocks of size (num_src, num_src), each
+        of which is the matrix-valued kernel for pos1[i] and pos2[j]. 
     """
     kernel_vals = kernel.kernel_diffuse(pos1, pos2, wave_num)
-    kernel_mat = aspmat.block_diagonal_same(kernel_vals, num_src)
+    kernel_mat = kernel_vals[...,None,None] * jnp.eye(num_src, dtype = int)[None,None,:,:]
+
+    #kernel_mat = jnp.kron(kernel_vals, jnp.eye(num_src, dtype = int)) #aspmat.block_diagonal_same(kernel_vals, num_src)
     return kernel_mat
 
-def _kernel_multisrc_diffuse_srcweighted(pos1, pos2, wave_num, num_src, src_weighting):
+def kernel_multisrc_diffuse_srcweighted(pos1, pos2, wave_num, num_src, src_weighting):
     """Diffuse sound field kernel for multiple sources with a constant source weighting.
     
     Parameters
@@ -152,11 +232,16 @@ def _kernel_multisrc_diffuse_srcweighted(pos1, pos2, wave_num, num_src, src_weig
     assert isinstance(src_weighting, (jax.Array, jnp.ndarray))
     assert src_weighting.shape == (num_src, num_src) or src_weighting.shape == (num_freq, num_src, num_src)
 
-    num_pos1 = pos1.shape[0]
-    num_pos2 = pos2.shape[0]
-    num_params1 = num_pos1 * num_src
-    num_params2 = num_pos2 * num_src
+    if src_weighting.ndim == 2:
+        src_weighting = src_weighting[None,:,:] # make it (num_freq, num_src, num_src)
+
+    kernel_mat = kernel_vals[...,None,None] * src_weighting[:,None,None,...]
+
+    #num_pos1 = pos1.shape[0]
+    #num_pos2 = pos2.shape[0]
+    #num_params1 = num_pos1 * num_src
+    #num_params2 = num_pos2 * num_src
 
 
-    kernel_mat = aspmat.block_diagonal_same(kernel_vals, num_src)
+    #kernel_mat = aspmat.block_diagonal_same(kernel_vals, num_src)
     return kernel_mat
