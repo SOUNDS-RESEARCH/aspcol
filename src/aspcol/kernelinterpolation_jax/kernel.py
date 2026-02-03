@@ -1,9 +1,6 @@
-import numpy as np
 import jax.numpy as jnp
 import jax
 from functools import partial
-
-import aspcore.fouriertransform_jax as ft
 
 @jax.jit
 def kernel_diffuse(pos1, pos2, wave_num):
@@ -27,7 +24,7 @@ def kernel_diffuse(pos1, pos2, wave_num):
     """
     dist_diff = jnp.expand_dims(pos1,1) - jnp.expand_dims(pos2,0)
     dist_mat = jnp.linalg.norm(dist_diff, ord=2, axis=-1)
-    return jnp.sinc(jnp.expand_dims(dist_mat,0) * wave_num.reshape(-1,1,1) / np.pi)
+    return jnp.sinc(jnp.expand_dims(dist_mat,0) * wave_num.reshape(-1,1,1) / jnp.pi)
 
 @jax.jit
 def kernel_directional_vonmises(pos1, pos2, wave_num, direction, beta):
@@ -76,7 +73,6 @@ def kernel_directional_vonmises(pos1, pos2, wave_num, direction, beta):
     pos_term = wave_num.reshape((-1,1,1,1,1)) * (pos1.reshape((1,1,-1,1,pos1.shape[-1])) - pos2.reshape((1,1,1,-1,pos2.shape[-1])))
     kernel_values = jnp.sinc(jnp.sqrt(jnp.sum((pos_term - angle_term)**2, axis=-1)) / jnp.pi)
 
-    
     normalization = 2 * beta / (jnp.exp(beta) - jnp.exp(-beta))
     normalization = jnp.where(beta == 0, 1.0, normalization)  # Avoid division by zero for beta=0
     kernel_values = kernel_values * normalization
