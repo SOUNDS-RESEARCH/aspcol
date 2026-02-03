@@ -25,6 +25,7 @@ References
 import numpy as np
 import scipy.spatial.distance as distfuncs
 import scipy.special as special
+import scipy.linalg as splin
 import numba as nb
 
 import aspcol.utilities as util
@@ -32,11 +33,8 @@ import aspcore.fouriertransform as ft
 import aspcore.montecarlo as mc
 import aspcore.filterdesign as fd
 
-import aspcore.matrices as aspmat
-
 def kernel_gaussian(points1, points2, scale):
-    """
-    Guassian kernel, also known as the radial basis function kernel. 
+    """Guassian kernel, also known as the radial basis function kernel. 
 
     Parameters
     ----------
@@ -52,7 +50,8 @@ def kernel_gaussian(points1, points2, scale):
     return np.exp(-scale[:,None,None]**2 * dist_mat[None,:,:])
 
 def kernel_diffuse_2d(points1, points2, wave_num):
-    """
+    """Diffuse sound field kernel for 2D sound propagation
+
     Parameters
     ----------
     points1 : ndarray of shape (num_points1, 2)
@@ -65,26 +64,6 @@ def kernel_diffuse_2d(points1, points2, wave_num):
     """
     dist_mat = distfuncs.cdist(points1, points2)
     return special.j0(dist_mat[None,:,:] * wave_num[:,None,None])
-
-
-def kernel_diffuse_slow(points1, points2, wave_num):
-    """
-    Identical to kernel_diffuse_3d, but is not JIT compiled by numba. 
-    This is faster if the kernel is only evaluated once, but slower if it is evaluated many times
-    
-    Parameters
-    ----------
-    points1 : ndarray of shape (num_points1, 3)
-    points2 : ndarray of shape (num_points2, 3)
-    wave_num : ndarray of shape (num_freqs,)
-
-    Returns
-    -------
-    ndarray of shape (num_freqs, num_points1, num_points2)
-    """
-    distMat = distfuncs.cdist(points1, points2)
-    return special.spherical_jn(0, distMat[None,:,:] * wave_num[:,None,None])
-
 
 @nb.njit
 def kernel_diffuse(points1, points2, wave_num):
@@ -108,35 +87,10 @@ def kernel_diffuse(points1, points2, wave_num):
     dist_mat = np.sqrt(np.sum((np.expand_dims(points1,1) - np.expand_dims(points2,0))**2, axis=-1))
     return np.sinc(np.expand_dims(dist_mat,0) * wave_num.reshape(-1, 1,1) / np.pi)
 
-
-def kernel_directional_slow(points1, points2, wave_num, angle, beta):    
-    """
-    Identical to kernel_directional_3d, but is not JIT compiled by numba. 
-    This is faster if the kernel is only evaluated once, but slower if it is evaluated many times
-
-    In addition, this only allows for a single angle to be evaluated at a time.
-
-    Parameters
-    ----------
-    points1 : ndarray of shape (num_points1, 3)
-    points2 : ndarray of shape (num_points2, 3)
-    wave_num : ndarray of shape (num_freqs,)
-    angle : tuple (theta, phi) defined as in util.spherical2cart
-    beta : sets the strength of the directional weighting
-
-    Returns
-    -------
-    ndarray of shape (num_freqs, num_points1, num_points2)
-    """
-    rDiff = points1[:,None,:] - points2[None,:,:]
-    angleFactor = beta * util.spherical2cart(np.ones((1,1)), np.array(angle)[None,:])[None,None,...]
-    posFactor = 1j * wave_num[:,None,None,None] * rDiff[None,...]
-    return special.spherical_jn(0, 1j*np.sqrt(np.sum((angleFactor + posFactor)**2, axis=-1)))
-
 @nb.njit
 def kernel_directional(points1, points2, wave_num, direction_vec, beta):
-    """
-    Directionally weighted kernel for 3D sound field interpolation. 
+    """Directionally weighted kernel for 3D sound field interpolation. 
+
     Defined in 'Spatial active noise control based on kernel interpolation 
     of sound field' by Koyama, Brunnström, Ito, Ueno, Saruwatari.
 
@@ -163,8 +117,9 @@ def kernel_directional(points1, points2, wave_num, direction_vec, beta):
 
 
 def kernel_reciprocal(points1, points2, wave_num):
-    """
-    Reciprocal kernel for room impulse response interpolation. Definition found in
+    """Reciprocal kernel for room impulse response interpolation. 
+    
+    Definition found in
     'Kernel interpolation of acoustic transfer function between regions considering reciprocity'
     by Ribeiro, Ueno, Koyama, Saruwatari.
 
@@ -197,43 +152,6 @@ def kernel_reciprocal(points1, points2, wave_num):
     k_val = np.reshape(k_val, (k_val.shape[0], -1,k_val.shape[-1]))
     return k_val
 
-
-
-
-
-
-
-
-def kernel_directional_combined(points1, points2, wave_num, dirs, beta, kernel_weights):
-    """Computes the summed directional kernel for a number of directions and weights.
-
-    The kernel is exemplified in (19) in [1]
-
-    Parameters
-    ----------
-    points1 : ndarray of shape (num_pos1, 3)
-        The first set of positions where the kernel is evaluated
-    points2 : ndarray of shape (num_pos2, 3)
-        The second set of positions where the kernel is evaluated
-    dirs : ndarray of shape (num_dir, 3)
-        The directions for which the kernel is calculated
-    beta : ndarray of shape (num_beta,)
-        The strength of the directional weighting for each kernel
-    kernel_weights : ndarray of shape (num_dir, num_beta)
-        The positive factor determining the relative weight of the particular kernel
-        represented by gamma in [1]
-    
-    Returns
-    -------
-    ndarray of shape (num_pos1, num_pos2)
-        The directional kernel for each direction and beta value
-
-    References
-    ----------
-    [1] R. Horiuchi, S. Koyama, J. G. C. Ribeiro, N. Ueno, and H. Saruwatari, “Kernel learning for sound field estimation with l1 and l2 regularizations,” in 2021 IEEE Workshop on Applications of Signal Processing to Audio and Acoustics (WASPAA), Oct. 2021, pp. 261–265. doi: 10.1109/WASPAA52581.2021.9632731.
-    
-    """
-    raise NotImplementedError
 
 
 def get_kernel_weighting_filter(kernel_func, reg_param, mic_pos, integral_domain, 
@@ -345,7 +263,8 @@ def get_krr_params(data, pos, wave_num, reg_param, kernel_func=None, kernel_args
 
     Returns
     -------
-
+    krr_params : ndarray of shape (num_freq, num_pos)
+        the kernel ridge regression parameters, in shorthand referred to as "a"
 
     Notes
     -----
@@ -364,8 +283,7 @@ def get_krr_params(data, pos, wave_num, reg_param, kernel_func=None, kernel_args
         K = np.squeeze(K, axis=1) 
     K_reg = K + reg_param * np.eye(K.shape[-1])[None,:,:]
 
-    K_reg = aspmat.regularize_matrix_with_condition_number(K_reg, 1e8)
-    a = np.linalg.solve(K_reg, data)
+    a = np.squeeze(splin.solve(K_reg, data[...,None], assume_a='pos'), axis=-1)
     return a
 
 
@@ -397,7 +315,7 @@ def get_interpolation_params(kernel_func, reg_param, output_arg, data_arg, *args
     K_reg = K + reg_param * np.eye(K.shape[-1])
     kappa = np.moveaxis(kernel_func(output_arg, data_arg, *args), -1, -2)
 
-    params = np.moveaxis(np.linalg.solve(np.moveaxis(K_reg, -1, -2), kappa), -1, -2)
+    params = np.moveaxis(splin.solve(np.moveaxis(K_reg, -1, -2), kappa, assume_a='pos'), -1, -2)
     return params
 
 
