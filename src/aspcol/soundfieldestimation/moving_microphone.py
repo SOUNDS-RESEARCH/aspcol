@@ -13,7 +13,6 @@ import scipy.special as spspec
 
 import aspcore.fouriertransform as ft
 import aspcore.montecarlo as mc
-import aspcore.matrices as aspmat
 
 import aspcol.sphericalharmonics as shd
 import aspcol.utilities as util
@@ -144,16 +143,6 @@ def _est_inf_dimensional_shd_omni(p, pos, pos_eval, sequence, samplerate, c, reg
     ----------
     [brunnstromBayesianSubmitted]
     """
-    # ======= Argument parsing =======
-    #if p.ndim >= 2:
-    #    p = np.squeeze(p)
-
-    #if sequence.ndim == 2:
-    #    sequence = np.squeeze(sequence, axis=0)
-    #assert sequence.ndim == 1
-
-    #assert pos.ndim == 2
-
     N = p.shape[0]
     seq_len = sequence.shape[0]
     num_periods = N // seq_len
@@ -189,17 +178,7 @@ def _est_inf_dimensional_shd_omni(p, pos, pos_eval, sequence, samplerate, c, reg
     # ======= Reconstruction of RIR =======
     est_sound_pressure = _estimate_from_regressor_omni(regressor, pos_eval, pos, k[:num_real_freqs])
 
-    #est_sound_pressure = np.zeros((num_real_freqs, pos_eval.shape[0]), dtype=complex)
-    #for f in range(num_real_freqs):
-    #    kernel_val = ki.kernel_helmholtz_3d(pos_eval, pos, k[f:f+1]).astype(complex)[0,:,:]
-    #    est_sound_pressure[f, :] = np.sum(kernel_val * regressor[f,None,:], axis=-1)
-
     if verbose:
-        #diagnostics = {}
-        #diagnostics["regularization parameter"] = reg_param
-        #diagnostics["condition number"] = np.linalg.cond(psi).tolist()
-        #diagnostics["smallest eigenvalue"] = splin.eigh(psi, subset_by_index=(0,0), eigvals_only=True).tolist()
-        #diagnostics["largest eigenvalue"] = splin.eigh(psi, subset_by_index=(N-1, N-1), eigvals_only=True).tolist()
         return est_sound_pressure, regressor, psi
     else:
         return est_sound_pressure
@@ -253,7 +232,6 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_
     seq_len = sequence.shape[0]
     num_periods = N // seq_len
     assert N % seq_len == 0
-    #num_eval = pos_eval.shape[0]
 
     wave_num = ft.get_real_wavenum(seq_len, samplerate, c)
     num_real_freqs = wave_num.shape[-1] #len(ft.get_real_freqs(seq_len, samplerate))
@@ -270,32 +248,18 @@ def est_spatial_spectrum_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_
     
     Sigma = []
 
-    #freq_idx_list = np.arange(num_real_freqs)
     for f in range(num_real_freqs): #freq_idx_list:
         order, modes = shd.shd_num_degrees_vector(max_orders[f])
         Y_f = spspec.sph_harm(modes[None,:], order[None,:], angles[:,0:1], angles[:,1:2])
         B_f = spspec.spherical_jn(order[None,:], wave_num[f]*r[:,None])
-
-       # D_f = spspec.spherical_jn(order, k[f]*r_max)
         S_f = phi[f,:]
 
         Sigma_f = S_f[:,None] * Y_f * B_f #/ D_f[None,:]
         Sigma.append(Sigma_f)
 
-    # for f in np.flip(np.arange(1, num_real_freqs)):
-    #     order, modes = shd.shd_num_degrees_vector(max_orders[f])
-    #     Y_f = spspec.sph_harm(modes[None,:], order[None,:], angles[:,0:1], angles[:,1:2])
-    #     B_f = spspec.spherical_jn(order[None,:], k[f]*r[:,None])
-    #     S_f = phi[f,:]
-    #     Sigma_f = S_f[:,None] * Y_f * B_f
-    #     Sigma.append(np.conj(Sigma_f))
-
     Sigma = np.concatenate(Sigma, axis=-1)
     system_mat = Sigma.conj().T @ Sigma + reg_param * np.eye(Sigma.shape[-1])
-    print(f"Size of spatial spectrum system matrix: {system_mat.shape}")
     params = splin.solve(system_mat, Sigma.conj().T @ p, assume_a="pos")
-    #a, residue, rank, singular_values = np.linalg.lstsq(Sigma, p, rcond=None)
-    #a = lsqL2(Sigma, p, 1e-6)
 
     rir_est = reconstruct_spatial_spectrum(params, pos_eval, wave_num, max_orders)
     # ======= Reconstruction of RIR =======
@@ -465,9 +429,6 @@ def estimate_from_regressor(regressor, pos, pos_eval, wave_num, dir_coeffs = Non
     dir_omni = shd.directivity_omni() #* np.ones((num_eval, 1))
     dir_omni = dir_omni[None,:,:] # add a dimension for the number of frequencies
 
-    # kernel_val = shd.translated_inner_product(pos_eval, pos, dir_omni, dir_coeffs, wave_num)
-    # est_sound_pressure = np.squeeze(kernel_val @ regressor[:,:,None], axis=-1)
-
     num_eval = pos_eval.shape[0]
     est_sound_pressure = np.zeros(((num_real_freqs, num_eval)), dtype=complex)
     for i in range(num_eval):
@@ -509,11 +470,6 @@ def _estimate_from_regressor_omni(regressor, pos_eval, pos, k):
 def calculate_psi(pos, dir_coeffs, k, Phi, seq_len, num_real_freqs):
     N = pos.shape[0]
     psi = np.zeros((N, N), dtype = float)
-
-    #print(f"starting TIP")
-    # tip = shd.translated_inner_product(pos, pos, dir_coeffs, dir_coeffs, k[1:num_real_freqs-1])
-    # phi_rank1_matrix = Phi[1:num_real_freqs-1,:,None] * Phi[1:num_real_freqs-1,None,:].conj()
-    # psi = 2 * np.sum(np.real(tip * phi_rank1_matrix), axis=0)
 
     for f in range(1, num_real_freqs-1):
         print(f"Frequency {f}, going from 1 to {num_real_freqs-2} (inclusive)")
@@ -595,9 +551,6 @@ def krr_moving_mic(p, pos, pos_eval, sequence, samplerate, c, reg_param, kernel_
 
     # ======= Estimation of spherical harmonic coefficients =======
     phi_f = _seq_stft_krr_multiperiod(sequence, num_periods)
-    #phi_f2 = _seq_stft_bayesian_multiperiod(sequence, num_periods)
-    #np.allclose(phi_f, 500*np.conj(phi_f2[:251,:]), atol=1e-8)
-
     dft_weighting = ft.rdft_weighting(num_real_freqs, seq_len, 0)
 
     K = np.zeros((N, N), dtype = float)
@@ -720,13 +673,11 @@ def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num
     if rng is None:
         rng = np.random.default_rng(1234543)
 
-    #basis_directions = mc.uniform_random_on_sphere(num_basis, rng)
     basis_directions = mc.uniform_random_on_sphere(num_basis*num_real_freqs, rng).reshape((num_real_freqs, num_basis, 3))
 
     Z = _rff_z_matrix(-pos, wave_num, phi_f, basis_directions, num_basis, seq_len, N)
 
     system_mat = Z.T @ Z 
-    #system_mat = aspmat.regularize_matrix_with_condition_number(system_mat, 1/reg_param)
     system_mat += seq_len * reg_param * np.eye(seq_len * num_basis, dtype=Z.dtype)
     projected_data = Z.T @ p
 
@@ -734,7 +685,6 @@ def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num
     params = params.reshape(seq_len, num_basis)
     params = ft.real_vec_to_dft_domain(params, scale=True) # (num_real_freqs, num_basis)
 
-    #z_eval = pw.plane_wave(pos_eval, basis_directions, wave_num) / np.sqrt(num_basis) # (num_real_freqs, num_eval, num_basis)
     z_eval = np.stack([pw.plane_wave(pos_eval, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / np.sqrt(num_basis) #(num_real_freqs, num_eval, num_basis)
 
     z_eval = np.moveaxis(z_eval, 0, 1) # (num_eval, num_real_freqs, num_basis)
