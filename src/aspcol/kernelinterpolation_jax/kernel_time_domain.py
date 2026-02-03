@@ -81,18 +81,11 @@ def kernel_time_domain_directional_vonmises(pos1, pos2, wave_num, direction, bet
     [brunnströmTime2025]
     """
     kernel_val = kernel.kernel_directional_vonmises(pos1, pos2, wave_num, direction, beta)
-    kernel_val = jnp.squeeze(kernel_val, axis=1)
+    #kernel_val = jnp.squeeze(kernel_val, axis=1)
     kernel_val = jnp.moveaxis(kernel_val, 0, -1)
 
     kernel_matrix = freq_to_time_domain_kernel_matrix(kernel_val)
     return kernel_matrix
-
-
-
-
-
-
-
 
 
 def freq_to_time_domain_kernel_matrix(freq_kernel):
@@ -100,7 +93,8 @@ def freq_to_time_domain_kernel_matrix(freq_kernel):
     
     Parameters
     ----------
-    freq_kernel : np.ndarray of shape (num_points1, num_points2, num_real_freqs, num_real_freqs)
+    freq_kernel : np.ndarray of shape (num_points1, num_points2, num_real_freqs, num_real_freqs) or
+        np.ndarray of shape (num_points1, num_points2, num_real_freqs)
         The kernel matrix. Assumed to be diagonal
 
     Returns
