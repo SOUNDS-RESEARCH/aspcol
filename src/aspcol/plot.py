@@ -39,12 +39,12 @@ def soundfield_estimation_comparison(
 
     Parameters
     ----------
-    pos_est : np.ndarray
-        Positions of the estimated sound field. Shape (num_positions, spatial_dim)
-    p_est : np.ndarray
-        Estimated sound field. Shape (num_freqs, num_ls, num_positions) or (num_freqs, num_positions)
-    p_true : np.ndarray
-        True sound field. Shape (num_freqs, num_ls, num_positions) or (num_freqs, num_positions)
+    pos_est : np.ndarray of shape (num_positions, spatial_dim)
+        Positions of the estimated sound field.
+    p_est : dict of ndarrays of shape (num_freqs, num_ls, num_positions) or (num_freqs, num_positions)
+        Estimated sound fields. A single estimate can be supplied as a single ndarray.
+    p_true : np.ndarray of shape (num_freqs, num_ls, num_positions) or (num_freqs, num_positions)
+        True sound field. 
     freqs : np.ndarray of shape (num_freqs,)
         Frequencies used in the simulation.
     fig_folder : pathlib Path
@@ -454,21 +454,35 @@ def compare_soundfields_all_time(p_all, p_est, p_true, freqs, pos_im, fig_folder
                 extra_name = ""
         
             ir_all = {name : ft.irfft(p) for name, p in p_all_l.items()}
-            compare_time_domain_soundfields(ir_all, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"timedomain{extra_name}", output_method=output_method, num_examples=num_examples)
+            ir_est = {name : ft.irfft(p) for name, p in p_est.items()}
+            
+            if ir_all[list(ir_all.keys())[0]].ndim == 3:
+                ir_all = {name : np.squeeze(ir, axis=0) for name, ir in ir_all.items()}
+            mean_energy = np.mean(np.stack([np.mean(np.abs(ir)**2, axis=0) for ir in ir_all.values()], axis=0), axis=0)
+            assert mean_energy.ndim == 1
+            max_energy_idx = np.argmax(mean_energy)
+
+            compare_time_domain_soundfields(ir_all, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"timedomain{extra_name}", output_method=output_method, num_examples=num_examples, additional_time_indices=max_energy_idx)
+
+            if p_true is not None:
+                ir_true = ft.irfft(p_true)
+                mses = {name : np.abs(ir_true - ir)**2 / np.mean(np.abs(ir_true)**2, axis=-1, keepdims=True) for name, ir in ir_est.items()}
+                mses_db = {name : 10*np.log10(mse) for name, mse in mses.items()}
+                compare_time_domain_soundfields(mses_db, pos_im, fig_folder, pos_mic=pos_mic, plot_name=f"timedomain_mse_db{extra_name}", output_method=output_method, num_examples=num_examples, only_positive=True, points_to_set_colormap=points_for_errors, additional_time_indices=max_energy_idx)
             
 
-def compare_time_domain_soundfields(ir_all, pos_im, fig_folder, pos_mic=None, plot_name="", num_examples = 5, output_method="pdf", only_positive=False):
+def compare_time_domain_soundfields(ir_all, pos_im, fig_folder, pos_mic=None, plot_name="", num_examples = 5, output_method="pdf", only_positive=False, points_to_set_colormap=None, additional_time_indices = None):
     num_samples = ir_all[list(ir_all.keys())[0]].shape[-1]
     if ir_all[list(ir_all.keys())[0]].ndim == 3:
         ir_all = {name : np.squeeze(ir, axis=0) for name, ir in ir_all.items()}
 
-    num_td_plots = num_examples
-    td_idxs = np.linspace(num_samples/num_td_plots, num_samples-num_samples/num_td_plots, num_td_plots).astype(int)
+    td_idxs = np.linspace(num_samples/num_examples, num_samples-num_samples/num_examples, num_examples).astype(int)
 
-    mean_energy = np.mean(np.stack([np.mean(np.abs(ir)**2, axis=0) for ir in ir_all.values()], axis=0), axis=0)
-    assert mean_energy.ndim == 1
-    max_energy_idx = np.argmax(mean_energy)
-    td_idxs = np.concatenate((td_idxs, [max_energy_idx]))
+    if additional_time_indices is not None:
+        if not isinstance(additional_time_indices, (list, tuple, np.ndarray)):
+            additional_time_indices = [additional_time_indices]
+        td_idxs = np.concatenate((td_idxs, additional_time_indices))
+    #td_idxs = np.concatenate((td_idxs, [max_energy_idx]))
 
     for n in td_idxs:
         fig, axes = plt.subplots(len(ir_all), 1, figsize = (16,10))
@@ -476,8 +490,17 @@ def compare_time_domain_soundfields(ir_all, pos_im, fig_folder, pos_mic=None, pl
             axes = [axes]
         fig.tight_layout()
 
-        v_max = np.max([np.max(ir[...,n]) for ir in ir_all.values()])
-        v_min = np.min([np.min(ir[...,n]) for ir in ir_all.values()])
+        if points_to_set_colormap is not None:
+            v_max = np.max([np.max(ir[...,points_to_set_colormap,n]) for ir in ir_all.values()])
+            v_min = np.min([np.min(ir[...,points_to_set_colormap,n]) for ir in ir_all.values()])
+            v_min = v_max - 30 #np.max((v_min, -50))
+        else:
+            v_max = np.max([np.max(ir[...,n]) for ir in ir_all.values()])
+            v_min = np.min([np.min(ir[...,n]) for ir in ir_all.values()])
+            # v_max = np.max([np.max(sf[f,...]) for sf in p_all.values()])
+            # v_min = np.min([np.min(sf[f,...]) for sf in p_all.values()])
+        
+        
 
         if only_positive:
             cmap="inferno"
