@@ -670,7 +670,8 @@ def krr_moving_mic_diffuse(p, pos, pos_eval, sequence, samplerate, c, reg_param,
 
     Returns
     -------
-    
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
     """
     p, pos, pos_eval, sequence, N, seq_len, num_periods = _parse_moving_mic_args(p, pos, pos_eval, sequence)
     wave_num = ft.get_real_wavenum(seq_len, samplerate, c)
@@ -858,6 +859,11 @@ def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num
         regularization parameter
     num_basis : int, optional
         number of random basis directions to use, by default 64
+
+    Returns
+    -------
+    est_sound_pressure : ndarray of shape (num_real_freqs, num_eval)
+        estimated RIR per frequency at the evaluation points
 
     Notes
     -----
