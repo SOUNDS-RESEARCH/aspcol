@@ -191,7 +191,6 @@ def krr_stationary_mics_regularized(ir_mic, pos_mic, pos_eval, samplerate, c, re
     data_vector = ir_mic.reshape(-1)
     weighted_data_vector = gamma_weighted @ data_vector
     krr_params = np.linalg.solve(system_matrix, weighted_data_vector)
-    #krr_params = np.linalg.lstsq(system_matrix_reg, weighted_data_vector, rcond=1e-10)[0]
     krr_params = krr_params.reshape(num_pos, ir_len)
 
     estimate = reconstruct(pos_eval, pos_mic, wave_num, krr_params, kernel_func, kernel_args)
@@ -202,51 +201,6 @@ def krr_stationary_mics_regularized(ir_mic, pos_mic, pos_eval, samplerate, c, re
     return estimate
 
 
-
-# def krr_stationary_mics_direction_regularized_changedip(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, direction, beta):
-#     """Estimates the impulse responses at the evaluation points using kernel ridge regression.
-
-#     Adds a directional weighting to regularize the sound field. This is done by just changing out the inner product
-#     in the RKHS to a weighted inner product, the same as was done in [koyamaSpatial2021]. The result is that the solution
-#     has the same form as the unregularized solution, but with a different kernel function.
-
-#     Parameters
-#     ----------
-#     ir_mic : np.ndarray of shape (num_mics, ir_len)
-#         The impulse responses measure  at the microphones.
-#     pos_mic : np.ndarray of shape (num_mics, 3)
-#         The position of the microphones.
-#     pos_eval : np.ndarray of shape (num_eval, 3)
-#         The position of the evaluation points.
-#     c : float
-#         The speed of sound.
-#     reg_param : float
-#         The regularization parameter. Scales the regularization term in the optimization.
-#     direction : np.ndarray of shape (1, 3)
-#         a unit vector describing the direction of the weighting. The direction should be from (0,0,0) towards
-#         the source. 
-#     beta : float
-#         The strength of the weighting. A larger value will give more regularization.
-
-#     Returns
-#     -------
-#     ir_eval : np.ndarray of shape (num_eval, ir_len)
-#         The estimated impulse responses at the evaluation points.
-#     """
-#     num_pos = pos_mic.shape[0]
-#     num_eval = pos_eval.shape[0]
-#     ir_len = ir_mic.shape[-1]
-#     wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
-#     gamma = kernel.time_domain_directional_kernel_vonmises(pos_mic, pos_mic, wave_num, direction, beta)
-
-#     gamma = aspmat.param2blockmat(gamma)
-#     system_matrix = gamma + reg_param * np.eye(gamma.shape[-1])
-
-#     data_vector = ir_mic.reshape(-1)
-#     krr_params = np.linalg.solve(system_matrix, data_vector)
-
-#     estimate = reconstruct(pos_eval, pos_mic, wave_num, krr_params, kernel.time_domain_directional_kernel_vonmises, [direction, beta])
-#     return estimate
 
 
 
