@@ -16,9 +16,11 @@ References
 #import scipy.spatial.distance as spdist
 import jax.numpy as jnp
 import jax
+from functools import partial
 
 import aspcore.fouriertransform_jax as ft
 import aspcore.montecarlo_jax as mc
+import aspcore.filterdesign_jax as fd
 
 import aspcol.kernelinterpolation_jax as ki
 #import aspcol.sphericalharmonics_jax as sph
@@ -172,3 +174,86 @@ def est_ki_freq_multisrc(p_freq, pos, pos_eval, wave_num, reg_param, src_weighti
     krr_params = ki.get_krr_params_multisrc(p_freq, pos, wave_num, reg_param, ki.kernel_multisrc, [num_src, src_weighting])
     p_est = ki.reconstruct_multisrc(krr_params, pos_eval, pos, wave_num, ki.kernel_multisrc, [num_src, src_weighting])
     return p_est
+
+
+
+
+
+#@jax.jit(static_argnames=['ir_len', 'extra_delay'])
+@partial(jax.jit, static_argnames=['ir_len', 'extra_delay'])
+def free_space_ir(pos_src, pos_mic, samplerate, c, ir_len, extra_delay):
+    """Computes the free space impulse response between sources and microphones
+
+    Parameters
+    ----------
+    pos_src : ndarray of shape (num_src, 3)
+        positions of the sources
+    pos_mic : ndarray of shape (num_mic, 3)
+        positions of the microphones
+    samplerate : int
+        sampling rate of the impulse response
+    c : float
+        speed of sound
+    extra_delay : int
+        extra delay in addition to the propagation delay. The fractional delay filter is 
+        of order extra_delay * 2 + 1, so a higher value gives a better filter approximation. 
+
+    Returns
+    -------
+    ir : ndarray of shape (num_src, num_mic, ir_len)
+        free space impulse response between sources and microphones
+    """
+    num_src = pos_src.shape[0]
+    num_mic = pos_mic.shape[0]
+
+    dists = jnp.linalg.norm(pos_src[:,None,:] - pos_mic[None,:,:], axis=-1) # shape (num_src, num_mic)
+    delay_samples = samplerate * dists / c # shape (num_src, num_mic)
+    integer_delay = jnp.floor(delay_samples).astype(jnp.int32)  # shape (num_src, num_mic)
+    frac_delay = delay_samples - integer_delay
+
+    even = False
+    if ir_len % 2 == 0:
+        ir_len -= 1  # make odd
+        even = True
+
+    frac_len = extra_delay * 2 + 1
+    total_len = ir_len + frac_len
+
+    irs_frac = jax.vmap(fd.frac_dly_windowed_sinc, in_axes=(0,None))(frac_delay.reshape(-1), frac_len)  # shape (num_src, num_mic, frac_len)
+    irs_frac = irs_frac.reshape((num_src, num_mic, -1))  # shape (num_src, num_mic, frac_len)
+    ir_frac = irs_frac / (4 * jnp.pi * dists[...,None])  # shape (num_src, num_mic, frac_len)
+
+    def place_frac_ir(frac_ir, start_idx):
+        ir = jnp.zeros((total_len,))
+        return jax.lax.dynamic_update_slice(ir, frac_ir, (start_idx,))
+
+    irs = jax.vmap(jax.vmap(place_frac_ir))(irs_frac, integer_delay)
+
+    if even:
+        irs = jnp.concatenate([irs, jnp.zeros((num_src, num_mic, 1))], axis=-1)
+
+    irs = irs[..., :-frac_len]
+    return irs
+
+
+if __name__ == "__main__":
+    import numpy as np
+    import matplotlib.pyplot as plt
+    rng = np.random.default_rng(1234)
+    pos_src = rng.uniform(-1,1,(1,3)) + np.array([2, 0, 0])
+    pos_mic = np.zeros((100, 3))
+    pos_mic[:,1] = np.linspace(0,4,100)
+
+    samplerate = 2000
+    c = 343
+    ir_len = 4000
+    extra_delay = 2800
+    ir = free_space_ir(pos_src, pos_mic, samplerate, c, ir_len, extra_delay)
+
+    plt.imshow(np.log10(np.abs(ir[0,:,:])), aspect='auto')
+    plt.title("Free space impulse responses")
+    plt.xlabel("Time (samples)")
+    plt.ylabel("Microphone index")
+    plt.colorbar()
+    plt.show()
+
