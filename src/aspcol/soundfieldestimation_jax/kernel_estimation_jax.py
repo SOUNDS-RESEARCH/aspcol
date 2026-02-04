@@ -160,7 +160,7 @@ def krr_stationary_mics(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, ver
     system_matrix_reg = gamma + reg_matrix
 
     data_vector = ir_mic.reshape(-1)
-    krr_params = jnp.linalg.solve(system_matrix_reg, data_vector)
+    krr_params = jax.scipy.linalg.solve(system_matrix_reg, data_vector, assume_a="pos")
 
     estimate = reconstruct_diffuse(pos_eval, pos_mic, wave_num, krr_params)
 
@@ -228,7 +228,7 @@ def _calc_krr_parameters(gamma, ir_mic, reg_param, data_weighting=None, freq_wei
     system_matrix_reg = gamma + reg_matrix
 
     data_vector = ir_mic.reshape(-1)
-    krr_params = jnp.linalg.solve(system_matrix_reg, data_vector)
+    krr_params = jax.scipy.linalg.solve(system_matrix_reg, data_vector, assume_a="pos")
     return krr_params
 
 
