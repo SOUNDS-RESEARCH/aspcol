@@ -13,7 +13,6 @@ import aspcol.kernelinterpolation_jax as kernel
 import aspcore.fouriertransform_jax as ft
 import aspcore.matrices_jax as aspmat
 
-
 @partial(jax.jit, static_argnames=["batch_size"])
 def reconstruct_diffuse(pos_eval, pos_mic, wave_num, krr_params, batch_size=20):
     """
@@ -86,21 +85,6 @@ def reconstruct_from_kernel(gamma_eval, krr_params):
     estimate = jnp.sum(estimate_each_mic, axis=0)
     return estimate
 
-
-def _blockmat2param(R, num_mic, ir_len):
-    """
-    takes blockmat of form (num_mic * ir_len, num_mic * ir_len) and output parametrized
-    matrices of form (num_mic, num_mic, ir_len, ir_len)
-    
-    """
-    new_mat = np.zeros((num_mic, num_mic, ir_len, ir_len), dtype=R.dtype)
-    for i in range(num_mic):
-        for j in range(num_mic):
-            new_mat[i,j,:,:] = R[i*ir_len:(i+1)*ir_len, j*ir_len:(j+1)*ir_len]
-    return new_mat
-
-
-
 @partial(jax.jit, static_argnames=["num_pos", "ir_len"])
 def _data_weighting_argument_parsing(data_weighting, num_pos, ir_len):
     if data_weighting.ndim == 1 and data_weighting.shape[-1] == ir_len:
@@ -141,6 +125,20 @@ def krr_stationary_mics(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, ver
     mat_size = num_pos * ir_len
     wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
     gamma = kernel.kernel_time_domain_diffuse(pos_mic, pos_mic, wave_num, real_nyquist=even_dft_length)
+
+    krr_params = _calc_krr_parameters(gamma, ir_mic, reg_param, data_weighting=data_weighting, freq_weighting=freq_weighting)
+    estimate = reconstruct_diffuse(pos_eval, pos_mic, wave_num, krr_params)
+
+    if verbose:
+        return estimate, krr_params, gamma
+    return estimate
+
+
+@jax.jit
+def _calc_krr_parameters(gamma, ir_mic, reg_param, data_weighting=None, freq_weighting=None):
+    num_pos = ir_mic.shape[0]
+    ir_len = ir_mic.shape[-1]
+    mat_size = num_pos * ir_len
     gamma = aspmat.param2blockmat(gamma)
 
     if data_weighting is not None:
@@ -161,13 +159,7 @@ def krr_stationary_mics(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, ver
 
     data_vector = ir_mic.reshape(-1)
     krr_params = jax.scipy.linalg.solve(system_matrix_reg, data_vector, assume_a="pos")
-
-    estimate = reconstruct_diffuse(pos_eval, pos_mic, wave_num, krr_params)
-
-    if verbose:
-        return estimate, krr_params, gamma
-    return estimate
-
+    return krr_params
 
 @partial(jax.jit, static_argnames=["verbose"])
 def krr_stationary_mics_directional_vonmises(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, direction, beta, verbose=False, data_weighting=None, freq_weighting=None):
@@ -203,35 +195,6 @@ def krr_stationary_mics_directional_vonmises(ir_mic, pos_mic, pos_eval, samplera
         return estimate, krr_params, gamma
 
     return estimate
-
-@jax.jit
-def _calc_krr_parameters(gamma, ir_mic, reg_param, data_weighting=None, freq_weighting=None):
-    num_pos = ir_mic.shape[0]
-    ir_len = ir_mic.shape[-1]
-    mat_size = num_pos * ir_len
-    gamma = aspmat.param2blockmat(gamma)
-
-    if data_weighting is not None:
-        data_weighting = _data_weighting_argument_parsing(data_weighting, num_pos, ir_len)
-        data_weighting = jnp.diag(1 / data_weighting)
-        reg_matrix = data_weighting * reg_param
-    else:
-        reg_matrix = reg_param * jnp.eye(mat_size)
-
-    if freq_weighting is not None:
-        freq_mat = jnp.squeeze(kernel.freq_to_time_domain_kernel_matrix(freq_weighting[None, None,:]), axis=(0,1))
-        freq_mat_inv = jnp.squeeze(kernel.freq_to_time_domain_kernel_matrix(1/freq_weighting[None, None,:]), axis=(0,1))
-        freq_mat = aspmat.block_diagonal_same(freq_mat, num_pos)
-        freq_mat_inv = aspmat.block_diagonal_same(freq_mat_inv, num_pos)
-        reg_matrix = reg_matrix @ freq_mat
-
-    system_matrix_reg = gamma + reg_matrix
-
-    data_vector = ir_mic.reshape(-1)
-    krr_params = jax.scipy.linalg.solve(system_matrix_reg, data_vector, assume_a="pos")
-    return krr_params
-
-
 
 @partial(jax.jit, static_argnames=["batch_size"])
 def reconstruct_directional_vonmises(pos_eval, pos_mic, wave_num, krr_params, direction, beta, batch_size=20):
@@ -276,228 +239,70 @@ def reconstruct_directional_vonmises(pos_eval, pos_mic, wave_num, krr_params, di
 
 
 
-@partial(jax.jit, static_argnames=["verbose", "max_cond"])
-def krr_stationary_mics_envelope_regularized(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, envelope_reg, reg_points, verbose=False, data_weighting=None, max_cond=1e10):
-    """Estimates the impulse responses at the evaluation points using kernel ridge regression.
 
-    Uses a regularization defined by a linear operator.
+@partial(jax.jit, static_argnames="score")
+def cross_validation_krr_stationary_mics(data, pos, samplerate, c, reg_params, data_weighting=None, score="gcv", **kwargs):
+    """Computes the GCV score for time-domain sound field kernel interpolation.
 
-    Parameters
-    ----------
-    ir_mic : np.ndarray of shape (num_mics, ir_len)
-        The impulse responses measure  at the microphones.
-    pos_mic : np.ndarray of shape (num_mics, 3)
-        The position of the microphones.
-    pos_eval : np.ndarray of shape (num_eval, 3)
-        The position of the evaluation points.
-    c : float
-        The speed of sound.
+    data : np.ndarray of shape (num_data, data_dim)
+        For sound field estimation, this is the sound pressure at the measurement positions.
+        for time-domain kernel interpolation, data_dim is the length of the impulse response.
+        for frequency-domain kernel interpolation, data_dim is 1
+    pos : np.ndarray of shape (num_data, 3)
+        Positions of the measurement points.
+    wave_num : np.ndarray of shape (num_real_freqs,)
+        Wave number, defined as 2*pi*f/c, where f is the frequency and c is the speed of sound.
     reg_param : float
-        The regularization parameter
-    
+        regularization parameter to evaluate the GCV score for.
+
+    score : str in {'gcv', 'ml', 'loocv', 'loocv_spatially_blocked'}
+        decides which type of score to use to determine the best regularization parameter.
+        gcv is generalized cross-validation
+        ml is maximum likelihood
+        loocv is leave-one-out cross-validation
+
     Returns
     -------
-    ir_eval : np.ndarray of shape (num_eval, ir_len)
-        The estimated impulse responses at the evaluation points.
-    """
-    num_pos = pos_mic.shape[0]
-    num_eval = pos_eval.shape[0]
-    ir_len = ir_mic.shape[-1]
-    wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
-    gamma = kernel.kernel_time_domain_envelope(pos_mic, pos_mic, wave_num, envelope_reg, reg_points)
-    gamma_r3 = kernel.time_domain_envelope_kernel_r3(pos_mic, pos_mic, wave_num, envelope_reg, reg_points)
-        
-    if data_weighting is not None:
-        if data_weighting.ndim == 1:
-            data_weighting = data_weighting[None,:]
-        gamma_weighted = gamma * data_weighting[None,:,None,:] #matrix multiplication from the right
-    else:
-        gamma_weighted = gamma
-    gamma_bar = aspmat.matmul_param(gamma_weighted, gamma)
+    gcv_score : float
+        GCV score for the given regularization parameter.
 
-    gamma = aspmat.param2blockmat(gamma)
-    gamma_weighted = aspmat.param2blockmat(gamma_weighted)
-    gamma_r3 = aspmat.param2blockmat(gamma_r3)
-    gamma_bar = aspmat.param2blockmat(gamma_bar)
-
-    
-        #data_weighting = jnp.diag(1 / data_weighting)
-        #reg_matrix = data_weighting * reg_param
-    #else:
-        #reg_matrix = reg_param * jnp.eye(mat_size)
-
-    
-    system_matrix_reg_pre_reg = gamma_bar + reg_param * gamma_r3 #+ 1e-5 * np.eye(gamma_r3.shape[-1])
-
-    # Regularize the inverse problem
-    system_matrix_reg = aspmat.regularize_matrix_with_condition_number(system_matrix_reg_pre_reg, max_cond=max_cond)
-    #max_ev = jnp.linalg.eigvalsh(system_matrix_reg_pre_reg)[-1]#, subset_by_index=(system_matrix_reg.shape[-1]-1, system_matrix_reg.shape[-1]-1))
-    #identity_scaling = max_ev / max_cond
-    #system_matrix_reg = system_matrix_reg_pre_reg + identity_scaling * jnp.eye(system_matrix_reg_pre_reg.shape[-1])
-
-
-    data_vector = ir_mic.reshape(-1)
-    weighted_data_vector = gamma_weighted @ data_vector
-    krr_params = jnp.linalg.solve(system_matrix_reg, weighted_data_vector)
-    krr_params = krr_params.reshape(num_pos, ir_len)
-
-    gamma_eval = kernel.kernel_time_domain_envelope(pos_eval, pos_mic, wave_num, envelope_reg, reg_points)
-    estimate = reconstruct_from_kernel(gamma_eval, krr_params)
-
-    if verbose:
-        # metadata = {}
-        # for mat_name, mat in {"gamma":gamma, 
-        #                     "gamma_r3" : gamma_r3, 
-        #                     "gamma_bar" : gamma_bar, 
-        #                     "system_matrix_pre_reg" : system_matrix_reg_pre_reg,
-        #                     "system_matrix_reg" : system_matrix_reg}.items():
-        #     metadata[f"{mat_name} max eigenvalue"] = jnp.linalg.eigvalsh(mat)[-1]
-        #     metadata[f"{mat_name} min eigenvalue"] = jnp.linalg.eigvalsh(mat)[0]
-        #     metadata[f"{mat_name} condition"] = jnp.linalg.cond(mat)
-        return estimate, krr_params, gamma, gamma_r3#, metadata
-    return estimate
-
-
-@partial(jax.jit, static_argnames=["verbose", "max_cond"])
-def krr_stationary_mics_envelope_regularized_changedip(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, envelope_reg, reg_points, verbose=False, data_weighting=None, max_cond=None):
-    """Estimates the impulse responses at the evaluation points using kernel ridge regression.
-
-    Uses a regularization defined by a linear operator.
-
-    Parameters
+    References
     ----------
-    ir_mic : np.ndarray of shape (num_mics, ir_len)
-        The impulse responses measure  at the microphones.
-    pos_mic : np.ndarray of shape (num_mics, 3)
-        The position of the microphones.
-    pos_eval : np.ndarray of shape (num_eval, 3)
-        The position of the evaluation points.
-    c : float
-        The speed of sound.
-    reg_param : float
-        The regularization parameter
-    
-    Returns
-    -------
-    ir_eval : np.ndarray of shape (num_eval, ir_len)
-        The estimated impulse responses at the evaluation points.
+    Time-domain sound field estimation using kernel ridge regression, J Brunnström, M. B. Møller, J Østergaard, S Koyama, T van Waterschoot, M Moonen, 2025
     """
-    num_pos = pos_mic.shape[0]
-    num_eval = pos_eval.shape[0]
-    ir_len = ir_mic.shape[-1]
+    num_pos = pos.shape[0]
+    ir_len = data.shape[-1]
+    even_dft_length = ir_len % 2 == 0
+
     mat_size = num_pos * ir_len
     wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
-    gamma = kernel.kernel_time_domain_envelope(pos_mic, pos_mic, wave_num, envelope_reg, reg_points)
-    gamma = aspmat.param2blockmat(gamma)
+    K = kernel.kernel_time_domain_diffuse(pos, pos, wave_num, real_nyquist=even_dft_length)
+    K = aspmat.param2blockmat(K)
 
     if data_weighting is not None:
         data_weighting = _data_weighting_argument_parsing(data_weighting, num_pos, ir_len)
         data_weighting = jnp.diag(1 / data_weighting)
-        reg_matrix = data_weighting * reg_param
+        reg_matrix_base = data_weighting
     else:
-        #data_weighting = _data_weighting_argument_parsing(envelope_reg, num_pos, ir_len)
-        #data_weighting = jnp.diag(1 / data_weighting)
-        #reg_matrix = data_weighting * reg_param
-        reg_matrix = reg_param * jnp.eye(mat_size)
-        
-    #gamma = aspmat.param2blockmat(gamma)
-    #gamma_weighted = aspmat.param2blockmat(gamma_weighted)
+        reg_matrix_base = jnp.eye(mat_size)
 
-    system_matrix_reg = gamma + reg_matrix
-
-    # Regularize the inverse problem
-    if max_cond is not None:
-        system_matrix_reg = aspmat.regularize_matrix_with_condition_number(system_matrix_reg, max_cond=max_cond)
-    #max_ev = jnp.linalg.eigvalsh(system_matrix_reg_pre_reg)[-1]#, subset_by_index=(system_matrix_reg.shape[-1]-1, system_matrix_reg.shape[-1]-1))
-    #identity_scaling = max_ev / max_cond
-    #system_matrix_reg = system_matrix_reg_pre_reg + identity_scaling * jnp.eye(system_matrix_reg_pre_reg.shape[-1])
-
-    data_vector = ir_mic.reshape(-1)
-    krr_params = jnp.linalg.solve(system_matrix_reg, data_vector)
-    krr_params = krr_params.reshape(num_pos, ir_len)
-
-    # data_vector = ir_mic.reshape(-1)
-    # weighted_data_vector = gamma_weighted @ data_vector
-    # krr_params = jnp.linalg.solve(system_matrix_reg, weighted_data_vector)
-    # krr_params = krr_params.reshape(num_pos, ir_len)
-
-    gamma_eval = kernel.kernel_time_domain_envelope(pos_eval, pos_mic, wave_num, envelope_reg, reg_points)
-    estimate = reconstruct_from_kernel(gamma_eval, krr_params)
-
-    if verbose:
-        # metadata = {}
-        # for mat_name, mat in {"gamma":gamma, 
-        #                     "gamma_r3" : gamma_r3, 
-        #                     "gamma_bar" : gamma_bar, 
-        #                     "system_matrix_pre_reg" : system_matrix_reg_pre_reg,
-        #                     "system_matrix_reg" : system_matrix_reg}.items():
-        #     metadata[f"{mat_name} max eigenvalue"] = jnp.linalg.eigvalsh(mat)[-1]
-        #     metadata[f"{mat_name} min eigenvalue"] = jnp.linalg.eigvalsh(mat)[0]
-        #     metadata[f"{mat_name} condition"] = jnp.linalg.cond(mat)
-        return estimate, krr_params, gamma#, metadata
-    return estimate
-
-@partial(jax.jit, static_argnames=["verbose", "max_cond"])
-def krr_stationary_mics_frequency_weighted(ir_mic, pos_mic, pos_eval, samplerate, c, reg_param, weighting_mat, verbose=False, max_cond=1e10):
-    """Estimates the impulse responses at the evaluation points using kernel ridge regression.
-
-    Uses a regularization defined by a linear operator.
-
-    Parameters
-    ----------
-    ir_mic : np.ndarray of shape (num_mics, ir_len)
-        The impulse responses measure  at the microphones.
-    pos_mic : np.ndarray of shape (num_mics, 3)
-        The position of the microphones.
-    pos_eval : np.ndarray of shape (num_eval, 3)
-        The position of the evaluation points.
-    c : float
-        The speed of sound.
-    reg_param : float
-        The regularization parameter
+    def compute_score(reg):
+        reg_matrix = reg * reg_matrix_base
+        if score == "gcv":
+            score_value = kernel.gcv_score(K, reg_matrix, data)
+        elif score == "ml":
+            score_value = kernel.ml_score(K, reg_matrix, data)
+        elif score == "loocv":
+            score_value = kernel.loocv_score(K, reg_matrix, data)
+        elif score == "loocv_spatially_blocked":
+            score_value = kernel.loocv_score_spatially_blocked(K, reg_matrix, data, pos, block_radius=kwargs["block_radius"])
+        else:
+            raise ValueError("unrecognized score parameter")
+        return score_value
     
-    Returns
-    -------
-    ir_eval : np.ndarray of shape (num_eval, ir_len)
-        The estimated impulse responses at the evaluation points.
-    """
-    num_pos = pos_mic.shape[0]
-    num_eval = pos_eval.shape[0]
-    ir_len = ir_mic.shape[-1]
-    wave_num = ft.get_real_wavenum(ir_len, samplerate, c)
-    gamma = kernel.time_domain_frequency_weighted_kernel(pos_mic, pos_mic, wave_num, weighting_mat)
-    weighting_mat_r3 = weighting_mat @ weighting_mat @ weighting_mat
-    gamma_r3 = kernel.time_domain_frequency_weighted_kernel(pos_mic, pos_mic, wave_num, weighting_mat_r3)
+    score_values = jax.lax.map(compute_score, reg_params, batch_size=1)  
 
-    gamma_bar = aspmat.matmul_param(gamma, gamma)
+    best_index = jnp.argmin(score_values)
+    best_reg_param = reg_params[best_index]
 
-    gamma = aspmat.param2blockmat(gamma)
-    gamma_r3 = aspmat.param2blockmat(gamma_r3)
-    gamma_bar = aspmat.param2blockmat(gamma_bar)
-
-    system_matrix_reg = gamma_bar + reg_param * gamma_r3
-
-    # Regularize the inverse problem
-    system_matrix_reg = aspmat.regularize_matrix_with_condition_number(system_matrix_reg, max_cond=max_cond)
-    # max_ev = jnp.linalg.eigvalsh(system_matrix_reg)[-1]#, subset_by_index=(system_matrix_reg.shape[-1]-1, system_matrix_reg.shape[-1]-1))
-    # desired_inv_condition_number = 1e10
-    # identity_scaling = max_ev / desired_inv_condition_number
-    # system_matrix_reg += identity_scaling * jnp.eye(system_matrix_reg.shape[-1])
-
-
-    data_vector = ir_mic.reshape(-1)
-    weighted_data_vector = gamma @ data_vector
-    krr_params = jnp.linalg.solve(system_matrix_reg, weighted_data_vector)
-    krr_params = krr_params.reshape(num_pos, ir_len)
-
-    gamma_eval = kernel.time_domain_frequency_weighted_kernel(pos_eval, pos_mic, wave_num, weighting_mat)
-    estimate = reconstruct_from_kernel(gamma_eval, krr_params)
-
-    if verbose:
-        metadata = {}
-        for mat_name, mat in {"gamma":gamma, "gamma_r3" : gamma_r3, "gamma_bar" : gamma_bar, "system_matrix_reg" : system_matrix_reg}.items():
-            metadata[f"{mat_name} max eigenvalue"] = splin.eigvalsh(mat, subset_by_index = (num_pos*ir_len-2, num_pos*ir_len-1)).tolist()
-            metadata[f"{mat_name} min eigenvalue"] = splin.eigvalsh(mat, subset_by_index = (0, 1)).tolist()
-            metadata[f"{mat_name} condition"] = np.linalg.cond(mat).tolist()
-        return estimate, krr_params, gamma, gamma_r3, metadata
-    return estimate
+    return best_reg_param, score_values

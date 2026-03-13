@@ -24,16 +24,20 @@ from functools import partial
 #jax.config.update("jax_disable_jit", True)
 #jax.config.update("jax_debug_nans", True)
 
-import aspcore.fouriertransform as ft_numpy
-import aspcol.sphericalharmonics as shd_numpy
 
+import aspcore.fouriertransform as ft_numpy
 import aspcore.fouriertransform_jax as ft
 import aspcore.matrices_jax as aspmat
 import aspcore.montecarlo_jax as mc
+import aspcore.linear_systems_jax as ls
+import aspcore.quadrature_jax as quad
+
+import aspcol.sphericalharmonics as shd_numpy
 import aspcol.sphericalharmonics_jax as shd
 import aspcol.planewaves_jax as pw
 
-import aspcol.kernelinterpolation_jax.kernel as kernel
+import aspcol.kernelinterpolation_jax as kernel
+
 
 
 def _parse_moving_mic_args(p, pos, pos_eval, sequence):
@@ -125,7 +129,7 @@ def inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_p
     Phi = _sequence_stft_bayesian_multiperiod_numpy(sequence, num_periods)
     Phi = Phi[:num_real_freqs,:]
     
-    psi = calculate_psi(pos, dir_coeffs, wave_num, Phi, seq_len, num_real_freqs)
+    psi = calculate_psi(pos, dir_coeffs, wave_num, Phi, num_real_freqs)
     psi = np.asarray(psi) # convert to numpy array, as jax is no longer necessary
     noise_cov = reg_param * np.eye(N)
     psi_plus_noise_cov = psi + noise_cov
@@ -148,6 +152,9 @@ def inf_dimensional_shd_dynamic(p, pos, pos_eval, sequence, samplerate, c, reg_p
 
 def estimate_from_regressor(regressor, pos, pos_eval, wave_num, dir_coeffs = None):
     """Takes the regressor from inf_dimensional_shd_dynamic, and gives back a sound field estimate. 
+
+    IMPORTANT: This function is not JIT compatible. But it manages to compile the most costly 
+    parts of the computation. 
 
     Gives the same result as inf_dimensional_shd_dynamic, but is much faster since computing the regressor is the primary 
     computational cost. 
@@ -223,54 +230,8 @@ def estimate_from_regressor(regressor, pos, pos_eval, wave_num, dir_coeffs = Non
     #return _estimate_from_regressor_compiled(regressor, pos, pos_eval, wave_num, dir_omni, dir_coeffs, gaunt_set)
     return est_sound_pressure
 
-def _estimate_from_regressor_compiled(regressor, pos, pos_eval, wave_num, dir_omni, dir_coeffs, gaunt_set):
 
-    def psi_scan_loop(carry, arg_slice):
-        (pos_i, dir_coeffs_i) = arg_slice
-
-        def psi_scan_inner_loop(carry_inner, arg_slice_inner):
-            (pos_j, dir_coeffs_j) = arg_slice_inner
-
-            pos_diff = pos_i[None,:] - pos_j[None,:]
-
-            T = shd.translation_operator(pos_diff, wave_num, gaunt_set)
-            inner_product = jnp.moveaxis(jnp.conj(dir_coeffs_i)[None,None,:,None], -1, -2) @ T @ dir_coeffs_j[None,None,:,None]
-            inner_product = jnp.squeeze(inner_product)
-
-            psi_ij = 2 * jnp.sum(jnp.real(inner_product[1:-1,...]))
-            psi_ij = psi_ij + jnp.real(inner_product[0,...]) + jnp.real(inner_product[-1,...])
-
-            return carry_inner, psi_ij
-        
-        _, psi_i = jax.lax.scan(psi_scan_inner_loop, 0, (pos, dir_coeffs))        
-        return (carry, psi_i)
-    
-    _, psi = jax.lax.scan(psi_scan_loop, 0, (pos_eval, dir_omni))
-
-
-    kernel_val = shd_numpy.translated_inner_product(pos_eval, pos, dir_omni, dir_coeffs, wave_num)
-    est_sound_pressure = np.squeeze(kernel_val @ regressor[:,:,None], axis=-1)
-    return est_sound_pressure
-
-def _calculate_psi_compiled_each_freq(pos, dir_coeffs, k, Phi, seq_len, num_real_freqs, gaunt_set):
-    N = pos.shape[0]
-    psi = np.zeros((N, N), dtype = float)
-
-    for f in range(1, num_real_freqs-1):
-        print(f"Frequency {f}, going from 1 to {num_real_freqs-2} (inclusive)")
-        phi_rank1_matrix = Phi[f,:,None] * Phi[f,None,:].conj()
-
-        psi_f = np.squeeze(shd.translated_inner_product(pos, dir_coeffs, k[f:f+1], gaunt_set), axis=0) * phi_rank1_matrix
-        psi += 2 * np.real(psi_f)
-
-    # no conjugation required for zeroth frequency and the Nyquist frequency, 
-    # since they will be real already for a real input sequence
-    psi += np.squeeze(np.real_if_close(shd.translated_inner_product(pos, dir_coeffs, k[0:1], gaunt_set)), axis=0) * np.real_if_close(Phi[0,:,None] * Phi[0,None,:])
-    psi += np.squeeze(np.real(shd.translated_inner_product(pos, dir_coeffs, k[seq_len//2:seq_len//2+1], gaunt_set)), axis=0) * np.real_if_close(Phi[seq_len//2,:,None] * Phi[seq_len//2,None,:])
-    return psi
-
-
-def calculate_psi(pos, dir_coeffs, wave_num, Phi, seq_len, num_real_freqs):
+def calculate_psi(pos, dir_coeffs, wave_num, Phi, num_real_freqs):
     if dir_coeffs.ndim == 2:
         dir_coeffs = dir_coeffs[:,None,:]
     assert pos.ndim == 2
@@ -292,7 +253,6 @@ def calculate_psi(pos, dir_coeffs, wave_num, Phi, seq_len, num_real_freqs):
     max_order = 1
     gaunt_set = shd._calculate_gaunt_set(max_order, max_order)
 
-    print("Running compiled Psi calculation")
     psi = _calculate_psi_compiled(pos, dir_coeffs, wave_num, Phi, gaunt_set)
     return psi
 
@@ -325,67 +285,6 @@ def _calculate_psi_compiled(pos, dir_coeffs, wave_num, Phi, gaunt_set):
         return (carry, psi_i)
     _, psi = jax.lax.scan(psi_scan_loop, 0, (pos, Phi, dir_coeffs))
     return psi
-
-@jax.jit
-def _calculate_psi_compiled_single_loop_in_scan(pos, dir_coeffs, wave_num, Phi, gaunt_set):
-    """
-    is slow to compile, intermediate version between _calculate_psi_compiled_with_python_loops and _calculate_psi_compiled
-    """
-    num_pos = pos.shape[0]
-
-    Phi = Phi.T # we need to scan over leading axis
-    dir_coeffs = dir_coeffs[0,:,:] # assume frequency independent directivity
-
-    def psi_scan_loop(carry, arg_slice):
-        (pos_i, phi_i, dir_coeffs_i) = arg_slice
-
-        psi_vals = []
-        for j in range(num_pos):
-            pos_diff = pos_i[None,:] - pos[j:j+1,:]
-            phi_factor = phi_i * jnp.conj(Phi[j,:])
-
-            T = shd.translation_operator(pos_diff, wave_num, gaunt_set)
-            inner_product = jnp.moveaxis(jnp.conj(dir_coeffs_i)[None,None,:,None], -1, -2) @ T @ dir_coeffs[None,j:j+1,:,None]
-            inner_product = jnp.squeeze(inner_product) * phi_factor
-
-            psi_val = 2 * jnp.sum(jnp.real(inner_product[1:-1,...]))
-            psi_val = psi_val + jnp.real(inner_product[0,...]) + jnp.real(inner_product[-1,...])
-            psi_vals.append(psi_val)
-        psi_i = jnp.stack(psi_vals, axis=0)
-            
-        carry = carry + 1
-        return (carry, psi_i)
-    
-    carry, psi = jax.lax.scan(psi_scan_loop, 0, (pos, Phi, dir_coeffs))
-    return psi
-
-
-@jax.jit
-def _calculate_psi_compiled_with_python_loops(pos, dir_coeffs, wave_num, Phi, gaunt_set):
-    """
-    is really slow to compile, so should not be used 
-    """
-    num_pos = pos.shape[0]
-
-    psi_vals = []
-    for i in range(num_pos):
-        for j in range(num_pos):
-            pos_diff = pos[i:i+1,:] - pos[j:j+1,:]
-            phi_factor = Phi[:,i] * jnp.conj(Phi[:,j])
-
-            T = shd.translation_operator(pos_diff, wave_num, gaunt_set)
-            inner_product = jnp.moveaxis(jnp.conj(dir_coeffs)[:,i:i+1,:,None], -1, -2) @ T @ dir_coeffs[:,j:j+1,:,None]
-            inner_product = jnp.squeeze(inner_product) * phi_factor
-
-            psi_val = 2 * jnp.sum(jnp.real(inner_product[1:-1,...]))
-            psi_val = psi_val + jnp.real(inner_product[0,...]) + jnp.real(inner_product[-1,...])
-            psi_vals.append(psi_val)
-
-    psi = jnp.stack(psi_vals, axis=0)
-    psi = jnp.reshape(psi, (num_pos, num_pos))
-    return psi
-
-
 
 
 
@@ -482,6 +381,51 @@ def _seq_stft_bayesian(sequence):
     return phis
 
 
+@partial(jax.jit, static_argnames=["num_periods"])
+def _seq_stft_krr_multiperiod(sequence, num_periods):
+    """
+    Assumes that the sequence is periodic.
+    Assumes that sequence argument only contains one period
+    
+    Parameters
+    ----------
+    sequence : ndarray of shape (seq_len,)
+    num_periods : int
+
+    Returns
+    -------
+    Phi : ndarray of shape (seq_len, num_periods*seq_len)
+    """
+    Phi = _seq_stft_krr(sequence)
+    return jnp.tile(Phi, (1, num_periods))
+
+def _seq_stft_krr(sequence):
+    """
+    Assumes the sequence is periodic with period B
+
+    Parameters
+    ----------
+    sequence : ndarray of shape (seq_len,)
+
+    Returns
+    -------
+    Phi : ndarray of shape (num_real_freqs, seq_len)
+        first axis contains frequency bins
+        second axis contains time indices
+    
+    """
+    if sequence.ndim == 2:
+        sequence = jnp.squeeze(sequence, axis=0)
+    B = sequence.shape[0]
+
+    def inner_func(n):
+        phi_n = jnp.roll(sequence, -n) #so that n is the first element
+        phi_n = jnp.roll(phi_n, -1) # so that n ends up last
+        phi_n = jnp.flip(phi_n) # so that we get n first and then n-i as we move later in the vector
+        return ft.rfft(phi_n)
+
+    phis = jax.vmap(inner_func, out_axes=1)(jnp.arange(B))
+    return phis
 
 
 
@@ -548,59 +492,6 @@ def krr_moving_mic_directional(p, pos, pos_eval, sequence, samplerate, c, reg_pa
     if return_params:
         return est_sound_pressure, krr_params, K
     return est_sound_pressure
-
-#@partial(jax.jit, static_argnames=["seq_len", "batch_size"])
-def _calc_directional_kernel_mat_attempted_optimization(pos, wave_num, phi_f, direction, beta, seq_len, batch_size=8):
-    dft_weighting = ft.rdft_weighting(seq_len)
-
-    assert direction.ndim == 1 or direction.ndim == 2
-    if direction.ndim == 2:
-        assert direction.shape[0] == 1
-        direction = direction[0,:]
-
-    pos_diff = pos[:,None,:] - pos[None,:,:] # shape (N, N, 3)
-    pos_diff = pos_diff.reshape((pos.shape[0]**2, 3)) #such that we can chunk it
-
-    phi_f_all = phi_f[:,:,None].conj() * phi_f[:,None,:] # shape (num_real_freqs, N, N)
-    phi_f_all = phi_f_all.reshape((phi_f_all.shape[0], -1)).T # shape (N*N, num_real_freqs, )
-
-    angle_term = -1j * beta * direction #(3,) #inverts direction to match kernel definition
-
-    CHUNK_SIZE = 1024
-
-    def loop1(xs):
-        pos_diff_single, phi_f_single = xs
-        pos_term = wave_num[:,None] * pos_diff_single[None,:] # shape (num_real_freqs, 3)
-        kernel_val = jnp.sinc(jnp.sqrt(jnp.sum((angle_term - pos_term)**2, axis=-1)) / jnp.pi)
-
-        K_val = jnp.sum(dft_weighting * jnp.real(phi_f_single * kernel_val))
-        return K_val
-
-    K = jax.lax.map(loop1, (pos_diff, phi_f_all), batch_size=batch_size)
-    K = K.reshape((pos.shape[0], pos.shape[0])) # shape (N, N)
-
-    # def _kernel_inner_loop(system_mat, scanned_args):   
-    #     (wave_num_single, phi_single, dft_weight) = scanned_args
-    #     phi_rank1_matrix = phi_single[:,None].conj() * phi_single[None,:]
-
-    #     pos_term = wave_num_single * pos_diff
-    #     kernel_val = jnp.sinc(jnp.sqrt(jnp.sum((angle_term - pos_term)**2, axis=-1)) / jnp.pi)
-    #     system_mat_incr = dft_weight * jnp.real(kernel_val * phi_rank1_matrix)
-
-    #     system_mat = system_mat + system_mat_incr
-    #     #system_mat_incr = dft_weight * jnp.real(jnp.squeeze(kernel.directional_kernel_vonmises(pos, pos, wave_num_single, -direction, beta)) * phi_rank1_matrix)
-    #     #system_mat = system_mat + system_mat_incr
-    #     return system_mat, system_mat
-    
-
-    # kernel_system_mat = jnp.zeros((pos.shape[0], pos.shape[0]), dtype=float)
-    # kernel_system_mat, _ = jax.lax.scan(_kernel_inner_loop, kernel_system_mat, (wave_num, phi_f, dft_weighting), unroll=batch_size)
-    return K
-
-
-    # angle_term = 1j * beta * direction.reshape((1,-1,1,1,direction.shape[-1]))
-    # pos_term = wave_num.reshape((-1,1,1,1,1)) * (pos1.reshape((1,1,-1,1,pos1.shape[-1])) - pos2.reshape((1,1,1,-1,pos2.shape[-1])))
-    # return jnp.sinc(jnp.sqrt(jnp.sum((angle_term - pos_term)**2, axis=-1)) / jnp.pi)
 
 @partial(jax.jit, static_argnames=["seq_len", "batch_size"])
 def _calc_directional_kernel_mat(pos, wave_num, phi_f, direction, beta, seq_len, batch_size=8):
@@ -688,10 +579,8 @@ def krr_moving_mic_diffuse(p, pos, pos_eval, sequence, samplerate, c, reg_param,
         return est_sound_pressure, krr_params, K
     return est_sound_pressure
 
-
 @partial(jax.jit, static_argnames=["seq_len", "batch_size"])
 def _calc_diffuse_kernel_mat(pos, wave_num, Phi, seq_len, batch_size=8):
-    num_real_freqs = wave_num.shape[-1]
     dft_weighting = ft.rdft_weighting(seq_len)
 
     def _kernel_inner_loop(system_mat, scanned_args):
@@ -736,98 +625,107 @@ def reconstruct_krr_moving_mic_diffuse(krr_params, pos_eval, pos_mic, wave_num, 
     return estimate
 
 
+@partial(jax.jit, static_argnames="score")
+def cross_validation_krr_moving_mic_diffuse(data, pos, sequence, samplerate, c, reg_params, score="gcv", **kwargs):
+    """Computes the GCV score for time-domain sound field kernel interpolation.
 
+    data : np.ndarray of shape (num_data, data_dim)
+        For sound field estimation, this is the sound pressure at the measurement positions.
+        for time-domain kernel interpolation, data_dim is the length of the impulse response.
+        for frequency-domain kernel interpolation, data_dim is 1
+    pos : np.ndarray of shape (num_data, 3)
+        Positions of the measurement points.
+    wave_num : np.ndarray of shape (num_real_freqs,)
+        Wave number, defined as 2*pi*f/c, where f is the frequency and c is the speed of sound.
+    reg_param : float
+        regularization parameter to evaluate the GCV score for.
 
-@partial(jax.jit, static_argnames=["num_periods"])
-def _seq_stft_krr_multiperiod(sequence, num_periods):
-    """
-    Assumes that the sequence is periodic.
-    Assumes that sequence argument only contains one period
-    
-    Parameters
-    ----------
-    sequence : ndarray of shape (seq_len,)
-    num_periods : int
-
-    Returns
-    -------
-    Phi : ndarray of shape (seq_len, num_periods*seq_len)
-    """
-    Phi = _seq_stft_krr(sequence)
-    return jnp.tile(Phi, (1, num_periods))
-
-def _seq_stft_krr(sequence):
-    """
-    Assumes the sequence is periodic with period B
-
-    Parameters
-    ----------
-    sequence : ndarray of shape (seq_len,)
+    score : str in {'gcv', 'ml', 'loocv', 'loocv_spatially_blocked'}
+        decides which type of score to use to determine the best regularization parameter.
+        gcv is generalized cross-validation
+        ml is maximum likelihood
+        loocv is leave-one-out cross-validation
 
     Returns
     -------
-    Phi : ndarray of shape (num_real_freqs, seq_len)
-        first axis contains frequency bins
-        second axis contains time indices
-    
-    """
-    if sequence.ndim == 2:
-        sequence = jnp.squeeze(sequence, axis=0)
-    B = sequence.shape[0]
+    best_reg_param : float
+        regularization parameter that minimizes the chosen score
+    score_values : ndarray of shape (len(reg_params),)
+        score values for each regularization parameter
 
-    def inner_func(n):
-        phi_n = jnp.roll(sequence, -n) #so that n is the first element
-        phi_n = jnp.roll(phi_n, -1) # so that n ends up last
-        phi_n = jnp.flip(phi_n) # so that we get n first and then n-i as we move later in the vector
-        return ft.rfft(phi_n)
-
-    phis = jax.vmap(inner_func, out_axes=1)(jnp.arange(B))
-    return phis
-
-
-@partial(jax.jit, static_argnames=["num_periods"])
-def _seq_stft_krr_multiperiod_OLD(sequence, num_periods):
-    """
-    Assumes that the sequence is periodic.
-    Assumes that sequence argument only contains one period
-    
-    Parameters
+    References
     ----------
-    sequence : ndarray of shape (seq_len,)
-    num_periods : int
-
-    Returns
-    -------
-    Phi : ndarray of shape (seq_len, num_periods*seq_len)
+    Time-domain sound field estimation using kernel ridge regression, J Brunnström, M. B. Møller, J Østergaard, S Koyama, T van Waterschoot, M Moonen, 2025
     """
-    Phi = _seq_stft_krr_OLD(sequence)
-    return jnp.tile(Phi, (1, num_periods))
+    data, pos, _, sequence, N, seq_len, num_periods = _parse_moving_mic_args(data, pos, jnp.zeros((1,3)), sequence)
+    wave_num = ft.get_real_wavenum(seq_len, samplerate, c)
 
-def _seq_stft_krr_OLD(sequence):
-    """
-    Assumes the sequence is periodic with period B
-    Implements by calculating the Bayesian version and then scaling and conjugating it. 
+    phi_f = _seq_stft_krr_multiperiod(sequence, num_periods)
+    K = _calc_diffuse_kernel_mat(pos, wave_num, phi_f, seq_len)
 
-    Parameters
-    ----------
-    sequence : ndarray of shape (seq_len,)
+    reg_matrix_base = jnp.eye(N)
 
-    Returns
-    -------
-    Phi : ndarray of shape (num_real_freqs, seq_len)
-        first axis contains frequency bins
-        second axis contains time indices
+    def compute_score(reg):
+        reg_matrix = reg * reg_matrix_base
+        if score == "gcv":
+            score_value = kernel.gcv_score(K, reg_matrix, data)
+        elif score == "ml":
+            score_value = kernel.ml_score(K, reg_matrix, data)
+        elif score == "loocv":
+            score_value = kernel.loocv_score(K, reg_matrix, data)
+        elif score == "loocv_spatially_blocked":
+            score_value = kernel.loocv_score_spatially_blocked(K, reg_matrix, data, pos, block_radius=kwargs["block_radius"])
+        else:
+            raise ValueError("unrecognized score parameter")
+        return score_value
     
+    score_values = jax.lax.map(compute_score, reg_params, batch_size=1)  
+
+    best_index = jnp.argmin(score_values)
+    best_reg_param = reg_params[best_index]
+
+    return best_reg_param, score_values
+
+
+
+
+
+
+
+
+def _random_rotation_matrix(key):
     """
-    if sequence.ndim == 2:
-        sequence = jnp.squeeze(sequence, axis=0)
-    B = sequence.shape[0]
+    Generate a random 3x3 rotation matrix using axis–angle.
+    """
+    key_axis, key_angle = jax.random.split(key)
 
-    def inner_func(n):
-        return ft.rfft(jnp.roll(sequence, -n)) / B
-    phis = jax.vmap(inner_func, out_axes=1)(jnp.arange(B))
-    return phis.conj() * B
+    # Random unit axis
+    axis = jax.random.normal(key_axis, (3,))
+    axis = axis / jnp.linalg.norm(axis)
 
+    theta = jax.random.uniform(key_angle, (), minval=0.0, maxval=2 * jnp.pi)
+
+    x, y, z = axis
+    c = jnp.cos(theta)
+    s = jnp.sin(theta)
+    C = 1.0 - c
+
+    R = jnp.array([
+        [c + x*x*C,     x*y*C - z*s, x*z*C + y*s],
+        [y*x*C + z*s,   c + y*y*C,   y*z*C - x*s],
+        [z*x*C - y*s,   z*y*C + x*s, c + z*z*C]
+    ])
+
+    return R
+
+
+@jax.jit
+def _apply_random_rotation(A, key):
+    """
+    A: (num_points, 3) array of unit vectors
+    """
+    R = _random_rotation_matrix(key)
+    return A @ R.T
 
 
 
@@ -837,8 +735,8 @@ def reconstruct_moving_mic_rff(params, pos_eval, wave_num, basis_directions, sam
     p_est = jnp.sum(z_eval * params[:,None,:], axis=-1) 
     return p_est
 
-@partial(jax.jit, static_argnames=["num_basis", "return_params", "same_direction_for_all_freqs"])
-def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num_basis=64, key=None, return_params=False, direction = None, beta = None, same_direction_for_all_freqs=True):
+@partial(jax.jit, static_argnames=["num_basis", "return_params", "same_direction_for_all_freqs", "deterministic_directions"])
+def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num_basis=64, key=None, return_params=False, direction = None, beta = None, same_direction_for_all_freqs=True, deterministic_directions = False):
     """Sound field estimation with moving microphone using KRR with random Fourier features
     
     Parameters
@@ -859,6 +757,11 @@ def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num
         regularization parameter
     num_basis : int, optional
         number of random basis directions to use, by default 64
+    deterministic_directions : bool, optional
+        if True, uses deterministic basis directions from a t-design instead of random ones. This will interpret num_basis as
+        the order of the t-design, so the actual number of basis functions will be larger, usually not too far from num_basis**2. 
+        Requires same_direction_for_all_freqs to be True.
+        By default False.
 
     Returns
     -------
@@ -882,19 +785,27 @@ def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num
     num_real_freqs = wave_num.shape[-1]
     phi_f = _seq_stft_krr_multiperiod(sequence, num_periods)
 
-    if same_direction_for_all_freqs:
+    if deterministic_directions:
+        basis_directions = quad.t_design(num_basis) #num_basis interpreted as t-design order
+        basis_directions = _apply_random_rotation(basis_directions, key) # to avoid always having the same directions for the same num_basis
+        
+        assert same_direction_for_all_freqs, "deterministic_directions is only implemented for same_direction_for_all_freqs=True"
+        num_basis = basis_directions.shape[0]
         tot_num_basis = num_basis
     else:
-        tot_num_basis = num_basis * num_real_freqs
+        if same_direction_for_all_freqs:
+            tot_num_basis = num_basis
+        else:
+            tot_num_basis = num_basis * num_real_freqs
 
-    if direction is None:
-        assert beta is None, "beta should not be provided if direction is not provided"
-        basis_directions = mc.uniform_random_on_sphere(tot_num_basis, key)
-    else:
-        assert beta is not None, "beta should be provided if direction is provided"
-        basis_directions = mc.vonmises_fisher_on_sphere(tot_num_basis, -direction, beta, key)
-    if not same_direction_for_all_freqs:
-        basis_directions = basis_directions.reshape((num_real_freqs, num_basis, 3))
+        if direction is None:
+            assert beta is None, "beta should not be provided if direction is not provided"
+            basis_directions = mc.uniform_random_on_sphere(tot_num_basis, key)
+        else:
+            assert beta is not None, "beta should be provided if direction is provided"
+            basis_directions = mc.vonmises_fisher_on_sphere(tot_num_basis, -direction, beta, key)
+        if not same_direction_for_all_freqs:
+            basis_directions = basis_directions.reshape((num_real_freqs, num_basis, 3))
 
     Z = _rff_z_matrix(-pos, wave_num, phi_f, basis_directions, num_basis, seq_len, N, same_direction_for_all_freqs)
 
@@ -908,15 +819,6 @@ def krr_moving_mic_rff(p, pos, pos_eval, sequence, samplerate, c, reg_param, num
 
     p_est = reconstruct_moving_mic_rff(params, pos_eval, wave_num, basis_directions, same_direction_for_all_freqs)
 
-    #z_eval = _get_rff_basis_vec(pos_eval, basis_directions, wave_num, same_direction_for_all_freqs)
-    #p_est = jnp.sum(z_eval * params[:,None,:], axis=-1) #(num_real_freqs, num_eval)
-
-
-    # if same_direction_for_all_freqs:
-    #     z_eval = pw.plane_wave(pos_eval, basis_directions, wave_num) / jnp.sqrt(num_basis)
-    # else:
-    #     z_eval = jnp.stack([pw.plane_wave(pos_eval, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / jnp.sqrt(num_basis)
-    #z_eval = jnp.moveaxis(z_eval, 0, 1) # (num_eval, num_real_freqs, num_basis)
     if return_params:
         return p_est, params, basis_directions, Z
     return p_est # (num_real_freqs, num_eval)
@@ -943,44 +845,85 @@ def _get_rff_basis_vec(pos, basis_directions, wave_num, same_direction_for_all_f
     return z
 
 
-# @partial(jax.jit, static_argnames=["num_basis", "seq_len", "num_periods", "N"])
-# def _rff_compilable_subproblem(p, pos, pos_eval, sequence, samplerate, c, reg_param, num_basis, seq_len, N, num_periods, key):
-#     wave_num = ft.get_real_wavenum(seq_len, samplerate, c)
-#     num_real_freqs = wave_num.shape[-1]
-#     phi_f = _seq_stft_krr_multiperiod(sequence, num_periods)
-
-#     basis_directions = mc.uniform_random_on_sphere(num_basis*num_real_freqs, key).reshape((num_real_freqs, num_basis, 3))
-
-#     Z = _rff_z_matrix(-pos, wave_num, phi_f, basis_directions, num_basis, seq_len, N)
-
-#     system_mat = Z.T @ Z
-#     system_mat = system_mat + seq_len * reg_param * jnp.eye(seq_len * num_basis, dtype=Z.dtype)
-#     projected_data = Z.T @ p
-
-#     params = jax_splin.solve(system_mat, projected_data, assume_a="pos")
-#     #params = jnp.linalg.solve(system_mat, projected_data)
-#     params = params.reshape(seq_len, num_basis)
-#     params = ft.real_vec_to_dft_domain(params, scale=True) # (num_real_freqs, num_basis)
-
-#     z_eval = jnp.stack([pw.plane_wave(pos_eval, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / jnp.sqrt(num_basis)
-#     z_eval = jnp.moveaxis(z_eval, 0, 1) # (num_eval, num_real_freqs, num_basis)
-
-#     p_est = jnp.sum(z_eval * params[None,:,:], axis=-1).T #(num_eval, seq_len)
-#     return p_est, params, Z
-
 
 @partial(jax.jit, static_argnames=["num_basis", "seq_len", "N", "same_direction_for_all_freqs"])
 def _rff_z_matrix(pos, wave_num, phi_f, basis_directions, num_basis, seq_len, N, same_direction_for_all_freqs):
 
     Z = _get_rff_basis_vec(pos, basis_directions, wave_num, same_direction_for_all_freqs)
-    # num_real_freqs = wave_num.shape[-1]
-    # if same_direction_for_all_freqs:
-    #     Z = pw.plane_wave(pos, basis_directions, wave_num) / jnp.sqrt(num_basis)
-    # else:
-    #     Z = jnp.stack([pw.plane_wave(pos, basis_directions[f,:,:], wave_num[f]) for f in range(num_real_freqs)], axis=0) / jnp.sqrt(num_basis)
 
     Z = Z * phi_f[:,:,None]
     Z = ft.dft_domain_to_real_vec(Z, even=True, scale=True)  # (seq_len, N, num_basis)
     Z = jnp.moveaxis(Z, 0, 1) # (N, seq_len, num_basis)
     Z = jnp.reshape(Z, (N, seq_len* num_basis)) # (N, seq_len * num_basis)
     return Z
+
+
+
+
+@partial(jax.jit, static_argnames=["num_basis", "same_direction_for_all_freqs", "score"])
+def cross_validation_krr_moving_mic_rff(data, pos, sequence, samplerate, c, reg_params, num_basis=64, key=None, direction = None, beta = None, same_direction_for_all_freqs=True, score="gcv"):
+    """Computes the GCV score for sound field estimation with random Fourier features
+
+    IMPORTANT: The same key must be used as in the later estimation step for the cross validation results to be valid
+
+    Parameters
+    ----------
+    data : np.ndarray of shape (num_samples)
+        the time-domain sound pressure measurements samples
+    pos : np.ndarray of shape (num_samples, 3)
+        Positions of the measurement points.
+    reg_param : float
+        regularization parameter to evaluate the GCV score for.
+
+    score : str in {'gcv'}
+        decides which type of score to use to determine the best regularization parameter.
+        gcv is generalized cross-validation
+
+    Returns
+    -------
+    best_reg_param : float
+        regularization parameter that minimizes the chosen score
+    score_values : ndarray of shape (len(reg_params),)
+        score values for each regularization parameter
+
+    References
+    ----------
+    Time-domain sound field estimation using kernel ridge regression, J Brunnström, M. B. Møller, J Østergaard, S Koyama, T van Waterschoot, M Moonen, 2025
+    """
+    data, pos, _, sequence, N, seq_len, num_periods = _parse_moving_mic_args(data, pos, jnp.zeros((1,3)), sequence)
+
+    if key is None:
+        key = jax.random.key(23456743)
+
+    wave_num = ft.get_real_wavenum(seq_len, samplerate, c)
+    num_real_freqs = wave_num.shape[-1]
+    phi_f = _seq_stft_krr_multiperiod(sequence, num_periods)
+
+    if same_direction_for_all_freqs:
+        tot_num_basis = num_basis
+    else:
+        tot_num_basis = num_basis * num_real_freqs
+
+    if direction is None:
+        assert beta is None, "beta should not be provided if direction is not provided"
+        basis_directions = mc.uniform_random_on_sphere(tot_num_basis, key)
+    else:
+        assert beta is not None, "beta should be provided if direction is provided"
+        basis_directions = mc.vonmises_fisher_on_sphere(tot_num_basis, -direction, beta, key)
+    if not same_direction_for_all_freqs:
+        basis_directions = basis_directions.reshape((num_real_freqs, num_basis, 3))
+
+    Z = _rff_z_matrix(-pos, wave_num, phi_f, basis_directions, num_basis, seq_len, N, same_direction_for_all_freqs)
+
+    def compute_score(reg):
+        if score == "gcv":
+            score_value = ls.gcv_score(Z, data, reg)
+        else:
+            raise ValueError("unrecognized score parameter")
+        return score_value
+    
+    score_values = jax.lax.map(compute_score, reg_params, batch_size=1)  
+    best_index = jnp.argmin(score_values)
+    best_reg_param = reg_params[best_index]
+
+    return best_reg_param, score_values
